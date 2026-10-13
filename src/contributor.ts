@@ -1,0 +1,44 @@
+import { nextSentence, skipSentence } from "./db";
+import { readSession, signSession } from "./session";
+import { isPhoneId } from "./text";
+import { json, type Deps, type Env } from "./types";
+
+const DAY_MS = 86_400_000;
+
+async function body(req: Request): Promise<Record<string, unknown>> {
+  try {
+    const b = await req.json();
+    return b && typeof b === "object" ? (b as Record<string, unknown>) : {};
+  } catch {
+    return {};
+  }
+}
+
+export async function handleContributor(req: Request, env: Env, deps: Deps): Promise<Response> {
+  const { pathname } = new URL(req.url);
+
+  if (pathname === "/api/session" && req.method === "POST") {
+    const b = await body(req);
+    if (!isPhoneId(b.phoneId) || typeof b.turnstileToken !== "string") return json({ error: "bad_request" }, 400);
+    const ok = await deps.verifyTurnstile(b.turnstileToken, req.headers.get("CF-Connecting-IP"), env);
+    if (!ok) return json({ error: "turnstile_failed" }, 403);
+    return json({ session: await signSession(b.phoneId, deps.now() + DAY_MS, env.SESSION_SECRET) });
+  }
+
+  const phoneId = await readSession(req.headers.get("X-Session"), deps.now(), env.SESSION_SECRET);
+  if (!phoneId) return json({ error: "no_session" }, 401);
+
+  if (pathname === "/api/next" && req.method === "GET") {
+    const s = await nextSentence(env.DB, phoneId);
+    return s ? json(s) : new Response(null, { status: 204 });
+  }
+
+  if (pathname === "/api/skip" && req.method === "POST") {
+    const b = await body(req);
+    if (!Number.isInteger(b.sentenceId)) return json({ error: "bad_request" }, 400);
+    await skipSentence(env.DB, phoneId, b.sentenceId as number);
+    return json({ ok: true });
+  }
+
+  return json({ error: "not_found" }, 404);
+}

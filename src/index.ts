@@ -1,2 +1,10 @@
-// Stub so wrangler's `main` resolves; a later task replaces it with the real router.
-export default { fetch: () => new Response("not implemented", { status: 501 }) };
+import { handleContributor } from "./contributor";
+import type { Deps, Env } from "./types";
+
+export function createApp(deps: Deps) {
+  return async (req: Request, env: Env): Promise<Response> => {
+    const { pathname } = new URL(req.url);
+    if (pathname.startsWith("/api/")) return handleContributor(req, env, deps);
+    return env.ASSETS.fetch(req);
+  };
+}
