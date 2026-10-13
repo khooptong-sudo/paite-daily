@@ -1,0 +1,25 @@
+{
+  "name": "paite-daily",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "deploy": "wrangler deploy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.4.1",
+    "@cloudflare/workers-types": "^5.20261013.1",
+    "typescript": "^7.0.2",
+    "vitest": "^4.1.11",
+    "wrangler": "^4.150.0"
+  },
+  "dependencies": {
+    "jose": "^6.2.12"
+  }
+}
