@@ -1,6 +1,6 @@
-import { nextSentence, skipSentence } from "./db";
+import { answersInLastMinute, nextSentence, recordAnswer, skipSentence, type Register } from "./db";
 import { readSession, signSession } from "./session";
-import { isPhoneId } from "./text";
+import { cleanText, isPhoneId } from "./text";
 import { json, type Deps, type Env } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -38,6 +38,19 @@ export async function handleContributor(req: Request, env: Env, deps: Deps): Pro
     if (!Number.isInteger(b.sentenceId)) return json({ error: "bad_request" }, 400);
     await skipSentence(env.DB, phoneId, b.sentenceId as number);
     return json({ ok: true });
+  }
+
+  if (pathname === "/api/answer" && req.method === "POST") {
+    const b = await body(req);
+    const paite = cleanText(b.paite, 300);
+    const register = (b.register ?? "both") as Register;
+    const name = b.name === undefined || b.name === "" ? null : cleanText(b.name, 60);
+    if (!Number.isInteger(b.sentenceId) || !paite || !["spoken", "written", "both"].includes(register) || (b.name && !name)) {
+      return json({ error: "bad_request" }, 400);
+    }
+    if ((await answersInLastMinute(env.DB, phoneId)) >= 10) return json({ error: "slow_down" }, 429);
+    const result = await recordAnswer(env.DB, { phoneId, sentenceId: b.sentenceId as number, paite, register, name });
+    return result === "ok" ? json({ ok: true }) : json({ error: "closed" }, 409);
   }
 
   return json({ error: "not_found" }, 404);

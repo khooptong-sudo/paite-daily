@@ -54,3 +54,10 @@ describe("assignment", () => {
     }
   });
 });
+
+it("skipping a nonexistent sentence returns 200 and records nothing", async () => {
+  const r = await call("/api/skip", { method: "POST", session: await session(PHONE_A), body: JSON.stringify({ sentenceId: 999999 }) });
+  expect(r.status).toBe(200);
+  const { n } = (await env.DB.prepare("SELECT count(*) AS n FROM seen").first<{ n: number }>())!;
+  expect(n).toBe(0);
+});
