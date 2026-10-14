@@ -14,7 +14,7 @@
   if (!phoneId) { phoneId = crypto.randomUUID(); store.set("phone", phoneId); }
   let session = null, current = null;
 
-  const status = (msg, ok = false) => { $("status").textContent = msg; $("status").className = "status " + (ok ? "ok" : msg ? "err" : ""); };
+  const status = (msg, ok = false) => { $("status").innerHTML = msg; $("status").className = "status " + (ok ? "ok" : msg ? "err" : ""); };
   const todayKey = () => "count:" + new Date().toISOString().slice(0, 10);
   const showToday = () => { const n = store.get(todayKey(), 0); $("today").textContent = n ? `🔥 ${n} ${t("today")}` : ""; };
 
@@ -63,12 +63,12 @@
   }
 
   async function next() {
-    $("sentence").textContent = t("loading");
+    $("sentence").innerHTML = tBoth("loading");
     $("send").disabled = true;
     $("skip").disabled = true;
     try {
       const r = await api("/api/next");
-      if (r.status === 204) { current = null; $("sentence").textContent = t("empty"); return; }
+      if (r.status === 204) { current = null; $("sentence").innerHTML = tBoth("empty"); return; }
       current = await r.json();
       $("sentence").textContent = current.english;
       $("send").disabled = false;
@@ -77,7 +77,7 @@
       current = null;
       $("sentence").textContent = "";
       $("send").disabled = false;
-      status(t("offline"));
+      status(tBoth("offline"));
     } finally {
       $("skip").disabled = false;
     }
@@ -93,18 +93,18 @@
     try {
       const r = await api("/api/answer", { method: "POST",
         body: JSON.stringify({ sentenceId: current.id, paite, register, name: store.get("name", "") }) });
-      if (r.status === 429) { status(t("tooFast")); $("send").disabled = false; $("skip").disabled = false; return; }
-      if (!r.ok && r.status !== 409) { status(t("offline")); $("send").disabled = false; $("skip").disabled = false; return; }
+      if (r.status === 429) { status(tBoth("tooFast")); $("send").disabled = false; $("skip").disabled = false; return; }
+      if (!r.ok && r.status !== 409) { status(tBoth("offline")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (r.ok) {
         const n = store.get(todayKey(), 0) + 1;
         store.set(todayKey(), n); showToday();
-        status(n % 5 === 0 ? t("thanks") : "", true);
+        status(n % 5 === 0 ? tBoth("thanks") : "", true);
         if (!store.get("askedName", false)) { store.set("askedName", true); $("ask-name").hidden = false; }
       }
       $("paite").value = "";
       next();
     } catch {
-      status(t("offline"));
+      status(tBoth("offline"));
       $("send").disabled = false; $("skip").disabled = false;
     }
   });

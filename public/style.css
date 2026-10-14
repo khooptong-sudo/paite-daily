@@ -49,6 +49,8 @@
 .register legend { font-weight: 700; margin-bottom: 6px; }
 .register label { display: inline-flex; gap: 6px; align-items: center; font-weight: 400; }
 .licence { color: var(--muted); font-size: .85rem; margin: 0; }
+main { overflow-wrap: anywhere; }
+button.primary small { color: inherit; opacity: .85; }
 small { display: block; font-size: .75em; color: var(--muted); font-weight: 400; }
 #ask-name { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 14px; }
 .register input { width: auto; padding: 0; }
