@@ -1,0 +1,20 @@
+// UI text. `pai` is filled in from the owner's Paite translations; when empty the page shows `en` only.
+window.STRINGS = {
+  translate: { pai: "", en: "Translate into Paite" },
+  send: { pai: "", en: "Send" },
+  skip: { pai: "", en: "Skip" },
+  register: { pai: "", en: "Spoken / Written / Both" },
+  spoken: { pai: "", en: "Spoken" },
+  written: { pai: "", en: "Written" },
+  both: { pai: "", en: "Both" },
+  thanks: { pai: "", en: "Thank you!" },
+  today: { pai: "", en: "today" },
+  askName: { pai: "", en: "Want your name on the Paite contributors list?" },
+  yourName: { pai: "", en: "Your name" },
+  noThanks: { pai: "", en: "No thanks" },
+  licence: { pai: "", en: "Your translations are given to everyone, free (public domain)" },
+  loading: { pai: "", en: "Loading the next sentence…" },
+  empty: { pai: "", en: "No more sentences right now. Come back tomorrow." },
+  offline: { pai: "", en: "Could not send. Check your internet and try again." },
+  tooFast: { pai: "", en: "Slow down a little, then try again." },
+};

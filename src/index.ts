@@ -6,6 +6,12 @@ export function createApp(deps: Deps) {
   return async (req: Request, env: Env): Promise<Response> => {
     const { pathname } = new URL(req.url);
     if (pathname.startsWith("/api/")) return handleContributor(req, env, deps);
+    if (pathname === "/" || pathname === "/index.html") {
+      const page = await env.ASSETS.fetch(req);
+      return new HTMLRewriter()
+        .on("html", { element: (el) => { el.setAttribute("data-sitekey", env.TURNSTILE_SITE_KEY); } })
+        .transform(page);
+    }
     return env.ASSETS.fetch(req);
   };
 }
