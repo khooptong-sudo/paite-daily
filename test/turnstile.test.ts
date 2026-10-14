@@ -13,3 +13,10 @@ it("fails when siteverify says no, errors, or the token is empty", async () => {
   expect(await verifyTurnstile("tok", null, env, (async () => { throw new Error("down"); }) as typeof fetch)).toBe(false);
   expect(await verifyTurnstile("", null, env, reply(true) as typeof fetch)).toBe(false);
 });
+
+it("passes a 5s abort signal and treats a timeout as failure", async () => {
+  let sig: AbortSignal | undefined;
+  const f = (async (_u: string, init: RequestInit) => { sig = init.signal as AbortSignal; throw new DOMException("timed out", "TimeoutError"); }) as unknown as typeof fetch;
+  expect(await verifyTurnstile("tok", null, env, f)).toBe(false);
+  expect(sig).toBeInstanceOf(AbortSignal);
+});

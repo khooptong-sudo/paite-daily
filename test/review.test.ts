@@ -32,6 +32,12 @@ describe("owner list", () => {
     env.REVIEWERS = JSON.stringify({ "third@example.org": "Third" });
     expect((await rev("/review/api/undo", { reviewId: 1 }, "third@example.org")).status).toBe(403);
   });
+  it("unset OWNER_EMAIL means nobody is owner and does not throw", async () => {
+    (env as any).OWNER_EMAIL = undefined;
+    const r = await rev("/review/api/me", undefined, "owner@example.org");
+    expect(r.status).toBe(200);
+    expect((await r.json<{ owner: boolean }>()).owner).toBe(false);
+  });
   it("empty OWNER_EMAIL means nobody is owner", async () => {
     env.OWNER_EMAIL = "";
     const r = await rev("/review/api/me", undefined, "owner@example.org");
@@ -85,6 +91,14 @@ describe("review flow", () => {
     const card = await (await rev("/review/api/next")).json<{ answers: { id: number }[] }>();
     await rev("/review/api/decide", { sentenceId: id, decision: "reject", answerIds: card.answers.map((a) => a.id) });
     expect(await env.DB.prepare("SELECT status, answer_count FROM sentences WHERE id = ?1").bind(id).first()).toEqual({ status: "open", answer_count: 0 });
+  });
+
+  it("reject keeps a sentence full when two new answers remain", async () => {
+    const id = await fullSentence();
+    await env.DB.prepare("INSERT INTO answers (sentence_id, paite, register, phone_id) VALUES (?1, 'Ka dam hi.', 'both', ?2)").bind(id, PHONE_C).run();
+    const card = await (await rev("/review/api/next")).json<{ answers: { id: number }[] }>();
+    await rev("/review/api/decide", { sentenceId: id, decision: "reject", answerIds: [card.answers[0].id] });
+    expect(await env.DB.prepare("SELECT status, answer_count FROM sentences WHERE id = ?1").bind(id).first()).toEqual({ status: "full", answer_count: 2 });
   });
 
   it("deciding without holding the lock is refused", async () => {

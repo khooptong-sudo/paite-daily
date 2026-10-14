@@ -56,7 +56,9 @@ export async function recordAnswer(
     await db
       .prepare("UPDATE sentences SET answer_count = answer_count - 1, status = 'open' WHERE id = ?1 AND status IN ('open', 'full')")
       .bind(a.sentenceId)
-      .run();
+      .run()
+      .catch((err) => console.error("recordAnswer compensation failed", a.sentenceId, err));
+    if (/UNIQUE constraint failed: seen\./.test(String(e))) return "closed"; // same phone raced itself (double tap)
     throw e;
   }
   return "ok";

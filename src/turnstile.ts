@@ -7,7 +7,7 @@ export async function verifyTurnstile(token: string, ip: string | null, env: Env
   form.append("response", token);
   if (ip) form.append("remoteip", ip);
   try {
-    const r = await fetcher("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
+    const r = await fetcher("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form, signal: AbortSignal.timeout(5000) });
     const data = await r.json<{ success?: boolean }>();
     return data.success === true;
   } catch {

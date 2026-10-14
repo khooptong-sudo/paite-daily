@@ -53,6 +53,7 @@
     $("english").textContent = "Loading…";
     try {
       const r = await fetch("/review/api/next");
+      if (expired(r)) { card = null; status(EXPIRED); $("english").textContent = EXPIRED; $("answers").replaceChildren(); return; }
       if (r.status === 204) { card = null; if (!keepStatus) { status(""); hideUndo(); } $("english").textContent = "Nothing to review right now. 🎉"; $("answers").replaceChildren(); return; }
       if (!r.ok) { card = null; status(""); hideUndo(); $("english").textContent = "Could not load. Reload the page."; $("answers").replaceChildren(); return; }
       card = await r.json();
@@ -63,6 +64,7 @@
   }
 
   const EXPIRED = "Sign-in expired. Reload the page.";
+  const expired = (r) => r.status === 401 || r.status === 403 || r.type === "opaqueredirect" || (r.redirected && !new URL(r.url).pathname.startsWith("/review/api/"));
   let busy = false;
   async function send(extra) {
     if (!card || busy) return;
@@ -72,7 +74,7 @@
         sentenceId: card.sentence.id, answerIds: card.answers.map((a) => a.id),
         register: $("register").value || undefined, note: $("note").value || undefined, ...extra,
       });
-      if (r.status === 401 || r.status === 403) { status(EXPIRED); return; }
+      if (expired(r)) { status(EXPIRED); return; }
       if (r.status === 409) status("Your lock ran out or someone else took this one. Loading the next.");
       else if (!r.ok) { status("Could not save. Try again."); return; }
       else { status("Saved.", true); if (isOwner) showUndo((await r.json()).reviewId); }
@@ -89,7 +91,7 @@
       if (r.status === 409) {
         const j = await r.json().catch(() => ({}));
         status(j.reason === "exported" ? "Already published; cannot undo." : j.reason === "not_latest" ? "A newer review exists; cannot undo." : "Cannot undo.");
-      } else if (r.status === 401 || r.status === 403) status(EXPIRED);
+      } else if (expired(r)) status(EXPIRED);
       else if (!r.ok) status("Cannot undo.");
       else { hideUndo(); status("Undone.", true); await next(true); }
     } catch { status(EXPIRED); }

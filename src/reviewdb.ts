@@ -95,7 +95,8 @@ export async function decide(db: D1Database, email: string, now: number, d: Deci
       db.prepare(`UPDATE answers SET status = 'rejected' WHERE sentence_id = ?1 AND status = 'new' AND id IN (SELECT value FROM json_each(?4)) AND ${G}`)
         .bind(d.sentenceId, email, now, ids),
       d.decision === "reject"
-        ? db.prepare(`UPDATE sentences SET status = 'open', answer_count = (SELECT min(count(*), 2) FROM answers WHERE sentence_id = ?1 AND status = 'new') WHERE id = ?1 AND ${G}`).bind(d.sentenceId, email, now)
+        ? db.prepare(`UPDATE sentences SET answer_count = (SELECT min(count(*), 2) FROM answers WHERE sentence_id = ?1 AND status = 'new'),
+            status = CASE WHEN (SELECT count(*) FROM answers WHERE sentence_id = ?1 AND status = 'new') >= 2 THEN 'full' ELSE 'open' END WHERE id = ?1 AND ${G}`).bind(d.sentenceId, email, now)
         : db.prepare(`UPDATE sentences SET status = 'retired' WHERE id = ?1 AND ${G}`).bind(d.sentenceId, email, now),
     );
   }

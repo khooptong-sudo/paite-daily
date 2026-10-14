@@ -1,6 +1,6 @@
 // UI text. `pai` is filled in from the owner's Paite translations; when empty the page shows `en` only.
 window.STRINGS = {
-  translate: { pai: "Paite Pau in Lehkhia In", en: "Translate into Paite" },
+  translate: { pai: "Paite Pau in Letkhia In", en: "Translate into Paite" },
   send: { pai: "Khak", en: "Send" },
   skip: { pai: "Pai Kan", en: "Skip" },
   register: { pai: "Gen thoh / Gelh thoh / Anih in", en: "Spoken / Written / Both" },

@@ -1,5 +1,6 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
+import { recordAnswer } from "../src/db";
 import { addSentences, call, PHONE_A, PHONE_B, PHONE_C, session } from "./helpers";
 
 const answer = async (phone: string, sentenceId: number, paite = "Ka dam e.", extra: Record<string, unknown> = {}) =>
@@ -65,5 +66,16 @@ describe("answers", () => {
     const ids = await addSentences(...Array.from({ length: 11 }, (_, i) => `Sentence ${i}.`));
     for (const id of ids.slice(0, 10)) expect((await answer(PHONE_A, id)).status).toBe(200);
     expect((await answer(PHONE_A, ids[10])).status).toBe(429);
+  });
+
+  it("a constraint error on insert maps to closed and gives the claim back", async () => {
+    const [id] = await addSentences("I am well.");
+    const racing = new Proxy(env.DB, {
+      get: (t, k) => k === "batch"
+        ? async (stmts: D1PreparedStatement[]) => { await env.DB.prepare("INSERT INTO seen (phone_id, sentence_id, action) VALUES (?1, ?2, 'answered')").bind(PHONE_A, id).run(); return t.batch(stmts); }
+        : (t as any)[k].bind(t),
+    });
+    expect(await recordAnswer(racing, { phoneId: PHONE_A, sentenceId: id, paite: "Ka dam e.", register: "both", name: null }, 1)).toBe("closed");
+    expect(await env.DB.prepare("SELECT status, answer_count FROM sentences WHERE id = ?1").bind(id).first()).toEqual({ status: "open", answer_count: 0 });
   });
 });
