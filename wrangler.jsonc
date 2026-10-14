@@ -7,6 +7,7 @@
   "d1_databases": [
     { "binding": "DB", "database_name": "paite-daily", "database_id": "2f5a853a-51cb-4fe0-bf5a-29ebce3feb12", "migrations_dir": "migrations" }
   ],
+  "send_email": [{ "name": "ALERT_EMAIL", "allowed_sender_addresses": ["alerts@alerts.lamkalabs.com"] }],
   "routes": [{ "pattern": "paite.lamkalabs.com", "custom_domain": true }],
   "triggers": { "crons": ["0 3 * * *", "*/15 * * * *", "0 2 * * *"] },
   "vars": {
