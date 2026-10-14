@@ -1,5 +1,6 @@
 import { isOwner, reviewerName } from "./access";
 import { failingJobs } from "./export";
+import { isPhoneId } from "./text";
 import { claimNext, decide, undo, type Decision } from "./reviewdb";
 import { json, type Deps, type Env } from "./types";
 
@@ -31,6 +32,12 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
   }
   if (pathname === "/review/api/me" && req.method === "GET") {
     return json({ name: reviewerName(env, email), owner: isOwner(env, email) });
+  }
+  if (pathname === "/review/api/link-phone" && req.method === "POST") {
+    if (!isPhoneId(b.phoneId)) return json({ error: "bad_request" }, 400);
+    await env.DB.prepare("INSERT INTO reviewer_phones (phone_id, reviewer_email) VALUES (?1, ?2) ON CONFLICT (phone_id) DO UPDATE SET reviewer_email = excluded.reviewer_email")
+      .bind(b.phoneId.toLowerCase(), email).run();
+    return json({ ok: true });
   }
   if (pathname === "/review/api/health" && req.method === "GET") {
     if (!isOwner(env, email)) return json({ error: "owner_only" }, 403);

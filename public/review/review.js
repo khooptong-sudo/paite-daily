@@ -115,5 +115,7 @@
     } catch {}
   }
 
-  me().then((ok) => { if (ok) { next(); if (isOwner) health(); } });
+  // Link this browser's contributor phone id to the signed-in reviewer (for the badge on /contributors).
+  const linkPhone = () => { try { const id = JSON.parse(localStorage.getItem("pd:phone")); if (id) post("/review/api/link-phone", { phoneId: id }).catch(() => {}); } catch {} };
+  me().then((ok) => { if (ok) { linkPhone(); next(); if (isOwner) health(); } });
 })();

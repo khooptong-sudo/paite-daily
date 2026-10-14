@@ -1,4 +1,5 @@
 import { reviewerName } from "./access";
+import { getContributors, renderMarkdown } from "./contributors";
 import { normaliseEnglish } from "./text";
 import type { Env } from "./types";
 
@@ -81,7 +82,31 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
   return { n: results.length, path };
 }
 
+// The contents API commits one file per call, so CONTRIBUTORS.md is a second commit right after the data. Never fails the export.
+async function putContributors(env: Env, fetcher: typeof fetch): Promise<void> {
+  try {
+    const url = `https://api.github.com/repos/${env.CORPUS_REPO}/contents/CONTRIBUTORS.md`;
+    const cur = await fetcher(`${url}?ref=${encodeURIComponent(env.CORPUS_BRANCH)}`, { headers: ghHeaders(env), signal: AbortSignal.timeout(15_000) });
+    const sha = cur.ok ? ((await cur.json()) as { sha?: string }).sha : undefined;
+    const res = await fetcher(url, {
+      method: "PUT",
+      headers: { ...ghHeaders(env), "content-type": "application/json" },
+      body: JSON.stringify({ message: "community: update CONTRIBUTORS.md", content: toBase64Utf8(renderMarkdown(await getContributors(env))), branch: env.CORPUS_BRANCH, sha }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!res.ok) console.error("CONTRIBUTORS.md PUT", res.status);
+  } catch (e) {
+    console.error("CONTRIBUTORS.md", e);
+  }
+}
+
 export async function exportVerified(env: Env, fetcher: typeof fetch): Promise<{ exported: number; path: string | null }> {
+  const r = await exportRanges(env, fetcher);
+  if (r.exported > 0) await putContributors(env, fetcher);
+  return r;
+}
+
+async function exportRanges(env: Env, fetcher: typeof fetch): Promise<{ exported: number; path: string | null }> {
   let exported = 0;
   let path: string | null = null;
   // First finish every reserved range that GitHub may not hold yet.

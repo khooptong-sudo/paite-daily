@@ -3,6 +3,7 @@ import { logged, runNightly } from "./export";
 import { runPrereview } from "./prereview";
 import { runRefill } from "./refill";
 import { handleContributor } from "./contributor";
+import { getContributors, renderPage } from "./contributors";
 import { handleReview } from "./review";
 import { verifyTurnstile } from "./turnstile";
 import type { Deps, Env } from "./types";
@@ -10,6 +11,7 @@ import type { Deps, Env } from "./types";
 export function createApp(deps: Deps) {
   return async (req: Request, env: Env): Promise<Response> => {
     const { pathname } = new URL(req.url);
+    if (pathname === "/contributors") return new Response(renderPage(await getContributors(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     if (pathname.startsWith("/api/")) return handleContributor(req, env, deps);
     if (pathname.startsWith("/review/api/")) return handleReview(req, env, deps);
     if (pathname === "/" || pathname === "/index.html") {

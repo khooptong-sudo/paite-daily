@@ -1,3 +1,4 @@
+import { getContributors } from "./contributors";
 import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, skipSentence, type Register } from "./db";
 import { readSession, signSession } from "./session";
 import { cleanText, isPhoneId } from "./text";
@@ -24,6 +25,8 @@ export async function handleContributor(req: Request, env: Env, deps: Deps): Pro
     if (!ok) return json({ error: "turnstile_failed" }, 403);
     return json({ session: await signSession(b.phoneId, deps.now() + DAY_MS, env.SESSION_SECRET) });
   }
+
+  if (pathname === "/api/contributors" && req.method === "GET") return json(await getContributors(env));
 
   const phoneId = await readSession(req.headers.get("X-Session"), deps.now(), env.SESSION_SECRET);
   if (!phoneId) return json({ error: "no_session" }, 401);

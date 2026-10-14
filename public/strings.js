@@ -28,6 +28,8 @@ window.STRINGS = {
   share: { pai: "Khakkhia", en: "Share" },
   shareLine: { pai: "Paite pau gelhdan sinsakna a panla kha kahi", en: "I helped write Paite into the future" },
   sentences: { pai: "thuvual", en: "sentences" },
+  contributorsTitle: { pai: "Pan la khate", en: "Paite contributors" },
+  reviewerBadge: { pai: "Endiktu", en: "Reviewer" },
   gotIt: { pai: "", en: "Got it" },
   tooFast: { pai: "Hon awl deuh hiau in, kin law zezen.", en: "Slow down a little, then try again." },
 };

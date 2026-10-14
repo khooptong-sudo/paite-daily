@@ -11,6 +11,7 @@ function github(existing: Set<string> = new Set(), crashAfterSave = false) {
     const url = typeof input === "string" ? input : input.url;
     if (init?.method === "PUT") {
       const path = url.split("/contents/")[1];
+      if (path === "CONTRIBUTORS.md") return new Response("{}", { status: 201 });
       if (existing.has(path)) return new Response("{}", { status: 422 });
       puts.push({ url, body: JSON.parse(init.body as string) });
       existing.add(path);
