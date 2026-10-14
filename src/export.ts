@@ -133,6 +133,45 @@ export async function logged(env: Env, job: string, fn: () => Promise<unknown>):
   } catch (e) {
     console.error(job, e);
     await env.DB.prepare("INSERT INTO job_runs (job, ok, detail) VALUES (?1, 0, ?2)").bind(job, String(e)).run();
+    await alertIfSecondFailure(env, job);
+  }
+}
+
+// Jobs whose two most recent runs both failed.
+export async function failingJobs(db: D1Database): Promise<{ job: string; lastDetail: string; lastAt: string }[]> {
+  const { results } = await db.prepare(
+    `SELECT job, ok, detail, created_at FROM (
+       SELECT job, ok, detail, created_at, ROW_NUMBER() OVER (PARTITION BY job ORDER BY id DESC) AS rn FROM job_runs
+     ) WHERE rn <= 2 ORDER BY job, rn`,
+  ).all<{ job: string; ok: number; detail: string | null; created_at: string }>();
+  const out: { job: string; lastDetail: string; lastAt: string }[] = [];
+  for (let i = 0; i + 1 < results.length; i++) {
+    const [a, b] = [results[i], results[i + 1]];
+    if (a.job === b.job && a.ok === 0 && b.ok === 0) out.push({ job: a.job, lastDetail: (a.detail ?? "").slice(0, 200), lastAt: a.created_at });
+  }
+  return out;
+}
+
+// One email per failure streak: sent on the 2nd consecutive failure only. Never throws.
+async function alertIfSecondFailure(env: Env, job: string): Promise<void> {
+  try {
+    const to = (env.OWNER_EMAIL ?? "").split(",").map((o) => o.trim()).filter(Boolean);
+    if (!env.ALERT_EMAIL || to.length === 0) return;
+    const { results } = await env.DB.prepare("SELECT ok, detail, created_at FROM job_runs WHERE job = ?1 ORDER BY id DESC LIMIT 3")
+      .bind(job).all<{ ok: number; detail: string | null; created_at: string }>();
+    if (results.length < 2 || results[0].ok !== 0 || results[1].ok !== 0 || results[2]?.ok === 0) return;
+    await env.ALERT_EMAIL.send({
+      from: "alerts@alerts.lamkalabs.com",
+      to,
+      subject: `Paite Daily: ${job} failed twice`,
+      text: `Job: ${job}
+Time: ${results[0].created_at}
+Detail: ${(results[0].detail ?? "").slice(0, 200)}
+
+https://paite.lamkalabs.com/review`,
+    });
+  } catch (e) {
+    console.error("alert email", e);
   }
 }
 

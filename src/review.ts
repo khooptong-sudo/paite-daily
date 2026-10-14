@@ -1,4 +1,5 @@
 import { isOwner, reviewerName } from "./access";
+import { failingJobs } from "./export";
 import { claimNext, decide, undo, type Decision } from "./reviewdb";
 import { json, type Deps, type Env } from "./types";
 
@@ -30,6 +31,10 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
   }
   if (pathname === "/review/api/me" && req.method === "GET") {
     return json({ name: reviewerName(env, email), owner: isOwner(env, email) });
+  }
+  if (pathname === "/review/api/health" && req.method === "GET") {
+    if (!isOwner(env, email)) return json({ error: "owner_only" }, 403);
+    return json({ failing: (await failingJobs(env.DB)).map((f) => ({ job: f.job, lastAt: f.lastAt, detail: f.lastDetail })) });
   }
   return json({ error: "not_found" }, 404);
 }

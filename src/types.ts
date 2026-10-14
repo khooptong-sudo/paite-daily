@@ -12,6 +12,7 @@ export interface Env {
   CORPUS_REPO: string;
   CORPUS_BRANCH: string;
   DEEPSEEK_API_KEY?: string;
+  ALERT_EMAIL?: SendEmail;
 }
 
 export interface Deps {

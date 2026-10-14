@@ -94,5 +94,19 @@
   $("reject").addEventListener("click", () => send({ decision: "reject" }));
   $("retire").addEventListener("click", () => send({ decision: "retire" }));
 
-  me().then((ok) => ok && next());
+  async function health() {
+    try {
+      const r = await fetch("/review/api/health");
+      if (!r.ok) return;
+      const { failing } = await r.json();
+      if (!failing.length) return;
+      const b = document.createElement("div");
+      b.setAttribute("role", "alert");
+      b.style.cssText = "background:#b00020;color:#fff;padding:.5rem 1rem";
+      failing.forEach((f) => { const p = document.createElement("p"); p.textContent = `Background job failing: ${f.job} (last tried ${f.lastAt})`; b.append(p); });
+      document.body.prepend(b);
+    } catch {}
+  }
+
+  me().then((ok) => { if (ok) { next(); if (isOwner) health(); } });
 })();
