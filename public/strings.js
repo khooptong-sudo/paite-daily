@@ -41,5 +41,8 @@ window.STRINGS = {
   addSentence: { pai: "", en: "Add a sentence" },
   reviewerBadge: { pai: "Endiktu", en: "Reviewer" },
   gotIt: { pai: "", en: "Got it" },
+  invite: { pai: "", en: "Send to a friend" },
+  inviteText: { pai: "", en: "Help write Paite into the future. One sentence a day:" },
+  goalLine: { pai: "", en: "verified sentences" },
   tooFast: { pai: "Hon awl deuh hiau in, kin law zezen.", en: "Slow down a little, then try again." },
 };

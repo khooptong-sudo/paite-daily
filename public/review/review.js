@@ -38,7 +38,8 @@
       const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.answerId = a.id; cb.setAttribute("aria-label", "Also correct (keep as variant): " + a.paite);
       cb.addEventListener("change", () => box.classList.toggle("variant", cb.checked));
       also.append(cb, " Also correct (keep as variant)");
-      const accept = document.createElement("button"); accept.className = "primary"; accept.textContent = "✓ Accept this"; accept.setAttribute("aria-label", "Accept this: " + a.paite);
+      const accept = document.createElement("button"); accept.className = "primary"; accept.textContent = "✓ Accept this"; accept.setAttribute("aria-label", "Accept this: " + a.paite); accept.setAttribute("aria-keyshortcuts", "A");
+      const hintKey = document.createElement("span"); hintKey.className = "kbd"; hintKey.setAttribute("aria-hidden", "true"); hintKey.textContent = "A"; accept.append(hintKey);
       accept.addEventListener("click", () => send({
         decision: "accept", answerId: a.id,
         finalPaite: edit.value.trim() === a.paite ? undefined : edit.value,
@@ -51,7 +52,27 @@
     if (first) { first.tabIndex = -1; first.focus(); } else $("english").focus();
   }
 
+  async function queue() {
+    try {
+      const r = await fetch("/review/api/queue");
+      if (r.ok) $("queue").textContent = (await r.json()).waiting + " waiting";
+    } catch {}
+  }
+
+  document.addEventListener("keydown", (e) => {
+    if (e.repeat) return;
+    if (e.ctrlKey || e.metaKey || e.altKey || e.target.isContentEditable || (e.target.matches && e.target.matches("textarea, select, input:not([type=checkbox])"))) return;
+    const k = e.key.toLowerCase();
+    if (k === "?") $("help").hidden = !$("help").hidden;
+    else if (k === "a") { const box = (e.target.closest && e.target.closest(".answer")) || document.querySelector(".answer"); if (box) box.querySelector("button.primary").click(); }
+    else if (k === "r") $("reject").click();
+    else if (k === "u") { if (!$("undo").hidden) $("undo").click(); }
+    else return;
+    e.preventDefault();
+  });
+
   async function next(keepStatus = false) {
+    queue();
     $("english").textContent = "Loading…";
     try {
       const r = await fetch("/review/api/next");

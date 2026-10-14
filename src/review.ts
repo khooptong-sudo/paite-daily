@@ -1,5 +1,6 @@
 import { isOwner, reviewerName } from "./access";
 import { failingJobs } from "./export";
+import { waitingCounts } from "./digest";
 import { isPhoneId } from "./text";
 import { claimNext, decide, undo, type Decision } from "./reviewdb";
 import { json, type Deps, type Env } from "./types";
@@ -16,6 +17,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     const card = await claimNext(env.DB, email, deps.now());
     return card ? json(card) : new Response(null, { status: 204 });
   }
+  if (pathname === "/review/api/queue" && req.method === "GET") return json({ waiting: (await waitingCounts(env.DB, email, deps.now())).answers });
   if (pathname === "/review/api/decide" && req.method === "POST") {
     const ints = (x: unknown) => Array.isArray(x) && x.every(Number.isInteger);
     if (!Number.isInteger(b.sentenceId) || !["accept", "reject", "retire"].includes(b.decision as string) || !ints(b.answerIds) || (b.alsoCorrect !== undefined && !ints(b.alsoCorrect))) return json({ error: "bad_request" }, 400);

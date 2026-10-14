@@ -1,9 +1,11 @@
 import { PUAN } from "./puan";
+import { getGoal } from "./goal";
 import type { Env } from "./types";
 
 type Row = { name: string; n: number; badge: Badge; reviewer?: boolean };
 export type Badge = null | 10 | 50 | 100 | 500;
 export type Contributors = {
+  goal: { verified: number; goal: number };
   contributors: { name: string; verified: number; weekly: number; badge: Badge; reviewer: boolean }[];
   reviewers: { name: string; decisions: number; weekly: number }[];
   thisWeek: { contributors: Row[]; reviewers: Row[] };
@@ -40,6 +42,7 @@ export async function getContributors(env: Env): Promise<Contributors> {
   const cr = (n: (x: (typeof contributors)[number]) => number) => rank(contributors.map((x) => ({ name: x.name, n: n(x), badge: x.badge, reviewer: x.reviewer })));
   const rr = (n: (x: (typeof reviewers)[number]) => number, keepZero = false) => rank(reviewers.map((x) => ({ name: x.name, n: n(x), badge: null })), keepZero);
   return {
+    goal: await getGoal(env),
     contributors,
     reviewers,
     thisWeek: { contributors: cr((x) => x.weekly), reviewers: rr((x) => x.weekly) },
@@ -53,12 +56,17 @@ const mdEsc = (s: string) => s.replace(/[\\`*_{}\[\]()#+\-.!|<>~&]/g, "\\$&").re
 const SEAL = '<svg class="seal-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.6 2.2 3.4-.2 1 3.3 2.9 1.8-1.1 3.2 1.1 3.2-2.9 1.8-1 3.3-3.4-.2L12 22l-2.6-2.2-3.4.2-1-3.3-2.9-1.8 1.1-3.2L2.1 9l2.9-1.8 1-3.3 3.4.2z"/><path d="M8 12.2l2.7 2.7L16 9.6"/></svg>';
 const JS = `(function(){var S=window.STRINGS||{};
 document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
+var iv=S.inviteText,inv=document.getElementById("invite");if(iv&&inv)inv.href="https://wa.me/?text="+encodeURIComponent((iv.pai?iv.pai+" ":"")+iv.en+" https://paite.lamkalabs.com");
 var m=document.querySelector("main"),v=m.querySelectorAll("[data-view]"),b=m.querySelectorAll(".seg button");
 function show(k){v.forEach(function(x){x.classList.toggle("on",x.dataset.view===k)});b.forEach(function(x){x.setAttribute("aria-pressed",x.dataset.v===k)})}
 b.forEach(function(x){x.addEventListener("click",function(){show(x.dataset.v)})});show(m.dataset.start);
 function up(e){var n=+e.dataset.n,t=null;function f(T){t=t||T;var p=Math.min((T-t)/700,1);e.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)}requestAnimationFrame(f)}
 if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&"IntersectionObserver"in window){var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){io.unobserve(x.target);up(x.target)}})});document.querySelectorAll("b[data-n]").forEach(function(e){io.observe(e)})}
 })();`;
+
+const INVITE_EN = "Help write Paite into the future. One sentence a day:";
+const goalBar = (g: { verified: number; goal: number }) =>
+  `<div class="goal"><div class="goal-t"><b>${g.verified}</b> / ${g.goal} <span data-s="goalLine">verified sentences</span></div><div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${g.goal}" aria-valuenow="${g.verified}"><i style="width:${Math.min(100, Math.round((g.verified / g.goal) * 100))}%"></i></div></div>`;
 
 export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="/contributors.css">'): string {
   const count = (n: number, key: string, en: string) => `<span class="c"><b data-n="${n}">${n}</b><span class="u" data-s="${key}">${en}</span></span>`;
@@ -85,11 +93,13 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 ${css}</head>
 <body class="cp">
 <header class="hero">${PUAN}<h1 data-s="contributorsTitle">Paite contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
+${goalBar(d.goal)}
 <main data-start="${start}">
 <div class="seg" role="group" aria-label="Period"><button type="button" data-v="thisWeek" aria-pressed="false" data-s="thisWeek">This week</button><button type="button" data-v="allTime" aria-pressed="false" data-s="allTime">All time</button></div>
 ${view("thisWeek")}
 ${view("allTime")}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
+<a class="cta glass-btn" id="invite" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(INVITE_EN + " https://paite.lamkalabs.com")}"><span data-s="invite">Send to a friend</span><span class="go" aria-hidden="true">&rarr;</span></a>
 </main>
 <script src="/strings.js"></script>
 <script>${JS}</script>

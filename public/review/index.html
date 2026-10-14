@@ -15,12 +15,17 @@
   .answer label { display: flex; align-items: center; justify-content: flex-start; gap: 8px; font-weight: 400; }
   .answer input[type=checkbox] { width: auto; margin: 0; }
   .answer.variant { border: 2px dashed #fff; padding: 11px; }
+  .queue { color: var(--muted); font-size: .95rem; margin: 0; }
+  .kbd { display: none; margin-left: 8px; padding: 0 6px; border: 1px solid var(--line); border-radius: 6px; font-size: .75rem; opacity: .8; }
+  @media (min-width: 700px) { .kbd { display: inline-block; } }
+  #help[hidden] { display: none; }
   .row3 { display: flex; gap: 8px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
 <main>
   <header><h1>Paite Review</h1><div class="streak" id="who"></div></header>
+  <p class="queue" id="queue" aria-live="polite"></p>
   <section class="card" id="card">
     <div class="label">English</div>
     <p class="sentence" id="english" tabindex="-1">Loading…</p>
@@ -30,10 +35,11 @@
     </label>
     <label>Note (optional)<input id="note" maxlength="300"></label>
     <div class="row3">
-      <button type="button" id="reject">✕ Reject all</button>
+      <button type="button" id="reject" aria-keyshortcuts="R">✕ Reject all<span class="kbd" aria-hidden="true">R</span></button>
       <button type="button" id="retire">Retire sentence</button>
     </div>
-    <p class="status" id="status" role="status" aria-live="polite"></p><button type="button" id="undo" hidden>Undo</button>
+    <p class="status" id="status" role="status" aria-live="polite"></p><button type="button" id="undo" hidden aria-keyshortcuts="U">Undo<span class="kbd" aria-hidden="true">U</span></button>
+    <p class="meta" id="help" hidden>Shortcuts: A accept the focused answer (or the first), R reject all, U undo, ? show or hide this help.</p>
   </section>
 </main>
 <script src="/review/review.js"></script>

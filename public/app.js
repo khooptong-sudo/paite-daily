@@ -194,7 +194,20 @@
   }
   $("share").addEventListener("click", () => shareCard(total).catch(() => status(tBoth("shareError"))));
 
+  async function showGoal() {
+    try {
+      const r = await fetch("/api/goal");
+      if (!r.ok) return;
+      const g = await r.json();
+      $("goal-n").textContent = g.verified; $("goal-max").textContent = g.goal;
+      $("goal-bar").setAttribute("aria-valuemax", g.goal); $("goal-bar").setAttribute("aria-valuenow", g.verified);
+      $("goal-bar").firstChild.style.width = Math.min(100, Math.round((g.verified / g.goal) * 100)) + "%";
+      $("goal").hidden = false;
+    } catch {}
+  }
+
   showToday();
+  showGoal();
   next();
   refreshMe();
   feedback();

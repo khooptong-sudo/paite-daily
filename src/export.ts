@@ -1,4 +1,5 @@
 import { reviewerName } from "./access";
+import { runDigest } from "./digest";
 import { getContributors, renderMarkdown } from "./contributors";
 import { normaliseEnglish } from "./text";
 import type { Env } from "./types";
@@ -208,4 +209,5 @@ https://paite.lamkalabs.com/review`,
 export async function runNightly(env: Env, fetcher: typeof fetch): Promise<void> {
   await logged(env, "export", () => exportVerified(env, fetcher));
   await logged(env, "retire_owner", () => retireOwnerTranslations(env, fetcher));
+  await logged(env, "digest", () => runDigest(env));
 }

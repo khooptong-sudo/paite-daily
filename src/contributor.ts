@@ -1,3 +1,4 @@
+import { getGoal } from "./goal";
 import { badgeFor, getContributors } from "./contributors";
 import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, skipSentence, type Register } from "./db";
 import { readSession, signSession } from "./session";
@@ -26,7 +27,8 @@ export async function handleContributor(req: Request, env: Env, deps: Deps): Pro
     return json({ session: await signSession(b.phoneId, deps.now() + DAY_MS, env.SESSION_SECRET) });
   }
 
-  if (pathname === "/api/contributors" && req.method === "GET") return json(await getContributors(env));
+  if (pathname === "/api/contributors" && req.method === "GET") return json(await getContributors(env), 200, "public, max-age=300");
+  if (pathname === "/api/goal" && req.method === "GET") return json(await getGoal(env), 200, "public, max-age=300");
 
   const phoneId = await readSession(req.headers.get("X-Session"), deps.now(), env.SESSION_SECRET);
   if (!phoneId) return json({ error: "no_session" }, 401);

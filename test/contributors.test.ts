@@ -23,6 +23,7 @@ describe("contributors", () => {
     const r = await call("/api/contributors");
     const text = await r.text();
     expect(JSON.parse(text)).toEqual({
+      goal: { verified: 3, goal: 1000 },
       contributors: [{ name: "Mang & Co", verified: 3, weekly: 0, badge: null, reviewer: true }],
       reviewers: [{ name: "Rev One", decisions: 1, weekly: 1 }, { name: "Owner", decisions: 0, weekly: 0 }],
       thisWeek: { contributors: [], reviewers: [{ name: "Rev One", n: 1, badge: null }] },

@@ -105,6 +105,11 @@
 .cta small { color: #000; opacity: .75; font-weight: 400; font-size: .85rem; margin-top: 2px; }
 .cta .go { font-size: 1.5rem; }
 .cta:hover { transform: translateY(-1px); }
+.cta.glass-btn {
+  background: var(--surface); color: #fff; border: 1px solid var(--line); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 12px 32px rgba(0, 0, 0, .5);
+  -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
+}
+.cta.glass-btn small { color: var(--muted); }
 
 /* Motion */
 @media (prefers-reduced-motion: no-preference) {
