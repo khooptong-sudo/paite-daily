@@ -22,7 +22,10 @@
   function render() {
     $("english").textContent = card.sentence.english;
     $("english").focus();
-    $("answers").replaceChildren(...card.answers.map((a) => {
+    const multi = card.answers.length > 1;
+    const hint = document.createElement("p"); hint.className = "meta"; hint.hidden = !multi;
+    hint.textContent = "Press Accept this on the best answer. Tick any other correct answers to keep them as variants.";
+    $("answers").replaceChildren(hint, ...card.answers.map((a) => {
       const box = document.createElement("div");
       box.className = "answer";
       const p = document.createElement("p"); p.textContent = a.paite;
@@ -31,14 +34,15 @@
       box.append(p, meta);
       if (a.ai_note) { const ai = document.createElement("div"); ai.className = "ai"; ai.textContent = "AI note (advisory)" + (a.ai_flag ? " [" + a.ai_flag + "]" : "") + ": " + a.ai_note; box.append(ai); }
       const edit = document.createElement("textarea"); edit.value = a.paite; edit.maxLength = 300; edit.setAttribute("aria-label", "Edit before accepting: " + a.paite);
-      const also = document.createElement("label");
-      const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.answerId = a.id; cb.setAttribute("aria-label", "Also correct: " + a.paite);
-      also.append(cb, " Also correct");
+      const also = document.createElement("label"); also.hidden = !multi;
+      const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.answerId = a.id; cb.setAttribute("aria-label", "Also correct (keep as variant): " + a.paite);
+      cb.addEventListener("change", () => box.classList.toggle("variant", cb.checked));
+      also.append(cb, " Also correct (keep as variant)");
       const accept = document.createElement("button"); accept.className = "primary"; accept.textContent = "✅ Accept this"; accept.setAttribute("aria-label", "Accept this: " + a.paite);
       accept.addEventListener("click", () => send({
         decision: "accept", answerId: a.id,
         finalPaite: edit.value.trim() === a.paite ? undefined : edit.value,
-        alsoCorrect: [...document.querySelectorAll("[data-answer-id]:checked")].map((c) => Number(c.dataset.answerId)),
+        alsoCorrect: [...document.querySelectorAll("[data-answer-id]:checked")].map((c) => Number(c.dataset.answerId)).filter((id) => id !== a.id),
       }));
       box.append(edit, also, accept);
       return box;
