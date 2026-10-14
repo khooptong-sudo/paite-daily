@@ -1,6 +1,7 @@
 import { verifyAccess } from "./access";
 import { logged, runNightly } from "./export";
 import { runPrereview } from "./prereview";
+import { runRefill } from "./refill";
 import { handleContributor } from "./contributor";
 import { handleReview } from "./review";
 import { verifyTurnstile } from "./turnstile";
@@ -30,6 +31,9 @@ const app = createApp({
 export default {
   fetch: (req: Request, env: Env) => app(req, env),
   scheduled: async (c: ScheduledController, env: Env, ctx: ExecutionContext) => {
-    ctx.waitUntil(c.cron === "*/15 * * * *" ? logged(env, "prereview", () => runPrereview(env, fetch)) : runNightly(env, fetch));
+    ctx.waitUntil(
+      c.cron === "*/15 * * * *" ? logged(env, "prereview", () => runPrereview(env, fetch))
+      : c.cron === "0 2 * * *" ? logged(env, "refill", () => runRefill(env, fetch, Date.now()))
+      : runNightly(env, fetch));
   },
 } satisfies ExportedHandler<Env>;

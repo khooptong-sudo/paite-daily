@@ -23,7 +23,7 @@ describe("prereview", () => {
       bodies.push(init.body as string);
       return reply({ answers: [{ id: a, note: "n".repeat(200), flag: "ok" }, { id: b, note: "tedim", flag: "tedim_style" }, { id: 9999, note: "x", flag: "ok" }, { id: c, note: "x", flag: "bogus" }], agree: false });
     }) as unknown as typeof fetch;
-    expect(await runPrereview(keyed, f)).toEqual({ noted: 3, failed: 0 });
+    expect(await runPrereview(keyed, f)).toEqual({ noted: 2, failed: 0 });
     expect((await note(a))!.ai_note).toHaveLength(140);
     expect(await note(b)).toEqual({ ai_note: "tedim", ai_flag: "tedim_style" });
     expect((await note(c))!.ai_note).toBeNull();
@@ -80,6 +80,48 @@ describe("prereview", () => {
     expect(await note(a)).toEqual({ ai_note: "old", ai_flag: "ok" });
     expect(await note(b)).toEqual({ ai_note: "bnote", ai_flag: "ok" });
     expect((await env.DB.prepare("SELECT ai_agree FROM sentences WHERE id = ?1").bind(s).first<{ ai_agree: number }>())!.ai_agree).toBe(0);
+  });
+
+  it("attempts increment on a returned call, cap at 3, order by attempts", async () => {
+    const [s1, s2] = await addSentences("One", "Two");
+    const a = await answer(s1, "aa"), b = await answer(s2, "bb");
+    const seen: number[] = [];
+    const f = (async (_u: string, init: RequestInit) => {
+      const sid = JSON.parse(JSON.parse(init.body as string).messages[1].content.split("Answers: ")[1])[0].id;
+      seen.push(sid);
+      return reply({ answers: [{ id: sid === a ? 9999 : sid, note: "ok", flag: "ok" }] }); // never returns a
+    }) as unknown as typeof fetch;
+    for (let i = 0; i < 4; i++) await runPrereview(keyed, f).catch(() => 0);
+    const n = async (id: number) => (await env.DB.prepare("SELECT ai_attempts FROM answers WHERE id = ?1").bind(id).first<{ ai_attempts: number }>())!.ai_attempts;
+    expect(await n(a)).toBe(3);
+    expect(seen.filter((x) => x === a)).toHaveLength(3);
+    expect((await note(a))!.ai_note).toBeNull();
+    // a (0 attempts) was sent before b only on run 1; after b is noted it never blocks
+    expect(await n(b)).toBe(1);
+  });
+
+  it("200 with unparseable body increments attempts; 500 does not", async () => {
+    const [s] = await addSentences("One"); const a = await answer(s, "aa");
+    const n = async () => (await env.DB.prepare("SELECT ai_attempts FROM answers WHERE id = ?1").bind(a).first<{ ai_attempts: number }>())!.ai_attempts;
+    await runPrereview(keyed, (async () => new Response("no", { status: 500 })) as unknown as typeof fetch);
+    expect(await n()).toBe(0);
+    await runPrereview(keyed, (async () => new Response("not json")) as unknown as typeof fetch);
+    expect(await n()).toBe(1);
+    await runPrereview(keyed, (async () => reply("garbage")) as unknown as typeof fetch);
+    expect(await n()).toBe(2);
+  });
+
+  it("at most 20 sentences per run", async () => {
+    const ids = await addSentences(...Array.from({ length: 25 }, (_, i) => `Sentence ${i}`));
+    for (const s of ids) await answer(s, "pp");
+    let calls = 0;
+    const f = (async (_u: string, init: RequestInit) => {
+      calls++;
+      const sid = JSON.parse(JSON.parse(init.body as string).messages[1].content.split("Answers: ")[1])[0].id;
+      return reply({ answers: [{ id: sid, note: "ok", flag: "ok" }] });
+    }) as unknown as typeof fetch;
+    expect(await runPrereview(keyed, f)).toEqual({ noted: 20, failed: 0 });
+    expect(calls).toBe(20);
   });
 
   it("claimNext orders agree, unnoted/disagree, then junk/english", async () => {
