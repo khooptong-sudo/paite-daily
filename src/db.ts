@@ -61,3 +61,27 @@ export async function recordAnswer(
   }
   return "ok";
 }
+
+export type FeedbackItem = { reviewId: number; english: string; yours: string; result: "correct" | "fixed" | "other" | "retry"; corrected: string | null; note: string | null };
+
+// Latest not-undone review per sentence that covered one of this phone's answers; retired sentences are left out.
+export async function feedbackFor(db: D1Database, phoneId: string, after: number): Promise<FeedbackItem[]> {
+  const rows = await db
+    .prepare(
+      `SELECT r.id AS reviewId, s.english, a.paite AS yours, r.decision, r.accepted_answer_id AS acc, r.final_paite AS fin, a.id AS aid, a.status, r.note
+       FROM reviews r
+       JOIN sentences s ON s.id = r.sentence_id AND s.status <> 'retired'
+       JOIN answers a ON a.sentence_id = r.sentence_id AND a.phone_id = ?1
+         AND a.id IN (SELECT value FROM json_each(COALESCE(r.answer_ids, '[]')))
+       WHERE r.id > ?2 AND r.undone_at IS NULL AND r.decision <> 'retire'
+         AND r.id = (SELECT MAX(id) FROM reviews WHERE sentence_id = r.sentence_id AND undone_at IS NULL)
+       ORDER BY r.id DESC, a.id LIMIT 20`,
+    )
+    .bind(phoneId, after)
+    .all<{ reviewId: number; english: string; yours: string; decision: string; acc: number | null; fin: string | null; aid: number; status: string; note: string | null }>();
+  return rows.results.map((x) => {
+    const mine = x.decision === "accept" && x.acc === x.aid;
+    const result = x.decision === "reject" ? "retry" : mine ? (x.fin === x.yours ? "correct" : "fixed") : x.status === "also_correct" ? "correct" : "other";
+    return { reviewId: x.reviewId, english: x.english, yours: x.yours, result, corrected: result === "fixed" || result === "other" ? x.fin : null, note: x.note };
+  });
+}

@@ -16,5 +16,13 @@ window.STRINGS = {
   loading: { pai: "Aban adi hong ki load lel ahi", en: "Loading the next sentence…" },
   empty: { pai: "Tuni a dia bei phot, zingchiang in hong en nawn in.", en: "No more sentences right now. Come back tomorrow." },
   offline: { pai: "Na submission paisuak lou, na internet check mah.", en: "Could not send. Check your internet and try again." },
+  feedbackTitle: { pai: "", en: "What the reviewers said" },
+  yours: { pai: "", en: "You wrote" },
+  correct: { pai: "", en: "Correct" },
+  corrected: { pai: "", en: "Corrected" },
+  other: { pai: "", en: "Accepted answer" },
+  retry: { pai: "", en: "Not quite. Other people will try this one again." },
+  note: { pai: "", en: "Reviewer note" },
+  gotIt: { pai: "", en: "Got it" },
   tooFast: { pai: "Hon awl deuh hiau in, kin law zezen.", en: "Slow down a little, then try again." },
 };

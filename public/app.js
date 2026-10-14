@@ -118,6 +118,31 @@
   $("save-name").addEventListener("click", () => { store.set("name", $("name").value.trim().slice(0, 60)); $("ask-name").hidden = true; $("paite").focus(); });
   $("no-name").addEventListener("click", () => { $("ask-name").hidden = true; $("paite").focus(); });
 
+  async function feedback() {
+    try {
+      const { items } = await (await api("/api/feedback?after=" + store.get("fbSeen", 0))).json();
+      if (!items.length) return;
+      const div = (cls, key, node) => {
+        const d = document.createElement("div"); d.className = cls;
+        if (key) { const l = document.createElement("small"); l.innerHTML = tBoth(key); d.append(l); }
+        if (node) d.append(node);
+        return d;
+      };
+      for (const it of items) {
+        const li = document.createElement("li");
+        li.append(div("en", null, it.english), div("", "yours", it.yours));
+        if (it.result === "correct") li.append(div("ok", "correct", "✓"));
+        else if (it.result === "retry") { const d = div("", null); d.innerHTML = tBoth("retry"); li.append(d); }
+        else { const m = document.createElement("mark"); m.textContent = it.corrected; li.append(div("", it.result === "fixed" ? "corrected" : "other", m)); }
+        if (it.note) li.append(div("", "note", it.note));
+        $("fb-list").append(li);
+      }
+      $("fb-ok").onclick = () => { store.set("fbSeen", Math.max(...items.map((i) => i.reviewId))); $("feedback").hidden = true; };
+      $("feedback").hidden = false;
+    } catch {}
+  }
+
   showToday();
   next();
+  feedback();
 })();

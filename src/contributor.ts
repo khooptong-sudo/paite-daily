@@ -1,4 +1,4 @@
-import { answersInLastMinute, nextSentence, recordAnswer, skipSentence, type Register } from "./db";
+import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, skipSentence, type Register } from "./db";
 import { readSession, signSession } from "./session";
 import { cleanText, isPhoneId } from "./text";
 import { json, type Deps, type Env } from "./types";
@@ -31,6 +31,11 @@ export async function handleContributor(req: Request, env: Env, deps: Deps): Pro
   if (pathname === "/api/next" && req.method === "GET") {
     const s = await nextSentence(env.DB, phoneId, deps.now());
     return s ? json(s) : new Response(null, { status: 204 });
+  }
+
+  if (pathname === "/api/feedback" && req.method === "GET") {
+    const after = Number(new URL(req.url).searchParams.get("after"));
+    return json({ items: await feedbackFor(env.DB, phoneId, Number.isInteger(after) && after > 0 ? after : 0) });
   }
 
   if (pathname === "/api/skip" && req.method === "POST") {
