@@ -98,7 +98,7 @@ export function renderGlossary(xs: Entry[]): string {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Paite word list</title>
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#ffffff">
 <script>document.documentElement.className="js"</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <link rel="stylesheet" href="/style.css">
