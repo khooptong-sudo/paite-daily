@@ -41,7 +41,7 @@ describe("runGlossary", () => {
     expect(await runGlossary(keyed, f)).toEqual({ entries: 1, failed: 0 });
     expect(bodies).toHaveLength(1);
     expect(bodies[0]).not.toMatch(/secret-phone|SecretName/);
-    expect(await getGlossary(env)).toEqual([{ id: expect.any(Number), paite: "dam", english: "well", note: "adj", example: { paite: "Ka dam e.", english: "I am well." } }]);
+    expect(await getGlossary(env)).toEqual([{ id: expect.any(Number), paite: "dam", english: "well", note: "adj", example: { paite: "Ka dam e.", english: "I am well." }, source: "note" }]);
     expect(await runGlossary(keyed, f)).toBeNull();
     expect((await env.DB.prepare("SELECT gloss_done FROM answers WHERE id = ?1").bind(good.id).first<any>()).gloss_done).toBe(1);
   });

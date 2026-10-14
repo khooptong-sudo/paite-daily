@@ -4,6 +4,7 @@ import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
 import { getGlossary } from "./glossary";
 import { isPhoneId } from "./text";
+import { handleWords } from "./words";
 import { claimNext, decide, undo, type Decision } from "./reviewdb";
 import { json, type Deps, type Env } from "./types";
 
@@ -17,6 +18,9 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
 
   const owned = await handleOwnerReview(pathname, req.method, b, env, email);
   if (owned) return owned;
+
+  const words = await handleWords(pathname, req.method, b, env, email);
+  if (words) return words;
 
   if (pathname === "/review/api/next" && req.method === "GET") {
     const card = await claimNext(env.DB, email, deps.now());

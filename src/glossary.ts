@@ -62,14 +62,14 @@ export async function runGlossary(env: Env, fetcher: typeof fetch): Promise<{ en
   return { entries, failed };
 }
 
-export type Entry = { id: number; paite: string; english: string; note: string | null; example: { paite: string; english: string } };
+export type Entry = { id: number; paite: string; english: string; note: string | null; source: string; example: { paite: string; english: string } | null };
 
 export async function getGlossary(env: Env, limit = -1): Promise<Entry[]> {
   const { results } = await env.DB.prepare(
-    `SELECT g.id, g.paite, g.english, g.note, a.paite AS ex_paite, s.english AS ex_english FROM glossary g
-     JOIN answers a ON a.id = g.answer_id JOIN sentences s ON s.id = g.sentence_id WHERE g.hidden = 0 ORDER BY g.id DESC LIMIT ?1`,
-  ).bind(limit).all<{ id: number; paite: string; english: string; note: string | null; ex_paite: string; ex_english: string }>();
-  return results.map((r) => ({ id: r.id, paite: r.paite, english: r.english, note: r.note, example: { paite: r.ex_paite, english: r.ex_english } }));
+    `SELECT g.id, g.paite, g.english, g.note, g.source, a.paite AS ex_paite, s.english AS ex_english FROM glossary g
+     LEFT JOIN answers a ON a.id = g.answer_id LEFT JOIN sentences s ON s.id = g.sentence_id WHERE g.hidden = 0 ORDER BY g.id DESC LIMIT ?1`,
+  ).bind(limit).all<{ id: number; paite: string; english: string; note: string | null; source: string; ex_paite: string | null; ex_english: string | null }>();
+  return results.map((r) => ({ id: r.id, paite: r.paite, english: r.english, note: r.note, source: r.source, example: r.ex_paite && r.ex_english ? { paite: r.ex_paite, english: r.ex_english } : null }));
 }
 
 export const glossaryJson = (xs: Entry[]) =>
@@ -78,8 +78,10 @@ export const glossaryJson = (xs: Entry[]) =>
 const JS = `(function(){var S=window.STRINGS||{};
 document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
 var q=document.getElementById("q"),sr=S.search;if(sr&&sr.pai){q.placeholder=q.ariaLabel=sr.pai+" / "+sr.en;q.setAttribute("aria-label",q.placeholder)}q.addEventListener("input",function(){var t=q.value.trim().toLowerCase();
-document.querySelectorAll(".gl li").forEach(function(li){li.hidden=!!t&&li.textContent.toLowerCase().indexOf(t)<0});
+document.querySelectorAll(".gl li").forEach(function(li){li.hidden=!!t&&li.dataset.q.indexOf(t)<0});
 document.querySelectorAll(".gl section").forEach(function(s){s.hidden=!s.querySelector("li:not([hidden])")})});
+function openHash(){var l=document.getElementById(location.hash.slice(1)),d=l&&l.querySelector("details");if(d){d.open=true;l.scrollIntoView()}}
+openHash();addEventListener("hashchange",openHash);
 })();`;
 
 export function renderGlossary(xs: Entry[]): string {
@@ -89,10 +91,10 @@ export function renderGlossary(xs: Entry[]): string {
     const k = /\p{L}/u.test(l) ? l : "#";
     groups.set(k, [...(groups.get(k) ?? []), e]);
   }
-  const li = (e: Entry) => `<li><b class="w">${esc(e.paite)}</b> <span class="m">${esc(e.english)}</span>${e.note ? `<span class="n">${esc(e.note)}</span>` : ""}<span class="ex">${esc(e.example.paite)}<br>${esc(e.example.english)}</span></li>`;
+  const li = (e: Entry) => `<li id="w-${e.id}" data-q="${esc([e.paite, e.english, e.note, e.example?.paite, e.example?.english].filter(Boolean).join(" ").toLowerCase())}"><details><summary><b class="w">${esc(e.paite)}</b> <small class="m">${esc(e.english)}</small></summary><p class="m">${esc(e.english)}</p>${e.note ? `<span class="n">${esc(e.note)}</span>` : ""}${e.example ? `<span class="ex">${esc(e.example.paite)}<br>${esc(e.example.english)}</span>` : ""}<span class="n" data-s="${e.source === "contributed" ? "srcContributed" : "srcNote"}">${e.source === "contributed" ? "Added by a contributor" : "From a contributor's note"}</span></details></li>`;
   const body = groups.size
     ? [...groups].map(([k, es]) => `<section class="rows" aria-label="${esc(k)}"><h2>${esc(k)}</h2><ul>${es.map(li).join("")}</ul></section>`).join("")
-    : '<p class="empty" data-s="glossaryEmpty">No words yet. They appear as contributors explain their translations.</p>';
+    : '<p class="empty"><span data-s="glossaryEmpty">No words yet. Add the first one on the front page.</span> <a href="/">Paite Daily</a></p>';
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Paite word list</title>

@@ -28,6 +28,7 @@
   <section class="card">
     <div class="label" id="label" data-s="translate"></div>
     <p class="sentence" id="sentence" aria-live="polite"></p>
+    <button type="button" id="retry" data-s="tryAgain" hidden></button>
     <form id="form" novalidate>
       <textarea id="paite" required autocomplete="off" autocapitalize="sentences" maxlength="300" aria-label="Paite"></textarea>
       <label for="explanation" data-s="explanationLabel"></label>
@@ -55,6 +56,20 @@
     </div>
   </section>
   <button type="button" class="primary" id="share" data-s="share" hidden></button>
+  <section class="card" aria-labelledby="word-h">
+    <h2 id="word-h" data-s="addWord"></h2>
+    <p class="licence" data-s="addWordNote"></p>
+    <form id="word-form" novalidate>
+      <label for="w-paite">Paite</label>
+      <input id="w-paite" required maxlength="60" autocomplete="off">
+      <label for="w-english">English</label>
+      <input id="w-english" required maxlength="120" autocomplete="off">
+      <label for="w-note" data-s="wordNote"></label>
+      <input id="w-note" maxlength="200" autocomplete="off">
+      <div class="actions"><button type="submit" class="primary" id="w-send" data-s="send"></button></div>
+      <p class="status" id="w-status" role="status"></p>
+    </form>
+  </section>
   <a class="pan" href="/glossary"><span><b data-s="glossaryTitle">Paite word list</b></span><span class="go" aria-hidden="true">&rarr;</span></a>
   <a class="pan" href="/contributors"><span><b data-s="contributorsTitle">Paite contributors</b></span><span class="go" aria-hidden="true">&rarr;</span></a>
   <div id="turnstile"></div>

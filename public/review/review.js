@@ -150,10 +150,35 @@
       $("words").replaceChildren(...entries.map((e) => {
         const li = document.createElement("li"); li.className = "answer";
         const t = document.createElement("p"); t.textContent = e.paite + " = " + e.english;
-        const m = document.createElement("div"); m.className = "meta"; m.textContent = (e.note ? e.note + " · " : "") + e.example.paite + " / " + e.example.english;
+        const m = document.createElement("div"); m.className = "meta"; m.textContent = (e.note ? e.note + " · " : "") + (e.example ? e.example.paite + " / " + e.example.english : "Contributed");
         const h = document.createElement("button"); h.type = "button"; h.textContent = "Hide"; h.setAttribute("aria-label", "Hide word: " + e.paite);
         h.addEventListener("click", async () => { h.disabled = true; const x = await post("/review/api/glossary/hide", { id: e.id }); if (x.ok) li.remove(); else h.disabled = false; });
         li.append(t, m, h);
+        return li;
+      }));
+    } catch {}
+  }
+
+  // New words: pending contributor submissions, oldest first.
+  async function newWords() {
+    try {
+      const r = await fetch("/review/api/words/pending");
+      if (!r.ok) return;
+      const { words } = await r.json();
+      const decide = (w, li, decision, label) => {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.setAttribute("aria-label", label + " word: " + w.paite);
+        b.addEventListener("click", async () => {
+          const bs = li.querySelectorAll("button"); bs.forEach((x) => (x.disabled = true));
+          const x = await post("/review/api/words/decide", { id: w.id, decision });
+          if (x.ok || x.status === 409) li.remove(); else bs.forEach((y) => (y.disabled = false));
+        });
+        return b;
+      };
+      $("newwords").replaceChildren(...words.map((w) => {
+        const li = document.createElement("li"); li.className = "answer";
+        const t = document.createElement("p"); t.textContent = w.paite + " = " + w.english;
+        const m = document.createElement("div"); m.className = "meta"; m.textContent = [w.note, w.name && "by " + w.name].filter(Boolean).join(" · ");
+        li.append(t, m, decide(w, li, "approve", "Approve"), decide(w, li, "reject", "Reject"));
         return li;
       }));
     } catch {}
@@ -197,5 +222,5 @@
 
   // Link this browser's contributor phone id to the signed-in reviewer (for the badge on /contributors).
   const linkPhone = () => { try { const id = JSON.parse(localStorage.getItem("pd:phone")); if (id) post("/review/api/link-phone", { phoneId: id }).catch(() => {}); } catch {} };
-  me().then((ok) => { if (ok) { linkPhone(); next(); words(); if (isOwner) { health(); people(); } } });
+  me().then((ok) => { if (ok) { linkPhone(); next(); words(); newWords(); if (isOwner) { health(); people(); } } });
 })();

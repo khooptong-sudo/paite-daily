@@ -1,7 +1,7 @@
 import { verifyAccess } from "./access";
 import { logged, runNightly } from "./export";
 import { runPrereview } from "./prereview";
-import { runRefill } from "./refill";
+import { lockedRefill } from "./refill";
 import { handleContributor } from "./contributor";
 import { getContributors, renderPage } from "./contributors";
 import { getGlossary, renderGlossary } from "./glossary";
@@ -36,8 +36,8 @@ export default {
   fetch: (req: Request, env: Env, ctx: ExecutionContext) => app(req, env, ctx),
   scheduled: async (c: ScheduledController, env: Env, ctx: ExecutionContext) => {
     ctx.waitUntil(
-      c.cron === "*/15 * * * *" ? logged(env, "prereview", () => runPrereview(env, fetch))
-      : c.cron === "0 2 * * *" ? logged(env, "refill", () => runRefill(env, fetch, Date.now()))
+      c.cron === "*/15 * * * *" ? logged(env, "prereview", () => runPrereview(env, fetch)).then(() => logged(env, "refill", () => lockedRefill(env, fetch, Date.now())))
+      : c.cron === "0 2 * * *" ? logged(env, "refill", () => lockedRefill(env, fetch, Date.now()))
       : runNightly(env, fetch));
   },
 } satisfies ExportedHandler<Env>;

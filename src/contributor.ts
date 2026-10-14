@@ -4,6 +4,8 @@ import { badgeFor, getContributors } from "./contributors";
 import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, skipSentence, type Register } from "./db";
 import { readSession, signSession } from "./session";
 import { cleanText, isPhoneId } from "./text";
+import { refillOnDemand } from "./refill";
+import { submitWord } from "./words";
 import { json, type Deps, type Env } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -37,7 +39,8 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
 
   if (pathname === "/api/next" && req.method === "GET") {
     const s = await nextSentence(env.DB, phoneId, deps.now());
-    return s ? json(s) : new Response(null, { status: 204 });
+    if (s) return json(s);
+    return (await refillOnDemand(env, deps.now(), ctx)) ? json({ refilling: true }, 202) : new Response(null, { status: 204 });
   }
 
   if (pathname === "/api/feedback" && req.method === "GET") {
@@ -50,6 +53,8 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
       .bind(phoneId).first<{ total: number; verified: number }>();
     return json({ total: r!.total, verified: r!.verified, badge: badgeFor(r!.verified) });
   }
+
+  if (pathname === "/api/word" && req.method === "POST") return submitWord(env, phoneId, await body(req));
 
   if (pathname === "/api/skip" && req.method === "POST") {
     const b = await body(req);

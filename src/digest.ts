@@ -17,7 +17,9 @@ export async function waitingCounts(db: D1Database, email?: string, now?: number
 export async function runDigest(env: Env): Promise<{ sent: number } | null> {
   if (!env.ALERT_EMAIL) return null;
   const { answers, sentences } = await waitingCounts(env.DB);
-  if (answers === 0) return null;
+  const words = (await env.DB.prepare("SELECT count(*) AS n FROM word_submissions WHERE status = 'pending'").first<{ n: number }>())?.n ?? 0;
+  if (answers === 0 && words === 0) return null;
+  const what = [answers && `${answers} answers`, words && `${words} new words`].filter(Boolean).join(" and ");
   const to = (await activeReviewers(env)).filter((r) => r.listed).map((r) => r.email);
   let sent = 0, failed = 0;
   for (const addr of to) {
@@ -25,8 +27,10 @@ export async function runDigest(env: Env): Promise<{ sent: number } | null> {
       await env.ALERT_EMAIL.send({
         from: "alerts@alerts.lamkalabs.com",
         to: addr,
-        subject: `Paite Daily: ${answers} answers waiting`,
-        text: `${answers} answers are waiting for review, on ${sentences} sentences.\n\nhttps://paite.lamkalabs.com/review`,
+        subject: `Paite Daily: ${what} waiting`,
+        text: `${what} waiting for review${answers ? `, on ${sentences} sentences` : ""}.
+
+https://paite.lamkalabs.com/review`,
       });
       sent++;
     } catch (e) {

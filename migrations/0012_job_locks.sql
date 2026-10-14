@@ -1,0 +1,1 @@
+CREATE TABLE job_locks (name TEXT PRIMARY KEY, expires_at INTEGER NOT NULL);

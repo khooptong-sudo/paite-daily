@@ -139,3 +139,7 @@
 .apply form { display: grid; gap: 14px; }
 .apply button.cta { border: 0; cursor: pointer; justify-content: center; }
 .apply button.cta:disabled { opacity: .6; }
+.gl summary { cursor: pointer; }
+.gl summary .m { color: var(--muted); font-size: .85rem; }
+.gl details > .m { margin: 8px 0 0; }
+.gl .empty a { color: var(--fg); }

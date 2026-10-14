@@ -63,13 +63,27 @@
     return r;
   }
 
-  async function next() {
-    $("sentence").innerHTML = tBoth("loading");
+  // Empty pool with a refill running: poll every 5 s for up to 60 s, then show the empty text and Retry.
+  let pollTimer = null, pollUntil = 0;
+  const giveUp = () => { clearTimeout(pollTimer); current = null; $("sentence").innerHTML = tBoth("empty"); $("retry").hidden = false; };
+  document.addEventListener("visibilitychange", () => { if (document.hidden && pollTimer) giveUp(); });
+  $("retry").addEventListener("click", () => next());
+
+  async function next(polling = false) {
+    clearTimeout(pollTimer); pollTimer = null; $("retry").hidden = true;
+    if (!polling) $("sentence").innerHTML = tBoth("loading");
     $("send").disabled = true;
     $("skip").disabled = true;
     try {
       const r = await api("/api/next");
-      if (r.status === 204) { current = null; $("sentence").innerHTML = tBoth("empty"); return; }
+      if (r.status === 202) {
+        current = null;
+        if (!polling) pollUntil = Date.now() + 60000;
+        $("sentence").innerHTML = tBoth("refilling");
+        pollTimer = setTimeout(() => { pollTimer = null; if (document.hidden || Date.now() >= pollUntil) giveUp(); else next(true); }, 5000);
+        return;
+      }
+      if (r.status === 204) { giveUp(); return; }
       current = await r.json();
       const rev = current.direction === "pai2en";
       $("label").innerHTML = tBoth(rev ? "reverseTitle" : "translate");
@@ -112,6 +126,19 @@
       status(tBoth("offline"));
       $("send").disabled = false; $("skip").disabled = false;
     }
+  });
+
+  $("word-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const w = (id) => $(id).value.trim(), ws = (m, ok = false) => { $("w-status").innerHTML = m; $("w-status").className = "status " + (ok ? "ok" : m ? "err" : ""); };
+    if (!w("w-paite")) { $("w-paite").focus(); return; }
+    if (!w("w-english")) { $("w-english").focus(); return; }
+    $("w-send").disabled = true;
+    try {
+      const r = await api("/api/word", { method: "POST", body: JSON.stringify({ paite: w("w-paite"), english: w("w-english"), note: w("w-note"), name: store.get("name", "") }) });
+      if (r.ok) { ws(tBoth("wordThanks"), true); $("word-form").reset(); } else ws(tBoth(r.status === 429 ? "tooFast" : "offline"));
+    } catch { ws(tBoth("offline")); }
+    $("w-send").disabled = false;
   });
 
   $("skip").addEventListener("click", async () => {
