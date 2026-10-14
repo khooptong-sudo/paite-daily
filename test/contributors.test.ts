@@ -68,8 +68,22 @@ describe("contributors", () => {
     expect(d.allTime.contributors.filter((c: any) => c.reviewer)).toHaveLength(1);
     expect(d.allTime.contributors).toHaveLength(2);
     const page = await (await call("/contributors")).text();
-    const contribLi = page.split("<li>").map((l) => l.split("</li>")[0]).filter((l) => l.includes("Same"));
+    const contribLi = page.split("<li").map((l) => l.split("</li>")[0]).filter((l) => l.includes("Same"));
     expect(contribLi.filter((l) => l.includes("reviewerBadge"))).toHaveLength(1 * 1);
+  });
+
+  it("merges reviewers sharing a display name into one row with summed counts", async () => {
+    const saved = env.REVIEWERS;
+    try {
+      env.REVIEWERS = JSON.stringify({ "a@example.org": "Same Person", "b@example.org": "Same Person", "c@example.org": "Other" });
+      const [s1, s2, s3] = await addSentences("One.", "Two.", "Three.");
+      const rv = (email: string, sid: number) => env.DB.prepare("INSERT INTO reviews (sentence_id, reviewer_email, decision, final_paite, register) VALUES (?1, ?2, 'accept', 'x', 'both')").bind(sid, email).run();
+      await rv("a@example.org", s1); await rv("a@example.org", s2); await rv("b@example.org", s3);
+      const d = await (await call("/api/contributors")).json<any>();
+      expect(d.reviewers).toEqual([{ name: "Same Person", decisions: 3, weekly: 3 }, { name: "Other", decisions: 0, weekly: 0 }]);
+      expect(d.allTime.reviewers).toEqual([{ name: "Same Person", n: 3, badge: null }, { name: "Other", n: 0, badge: null }]);
+      expect(d.thisWeek.reviewers).toEqual([{ name: "Same Person", n: 3, badge: null }]);
+    } finally { env.REVIEWERS = saved; }
   });
 
   it("escapes HTML in names", async () => {

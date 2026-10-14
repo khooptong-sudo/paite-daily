@@ -1,19 +1,23 @@
-
-  /* Layout: one centred card under a band woven like the Paite puandum (shawl); the sentence is the hero.
-     Puandum colours from paite.org/recommended-colors (yellow #f6ff00, green #00a651, black #000000),
-     except red: deep crimson #b0102e, chosen by the owner as truer to the woven cloth than paite.org's #d71920. */
+  /* Layout: one centred glass card under the puandum band (shawl); the sentence is the hero.
+     Site palette: AMOLED black and white with glass surfaces. The band SVG is the only colour (cultural identity). */
   :root {
-    --bg: #f7f4ef; --surface: #ffffff; --fg: #1b1616; --muted: #625755;
-    --accent: #b0102e; --accent-fg: #ffffff; --line: #e3dcd4; --ok: #007a3c;
-    --p-red: #b0102e; --p-yellow: #f6ff00; --p-green: #00a651; --p-black: #000000;
+    --bg: #000; --surface: rgba(255, 255, 255, .06); --fg: #fff; --muted: rgba(255, 255, 255, .7);
+    --accent: #fff; --accent-fg: #000; --line: rgba(255, 255, 255, .14); --hair: rgba(255, 255, 255, .5); --ring: #fff;
     --display: "Young Serif", Georgia, "Times New Roman", serif;
     --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
-    color-scheme: light;
+    --glass: blur(20px) saturate(140%);
+    color-scheme: dark;
   }
   * { box-sizing: border-box; }
+  html { background: #000; }
   html, body { margin: 0; }
+  /* Soft monochrome glows behind the glass. */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: radial-gradient(60% 40% at 15% 12%, rgba(255, 255, 255, .13), transparent 70%), radial-gradient(55% 45% at 90% 55%, rgba(255, 255, 255, .09), transparent 70%), radial-gradient(70% 40% at 20% 100%, rgba(255, 255, 255, .1), transparent 70%);
+  }
   body {
-    background: var(--bg); color: var(--fg); font: 17px/1.55 var(--body);
+    color: var(--fg); font: 17px/1.55 var(--body);
     padding-inline: 16px; padding-block: max(20px, env(safe-area-inset-top)) max(32px, env(safe-area-inset-bottom));
   }
   .puan { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; }
@@ -22,29 +26,37 @@
   h1 { font: 400 1.6rem/1.2 var(--display); margin: 0; }
   .streak { color: var(--muted); font-size: .95rem; font-variant-numeric: tabular-nums; }
   .badge { display: inline-block; padding: 0 .5em; border-radius: 1em; background: var(--accent); color: var(--accent-fg); font-size: .8rem; }
-  .streak b { color: var(--accent); }
-  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 16px; }
+  .streak b { color: var(--fg); }
+  .card, .pan {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 20px;
+    -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 12px 32px rgba(0, 0, 0, .5);
+  }
+  .card { padding: 22px; display: grid; gap: 16px; }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .card, .pan { background: #111; } }
   .label { text-transform: uppercase; letter-spacing: .08em; font-size: .75rem; color: var(--muted); font-weight: 700; }
   .sentence { font: 400 clamp(1.5rem, 6vw, 2.1rem)/1.25 var(--display); margin: 0; text-wrap: balance; min-height: 2.5em; }
   label { display: grid; gap: 6px; font-weight: 700; font-size: .95rem; }
   textarea, input, select {
-    font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line);
-    border-radius: 10px; padding: 12px 14px; width: 100%;
+    font: inherit; color: var(--fg); background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .28);
+    border-radius: 14px; padding: 12px 14px; width: 100%;
+    -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
   }
+  textarea::placeholder, input::placeholder { color: var(--muted); }
   textarea { min-height: 96px; resize: vertical; font-size: 1.15rem; }
-  textarea:focus, input:focus, select:focus, button:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 45%, transparent); outline-offset: 1px; }
+  textarea:focus, input:focus, select:focus, button:focus-visible, a:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+  input[type=radio], input[type=checkbox] { accent-color: #fff; }
   .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 420px) { .row { grid-template-columns: 1fr; } }
   .actions { display: flex; gap: 10px; flex-wrap: wrap; }
-  button { font: 700 1rem var(--body); border-radius: 10px; padding: 12px 18px; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--fg); }
-  button.primary { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); flex: 1; }
+  button { font: 700 1rem var(--body); border-radius: 14px; padding: 12px 18px; cursor: pointer; border: 1px solid var(--hair); background: rgba(255, 255, 255, .06); color: var(--fg); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14); }
+  button.primary { background: #fff; color: #000; border-color: #fff; flex: 1; }
   button:disabled { opacity: .5; cursor: default; }
   .status { min-height: 1.5em; margin: 0; font-weight: 700; }
-  .status.ok { color: var(--ok); }
-  .status.err { color: var(--accent); }
+  .status.err { text-decoration: underline; text-underline-offset: 3px; }
   .about { color: var(--muted); font-size: .95rem; display: grid; gap: 8px; }
   .about p { margin: 0; }
-  a { color: var(--accent); }
+  a { color: var(--fg); text-underline-offset: 3px; }
   @media (prefers-reduced-motion: no-preference) { .sentence { transition: opacity .2s; } .sentence.swap { opacity: 0; } }
 .register { border: 0; padding: 0; margin: 0; display: flex; gap: 14px; flex-wrap: wrap; font-size: .95rem; }
 .register legend { font-weight: 700; margin-bottom: 6px; }
@@ -61,5 +73,13 @@ small { display: block; font-size: .75em; color: var(--muted); font-weight: 400;
 #fb-list li { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 10px; }
 #fb-list li:first-child { border-top: 0; padding-top: 0; }
 #fb-list .en { color: var(--muted); font-size: .85rem; }
-#fb-list mark { background: var(--p-yellow); color: var(--fg); padding: 1px 6px; border-radius: 6px; font-weight: 700; }
-#fb-list .ok { color: var(--ok); font-weight: 700; }
+#fb-list mark { background: #fff; color: #000; padding: 1px 6px; border-radius: 6px; font-weight: 700; }
+#fb-list .ok { font-weight: 700; }
+.pan { display: flex; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none; color: var(--fg); padding: 14px 20px; }
+.pan b { font: 400 1.2rem/1.2 var(--display); }
+.pan small { margin-top: 2px; }
+.pan .go { font-size: 1.4rem; }
+.pan:hover { border-color: var(--hair); }
+/* Review page */
+.alert { background: #fff; color: #000; padding: .6rem 1rem; font-weight: 700; border-radius: 14px; margin-bottom: 12px; }
+.alert p { margin: 0; }

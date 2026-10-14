@@ -1,3 +1,4 @@
+import { PUAN } from "./puan";
 import type { Env } from "./types";
 
 type Row = { name: string; n: number; badge: Badge; reviewer?: boolean };
@@ -29,7 +30,12 @@ export async function getContributors(env: Env): Promise<Contributors> {
   let map: Record<string, string> = {};
   try { map = JSON.parse(env.REVIEWERS); } catch {}
   const contributors = c.results.map((r) => ({ name: r.name, verified: r.verified, weekly: r.weekly, badge: badgeFor(r.verified), reviewer: r.reviewer === 1 })).sort(byCountThenName((x) => x.verified));
-  const reviewers = Object.entries(map).map(([email, name]) => ({ name, decisions: done.get(email.toLowerCase())?.n ?? 0, weekly: done.get(email.toLowerCase())?.w ?? 0 })).sort(byCountThenName((x) => x.decisions));
+  const merged = new Map<string, { name: string; decisions: number; weekly: number }>();
+  for (const [email, name] of Object.entries(map)) {
+    const d = done.get(email.toLowerCase()), m = merged.get(name) ?? { name, decisions: 0, weekly: 0 };
+    m.decisions += d?.n ?? 0; m.weekly += d?.w ?? 0; merged.set(name, m);
+  }
+  const reviewers = [...merged.values()].sort(byCountThenName((x) => x.decisions));
   const rank = (xs: Row[], keepZero = false) => xs.filter((x) => keepZero || x.n > 0).sort(byCountThenName((x) => x.n));
   const cr = (n: (x: (typeof contributors)[number]) => number) => rank(contributors.map((x) => ({ name: x.name, n: n(x), badge: x.badge, reviewer: x.reviewer })));
   const rr = (n: (x: (typeof reviewers)[number]) => number, keepZero = false) => rank(reviewers.map((x) => ({ name: x.name, n: n(x), badge: null })), keepZero);
@@ -44,24 +50,49 @@ export async function getContributors(env: Env): Promise<Contributors> {
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 const mdEsc = (s: string) => s.replace(/[\\`*_{}\[\]()#+\-.!|<>~&]/g, "\\$&").replace(/\s+/g, " ");
 
-export function renderPage(d: Contributors): string {
-  const rev = ' <span class="badge" data-s="reviewerBadge">Reviewer</span>';
-  const li = (x: Row, b: boolean) => `<li><span>${esc(x.name)}${x.badge ? ` <span class="badge">${x.badge}</span>` : ""}${b ? rev : ""}</span> <b>${x.n}</b> <small data-s="sentences">sentences</small></li>`;
-  const list = (xs: Row[], b: (x: Row) => boolean) => `<ul>${xs.map((x) => li(x, b(x))).join("")}</ul>`;
-  const block = (k: "thisWeek" | "allTime") => `<section class="card"><div class="label" data-s="${k}">${k === "thisWeek" ? "This week" : "All time"}</div>${list(d[k].contributors, (x) => !!x.reviewer)}<div class="label" data-s="reviewerBadge">Reviewer</div>${list(d[k].reviewers, () => true)}</section>`;
+const SEAL = '<svg class="seal-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.6 2.2 3.4-.2 1 3.3 2.9 1.8-1.1 3.2 1.1 3.2-2.9 1.8-1 3.3-3.4-.2L12 22l-2.6-2.2-3.4.2-1-3.3-2.9-1.8 1.1-3.2L2.1 9l2.9-1.8 1-3.3 3.4.2z"/><path d="M8 12.2l2.7 2.7L16 9.6"/></svg>';
+const JS = `(function(){var S=window.STRINGS||{};
+document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
+var m=document.querySelector("main"),v=m.querySelectorAll("[data-view]"),b=m.querySelectorAll(".seg button");
+function show(k){v.forEach(function(x){x.classList.toggle("on",x.dataset.view===k)});b.forEach(function(x){x.setAttribute("aria-pressed",x.dataset.v===k)})}
+b.forEach(function(x){x.addEventListener("click",function(){show(x.dataset.v)})});show(m.dataset.start);
+function up(e){var n=+e.dataset.n,t=null;function f(T){t=t||T;var p=Math.min((T-t)/700,1);e.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)}requestAnimationFrame(f)}
+if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&"IntersectionObserver"in window){var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){io.unobserve(x.target);up(x.target)}})});document.querySelectorAll("b[data-n]").forEach(function(e){io.observe(e)})}
+})();`;
+
+export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="/contributors.css">'): string {
+  const count = (n: number, key: string, en: string) => `<span class="c"><b data-n="${n}">${n}</b><span class="u" data-s="${key}">${en}</span></span>`;
+  const pills = (x: Row) => `${x.badge ? `<span class="badge t${x.badge}">${x.badge}+</span>` : ""}${x.reviewer ? '<span class="badge seal" data-s="reviewerBadge">Reviewer</span>' : ""}`;
+  const contributors = (xs: Row[], empty: string) => {
+    if (!xs.length) return `<p class="empty" data-s="${empty}">${empty === "emptyWeek" ? "No one yet this week. Be the first!" : "No one yet. Be the first!"}</p>`;
+    const cnt = (x: Row) => count(x.n, "sentences", "sentences");
+    const podium = xs.slice(0, 3).map((x, i) => `<li class="p p${i + 1}" style="--i:${i}"><span class="ring">${i + 1}</span><span class="nm">${esc(x.name)}</span><span class="bg">${pills(x)}</span>${cnt(x)}</li>`).join("");
+    const rest = xs.slice(3).map((x, i) => `<li style="--i:${i + 3}"><span class="rk">${i + 4}</span><span class="nm">${esc(x.name)}<span class="bg">${pills(x)}</span></span>${cnt(x)}</li>`).join("");
+    return `<ol class="podium">${podium}</ol>${rest ? `<ol class="rows" start="4">${rest}</ol>` : ""}`;
+  };
+  const reviewers = (xs: Row[]) => xs.length
+    ? `<h3 data-s="reviewers">Reviewers</h3><ol class="rows">${xs.map((x, i) => `<li style="--i:${i}">${SEAL}<span class="nm">${esc(x.name)}</span>${count(x.n, "reviewed", "reviewed")}</li>`).join("")}</ol>`
+    : "";
+  const view = (k: "thisWeek" | "allTime") => `<section class="view" data-view="${k}" aria-labelledby="h-${k}"><h2 id="h-${k}" data-s="${k}">${k === "thisWeek" ? "This week" : "All time"}</h2>${contributors(d[k].contributors, k === "thisWeek" ? "emptyWeek" : "emptyAll")}${reviewers(d[k].reviewers)}</section>`;
+  const start = d.thisWeek.contributors.length + d.thisWeek.reviewers.length ? "thisWeek" : "allTime";
   return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Paite contributors</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pan Late - Paite contributors</title>
+<meta name="theme-color" content="#000000">
+<script>document.documentElement.className="js"</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
-<link rel="stylesheet" href="/style.css"></head>
-<body><main>
-<header><h1 data-s="contributorsTitle">Paite contributors</h1></header>
-${block("thisWeek")}
-${block("allTime")}
-<p><a href="/">Paite Daily</a></p>
+<link rel="stylesheet" href="/style.css">
+${css}</head>
+<body class="cp">
+<header class="hero">${PUAN}<h1 data-s="contributorsTitle">Paite contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
+<main data-start="${start}">
+<div class="seg" role="group" aria-label="Period"><button type="button" data-v="thisWeek" aria-pressed="false" data-s="thisWeek">This week</button><button type="button" data-v="allTime" aria-pressed="false" data-s="allTime">All time</button></div>
+${view("thisWeek")}
+${view("allTime")}
+<a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
 </main>
 <script src="/strings.js"></script>
-<script>document.querySelectorAll("[data-s]").forEach(function(e){var s=window.STRINGS[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});</script>
+<script>${JS}</script>
 </body></html>`;
 }
 

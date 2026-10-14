@@ -39,7 +39,7 @@
       const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.answerId = a.id; cb.setAttribute("aria-label", "Also correct (keep as variant): " + a.paite);
       cb.addEventListener("change", () => box.classList.toggle("variant", cb.checked));
       also.append(cb, " Also correct (keep as variant)");
-      const accept = document.createElement("button"); accept.className = "primary"; accept.textContent = "✅ Accept this"; accept.setAttribute("aria-label", "Accept this: " + a.paite);
+      const accept = document.createElement("button"); accept.className = "primary"; accept.textContent = "✓ Accept this"; accept.setAttribute("aria-label", "Accept this: " + a.paite);
       accept.addEventListener("click", () => send({
         decision: "accept", answerId: a.id,
         finalPaite: edit.value.trim() === a.paite ? undefined : edit.value,
@@ -109,7 +109,7 @@
       if (!failing.length) return;
       const b = document.createElement("div");
       b.setAttribute("role", "alert");
-      b.style.cssText = "background:#b00020;color:#fff;padding:.5rem 1rem";
+      b.className = "alert";
       failing.forEach((f) => { const p = document.createElement("p"); p.textContent = `Background job failing: ${f.job} (last tried ${f.lastAt})`; b.append(p); });
       document.body.prepend(b);
     } catch {}

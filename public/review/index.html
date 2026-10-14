@@ -4,16 +4,17 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Paite Review</title>
+<meta name="theme-color" content="#000000">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 <style>
-  .answer { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .answer { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: rgba(255,255,255,.04); }
   .answer p { margin: 0; font-size: 1.2rem; }
   .meta { color: var(--muted); font-size: .85rem; }
-  .ai { background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: .9rem; }
+  .ai { background: rgba(255,255,255,.08); border-radius: 10px; padding: 8px 10px; font-size: .9rem; }
   .answer label { display: flex; align-items: center; justify-content: flex-start; gap: 8px; font-weight: 400; }
   .answer input[type=checkbox] { width: auto; margin: 0; }
-  .answer.variant { border: 2px dashed var(--ok); padding: 11px; }
+  .answer.variant { border: 2px dashed #fff; padding: 11px; }
   .row3 { display: flex; gap: 8px; flex-wrap: wrap; }
 </style>
 </head>
@@ -29,7 +30,7 @@
     </label>
     <label>Note (optional)<input id="note" maxlength="300"></label>
     <div class="row3">
-      <button type="button" id="reject">❌ Reject all</button>
+      <button type="button" id="reject">✕ Reject all</button>
       <button type="button" id="retire">Retire sentence</button>
     </div>
     <p class="status" id="status" role="status"></p><button type="button" id="undo" hidden>Undo</button>
