@@ -29,7 +29,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps): Pro
   if (!phoneId) return json({ error: "no_session" }, 401);
 
   if (pathname === "/api/next" && req.method === "GET") {
-    const s = await nextSentence(env.DB, phoneId);
+    const s = await nextSentence(env.DB, phoneId, deps.now());
     return s ? json(s) : new Response(null, { status: 204 });
   }
 
@@ -49,7 +49,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps): Pro
       return json({ error: "bad_request" }, 400);
     }
     if ((await answersInLastMinute(env.DB, phoneId)) >= 10) return json({ error: "slow_down" }, 429);
-    const result = await recordAnswer(env.DB, { phoneId, sentenceId: b.sentenceId as number, paite, register, name });
+    const result = await recordAnswer(env.DB, { phoneId, sentenceId: b.sentenceId as number, paite, register, name }, deps.now());
     return result === "ok" ? json({ ok: true }) : json({ error: "closed" }, 409);
   }
 

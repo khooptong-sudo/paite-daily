@@ -88,13 +88,13 @@
     const paite = $("paite").value.trim();
     if (!current) { next(); return; }
     if (!paite) { $("paite").focus(); return; }
-    $("send").disabled = true;
+    $("send").disabled = true; $("skip").disabled = true;
     const register = new FormData($("form")).get("register");
     try {
       const r = await api("/api/answer", { method: "POST",
         body: JSON.stringify({ sentenceId: current.id, paite, register, name: store.get("name", "") }) });
-      if (r.status === 429) { status(t("tooFast")); $("send").disabled = false; return; }
-      if (!r.ok && r.status !== 409) { status(t("offline")); $("send").disabled = false; return; }
+      if (r.status === 429) { status(t("tooFast")); $("send").disabled = false; $("skip").disabled = false; return; }
+      if (!r.ok && r.status !== 409) { status(t("offline")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (r.ok) {
         const n = store.get(todayKey(), 0) + 1;
         store.set(todayKey(), n); showToday();
@@ -105,7 +105,7 @@
       next();
     } catch {
       status(t("offline"));
-      $("send").disabled = false;
+      $("send").disabled = false; $("skip").disabled = false;
     }
   });
 

@@ -108,12 +108,12 @@ describe("review flow", () => {
     expect((await env.DB.prepare("SELECT count(*) AS n FROM reviews WHERE sentence_id = ?1").bind(id).first<{ n: number }>())!.n).toBe(1);
   });
 
-  it("an answer that arrives after the claim stays new", async () => {
+  it("a sentence under a live lock is not offered and refuses answers", async () => {
     const id = await fullSentence("I am well.", ["Ka dam e."]);
-    const card = await (await rev("/review/api/next")).json<{ answers: { id: number }[] }>();
-    await call("/api/answer", { method: "POST", session: await session(PHONE_C), body: JSON.stringify({ sentenceId: id, paite: "Late.", register: "both" }) });
-    await rev("/review/api/decide", { sentenceId: id, decision: "accept", answerIds: card.answers.map((a) => a.id), answerId: card.answers[0].id });
-    expect(await env.DB.prepare("SELECT paite FROM answers WHERE sentence_id = ?1 AND status = 'new'").bind(id).all().then((r) => r.results)).toEqual([{ paite: "Late." }]);
+    await rev("/review/api/next");
+    expect((await call("/api/next", { session: await session(PHONE_C) })).status).toBe(204);
+    const r = await call("/api/answer", { method: "POST", session: await session(PHONE_C), body: JSON.stringify({ sentenceId: id, paite: "Late.", register: "both" }) });
+    expect(r.status).toBe(409);
   });
 
   it("malformed input is a 400", async () => {
