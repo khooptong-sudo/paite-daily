@@ -1,4 +1,5 @@
 import { verifyAccess } from "./access";
+import { runNightly } from "./export";
 import { handleContributor } from "./contributor";
 import { handleReview } from "./review";
 import { verifyTurnstile } from "./turnstile";
@@ -27,4 +28,7 @@ const app = createApp({
 
 export default {
   fetch: (req: Request, env: Env) => app(req, env),
+  scheduled: async (_c: ScheduledController, env: Env, ctx: ExecutionContext) => {
+    ctx.waitUntil(runNightly(env, fetch));
+  },
 } satisfies ExportedHandler<Env>;
