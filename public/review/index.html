@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paite Review</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .answer { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 10px; padding: 12px; }
+  .answer p { margin: 0; font-size: 1.2rem; }
+  .meta { color: var(--muted); font-size: .85rem; }
+  .ai { background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: .9rem; }
+  .row3 { display: flex; gap: 8px; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<main>
+  <header><h1>Paite Review</h1><div class="streak" id="who"></div></header>
+  <section class="card" id="card">
+    <div class="label">English</div>
+    <p class="sentence" id="english">Loading…</p>
+    <div id="answers" style="display:grid;gap:10px"></div>
+    <label>Register of the accepted answer
+      <select id="register"><option value="">As given</option><option value="spoken">Spoken</option><option value="written">Written</option><option value="both">Both</option></select>
+    </label>
+    <label>Note (optional)<input id="note" maxlength="300"></label>
+    <div class="row3">
+      <button type="button" id="reject">❌ Reject all</button>
+      <button type="button" id="retire">Retire sentence</button>
+    </div>
+    <p class="status" id="status" role="status"></p>
+  </section>
+</main>
+<script src="/review/review.js"></script>
+</body>
+</html>
