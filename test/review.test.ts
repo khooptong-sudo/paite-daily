@@ -103,14 +103,25 @@ describe("review flow", () => {
   it("owner can undo a decision that is not yet exported; others cannot", async () => {
     const id = await fullSentence();
     const card = await (await rev("/review/api/next")).json<{ answers: { id: number }[] }>();
-    await rev("/review/api/decide", { sentenceId: id, decision: "accept", answerIds: card.answers.map((a) => a.id), answerId: card.answers[0].id });
+    const dec = await (await rev("/review/api/decide", { sentenceId: id, decision: "accept", answerIds: card.answers.map((a) => a.id), answerId: card.answers[0].id })).json<{ reviewId: number }>();
     const { id: reviewId } = (await env.DB.prepare("SELECT id FROM reviews WHERE sentence_id = ?1").bind(id).first<{ id: number }>())!;
+    expect(dec.reviewId).toBe(reviewId);
     expect((await rev("/review/api/undo", { reviewId })).status).toBe(403);
     expect((await rev("/review/api/undo", { reviewId }, "owner@example.org")).status).toBe(200);
     expect(await env.DB.prepare("SELECT status FROM sentences WHERE id = ?1").bind(id).first()).toEqual({ status: "full" });
     const st = await env.DB.prepare("SELECT status FROM answers WHERE sentence_id = ?1").bind(id).all();
     expect(st.results.map((s) => s.status)).toEqual(["new", "new"]);
     expect((await env.DB.prepare("SELECT undone_at FROM reviews WHERE id = ?1").bind(reviewId).first<{ undone_at: string | null }>())!.undone_at).not.toBeNull();
+  });
+
+  it("undo of an exported review is refused with reason exported", async () => {
+    const id = await fullSentence();
+    const card = await (await rev("/review/api/next")).json<{ answers: { id: number }[] }>();
+    const { reviewId } = await (await rev("/review/api/decide", { sentenceId: id, decision: "reject", answerIds: card.answers.map((a) => a.id) })).json<{ reviewId: number }>();
+    await env.DB.prepare("INSERT INTO exports (first_review_id, last_review_id, path, done) VALUES (1, ?1, 'x', 1)").bind(reviewId).run();
+    const r = await rev("/review/api/undo", { reviewId }, "owner@example.org");
+    expect(r.status).toBe(409);
+    expect((await r.json<{ reason: string }>()).reason).toBe("exported");
   });
 
   it("undo of an older review is refused once a newer one exists", async () => {
@@ -121,7 +132,9 @@ describe("review flow", () => {
     const c2 = await (await rev("/review/api/next")).json<{ answers: { id: number }[] }>();
     await rev("/review/api/decide", { sentenceId: id, decision: "reject", answerIds: c2.answers.map((a) => a.id) });
     const first = (await env.DB.prepare("SELECT MIN(id) AS id FROM reviews WHERE sentence_id = ?1").bind(id).first<{ id: number }>())!.id;
-    expect((await rev("/review/api/undo", { reviewId: first }, "owner@example.org")).status).toBe(409);
+    const refused = await rev("/review/api/undo", { reviewId: first }, "owner@example.org");
+    expect(refused.status).toBe(409);
+    expect((await refused.json<{ reason: string }>()).reason).toBe("not_latest");
   });
 
   it("a double submit on one lock writes exactly one review", async () => {

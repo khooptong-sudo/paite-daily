@@ -58,7 +58,7 @@ async function holdsLock(db: D1Database, sentenceId: number, email: string, now:
   return !!l;
 }
 
-export async function decide(db: D1Database, email: string, now: number, d: Decision): Promise<"ok" | "no_lock" | "bad_answer"> {
+export async function decide(db: D1Database, email: string, now: number, d: Decision): Promise<number | "no_lock" | "bad_answer"> {
   if (!(await holdsLock(db, d.sentenceId, email, now))) return "no_lock";
   const note = d.note ? cleanText(d.note, 300) : null;
   const register = ["spoken", "written", "both"].includes(d.register ?? "") ? d.register! : null;
@@ -101,7 +101,7 @@ export async function decide(db: D1Database, email: string, now: number, d: Deci
   }
   stmts.push(db.prepare("DELETE FROM locks WHERE sentence_id = ?1 AND reviewer_email = ?2").bind(d.sentenceId, email));
   const res = await db.batch(stmts);
-  return res[0].meta.changes === 1 ? "ok" : "no_lock";
+  return res[0].meta.changes === 1 ? res[0].meta.last_row_id : "no_lock";
 }
 
 export async function undo(db: D1Database, reviewId: number): Promise<"ok" | "exported" | "missing" | "not_latest"> {

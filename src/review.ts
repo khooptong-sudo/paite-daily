@@ -20,13 +20,13 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     const result = await decide(env.DB, email, deps.now(), b as unknown as Decision);
     if (result === "no_lock") return json({ error: "lock_lost" }, 409);
     if (result === "bad_answer") return json({ error: "bad_answer" }, 400);
-    return json({ ok: true });
+    return json({ ok: true, reviewId: result });
   }
   if (pathname === "/review/api/undo" && req.method === "POST") {
     if (!isOwner(env, email)) return json({ error: "owner_only" }, 403);
     if (!Number.isInteger(b.reviewId)) return json({ error: "bad_request" }, 400);
     const result = await undo(env.DB, b.reviewId as number);
-    return result === "ok" ? json({ ok: true }) : json({ error: result }, result === "missing" ? 404 : 409);
+    return result === "ok" ? json({ ok: true }) : json({ error: result, reason: result }, result === "missing" ? 404 : 409);
   }
   if (pathname === "/review/api/me" && req.method === "GET") {
     return json({ name: reviewerName(env, email), owner: isOwner(env, email) });
