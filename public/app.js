@@ -71,6 +71,10 @@
       const r = await api("/api/next");
       if (r.status === 204) { current = null; $("sentence").innerHTML = tBoth("empty"); return; }
       current = await r.json();
+      const rev = current.direction === "pai2en";
+      $("label").innerHTML = tBoth(rev ? "reverseTitle" : "translate");
+      $("paite").setAttribute("aria-label", rev ? "English" : "Paite");
+      document.querySelector(".register").hidden = rev;
       $("sentence").textContent = current.english;
       $("send").disabled = false;
       $("paite").focus();

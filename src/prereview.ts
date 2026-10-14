@@ -10,7 +10,14 @@ flag "junk": gibberish, spam or unrelated text.
 flag "ok": none of the above.
 "agree": true when the answers mean the same thing.`;
 
-type Row = { id: number; sentence_id: number; english: string; paite: string; ai_note: string | null };
+const SYSTEM_REV = `You check English translations of a Paite (Zomi, ISO 639-3 pck) sentence for human reviewers. You never decide correctness; a human decides. You are given the Paite sentence, the original English it was translated from, and answers written by contributors.
+Reply with JSON only: {"answers":[{"id":<int>,"note":"<max 140 chars, English, say whether the meaning matches the original English>","flag":"ok|english|junk"}],"agree":true|false}
+flag "ok": the answer is English and its meaning matches the original English.
+flag "english": the answer is not English (for example it is Paite).
+flag "junk": gibberish, spam or unrelated text.
+"agree": true when the answers mean the same thing.`;
+
+type Row = { id: number; sentence_id: number; english: string; direction: string; paite_prompt: string | null; paite: string; ai_note: string | null };
 
 async function noteSentence(env: Env, fetcher: typeof fetch, rows: Row[]): Promise<number> {
   const res = await fetcher("https://api.deepseek.com/chat/completions", {
@@ -21,8 +28,8 @@ async function noteSentence(env: Env, fetcher: typeof fetch, rows: Row[]): Promi
       temperature: 0,
       response_format: { type: "json_object" },
       messages: [
-        { role: "system", content: SYSTEM },
-        { role: "user", content: `English: ${rows[0].english}\nAnswers: ${JSON.stringify(rows.map((r) => ({ id: r.id, paite: r.paite })))}` },
+        { role: "system", content: rows[0].direction === "pai2en" ? SYSTEM_REV : SYSTEM },
+        { role: "user", content: `${rows[0].direction === "pai2en" ? `Paite: ${rows[0].paite_prompt}\nOriginal English: ${rows[0].english}` : `English: ${rows[0].english}`}\nAnswers: ${JSON.stringify(rows.map((r) => ({ id: r.id, paite: r.paite })))}` },
       ],
     }),
     signal: AbortSignal.timeout(20_000),
@@ -51,7 +58,7 @@ export async function runPrereview(env: Env, fetcher: typeof fetch): Promise<{ n
   ).all<{ sentence_id: number }>()).results.map((r) => r.sentence_id);
   if (!ids.length) return null;
   const { results } = await env.DB.prepare(
-    `SELECT a.id, a.sentence_id, s.english, a.paite, a.ai_note FROM answers a JOIN sentences s ON s.id = a.sentence_id
+    `SELECT a.id, a.sentence_id, s.english, s.direction, s.paite_prompt, a.paite, a.ai_note FROM answers a JOIN sentences s ON s.id = a.sentence_id
      WHERE a.status IN ('new', 'accepted') AND a.sentence_id IN (${ids.map(() => "?").join(",")}) ORDER BY a.id`,
   ).bind(...ids).all<Row>();
   if (!results.some((r) => r.ai_note === null)) return null;

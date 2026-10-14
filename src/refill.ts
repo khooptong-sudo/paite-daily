@@ -5,7 +5,7 @@ const TOPICS = ["home", "market", "church", "farming", "school", "health", "weat
 
 export async function runRefill(env: Env, fetcher: typeof fetch, now: number): Promise<{ topic: string; received: number; inserted: number } | null> {
   if (!env.DEEPSEEK_API_KEY) return null;
-  const open = (await env.DB.prepare("SELECT count(*) AS n FROM sentences WHERE status = 'open'").first<{ n: number }>())!.n;
+  const open = (await env.DB.prepare("SELECT count(*) AS n FROM sentences WHERE status = 'open' AND direction = 'en2pai'").first<{ n: number }>())!.n;
   if (open >= 300) return null;
   const topic = TOPICS[Math.floor(now / 86_400_000) % TOPICS.length];
   const res = await fetcher("https://api.deepseek.com/chat/completions", {

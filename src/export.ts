@@ -1,6 +1,7 @@
 import { reviewerName } from "./access";
 import { runDigest } from "./digest";
 import { getContributors, renderMarkdown } from "./contributors";
+import { runReverse } from "./reverse";
 import { normaliseEnglish } from "./text";
 import type { Env } from "./types";
 
@@ -12,7 +13,7 @@ export function toBase64Utf8(s: string): string {
 }
 
 type Row = {
-  review_id: number; sentence_id: number; english: string; final_paite: string; register: string;
+  review_id: number; sentence_id: number; english: string; direction: string; paite_prompt: string | null; final_paite: string; register: string;
   reviewer_email: string; created_at: string; contributor_name: string | null; explanation: string | null;
 };
 
@@ -26,7 +27,7 @@ const ghHeaders = (env: Env) => ({
 async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first: number, last: number): Promise<{ n: number; path: string }> {
   const path = `community/verified-${first}-${last}.jsonl`;
   const { results } = await env.DB.prepare(
-    `SELECT r.id AS review_id, s.id AS sentence_id, s.english, r.final_paite, r.register, r.reviewer_email, r.created_at,
+    `SELECT r.id AS review_id, s.id AS sentence_id, s.english, s.direction, s.paite_prompt, r.final_paite, r.register, r.reviewer_email, r.created_at,
             a.contributor_name, a.explanation
      FROM reviews r
      JOIN sentences s ON s.id = r.sentence_id
@@ -49,10 +50,13 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
     ).bind(...chunk).all<{ sentence_id: number; paite: string }>();
     for (const x of rows.results) also.set(x.sentence_id, [...(also.get(x.sentence_id) ?? []), x.paite]);
   }
+  // pai2en: paite is the prompt, english is the contributor's (reviewed) answer, original_english is the round-trip source.
   const lines = results.map((row) => JSON.stringify({
     id: `community:${row.sentence_id}`,
-    english: row.english,
-    paite: row.final_paite,
+    direction: row.direction,
+    ...(row.direction === "pai2en"
+      ? { english: row.final_paite, paite: row.paite_prompt, original_english: row.english }
+      : { english: row.english, paite: row.final_paite }),
     register: row.register,
     contributor: row.contributor_name ?? "",
     verified_by: reviewerName(env, row.reviewer_email.toLowerCase()) ?? "Reviewer",
@@ -209,5 +213,6 @@ https://paite.lamkalabs.com/review`,
 export async function runNightly(env: Env, fetcher: typeof fetch): Promise<void> {
   await logged(env, "export", () => exportVerified(env, fetcher));
   await logged(env, "retire_owner", () => retireOwnerTranslations(env, fetcher));
+  await logged(env, "reverse", () => runReverse(env));
   await logged(env, "digest", () => runDigest(env));
 }

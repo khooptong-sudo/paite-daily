@@ -20,7 +20,11 @@
   function showUndo(id) { undoId = id; $("undo").hidden = false; }
 
   function render() {
-    $("english").textContent = card.sentence.english;
+    const rev = card.sentence.direction === "pai2en";
+    $("dir").textContent = rev ? "Paite to English: translate into English" : "English";
+    $("english").textContent = rev ? card.sentence.paite_prompt : card.sentence.english;
+    $("orig").hidden = !rev; $("orig").textContent = rev ? "Original English (round trip): " + card.sentence.english : "";
+    $("register").parentElement.hidden = rev;
     const multi = card.answers.length > 1;
     const hint = document.createElement("p"); hint.className = "meta"; hint.hidden = !multi;
     hint.textContent = "Press Accept this on the best answer. Tick any other correct answers to keep them as variants.";
@@ -32,7 +36,7 @@
       meta.textContent = `${a.register}${a.contributor_name ? " · " + a.contributor_name : ""}`;
       box.append(p, meta);
       if (a.explanation) { const ex = document.createElement("div"); ex.className = "meta"; ex.textContent = a.explanation; box.append(ex); }
-      if (a.ai_note) { const ai = document.createElement("div"); ai.className = "ai"; ai.textContent = "AI note (advisory)" + (a.ai_flag ? " [" + a.ai_flag + "]" : "") + ": " + a.ai_note; box.append(ai); }
+      if (a.ai_note) { const ai = document.createElement("div"); ai.className = "ai"; ai.textContent = "AI note (advisory)" + (a.ai_flag ? " [" + (rev && a.ai_flag === "english" ? "not_english" : a.ai_flag) + "]" : "") + ": " + a.ai_note; box.append(ai); }
       const edit = document.createElement("textarea"); edit.value = a.paite; edit.maxLength = 300; edit.setAttribute("aria-label", "Edit before accepting: " + a.paite);
       const also = document.createElement("label"); also.hidden = !multi;
       const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.answerId = a.id; cb.setAttribute("aria-label", "Also correct (keep as variant): " + a.paite);

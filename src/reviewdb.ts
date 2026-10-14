@@ -3,7 +3,7 @@ import { cleanText } from "./text";
 const LOCK_MS = 10 * 60_000;
 
 export type ReviewCard = {
-  sentence: { id: number; english: string };
+  sentence: { id: number; english: string; direction: string; paite_prompt: string | null };
   answers: { id: number; paite: string; register: string; contributor_name: string | null; explanation: string | null; ai_note: string | null; ai_flag: string | null }[];
 };
 
@@ -21,7 +21,7 @@ export type Decision = {
 export async function claimNext(db: D1Database, email: string, now: number): Promise<ReviewCard | null> {
   const candidates = await db
     .prepare(
-      `SELECT s.id, s.english FROM sentences s
+      `SELECT s.id, s.english, s.direction, s.paite_prompt FROM sentences s
        WHERE s.status IN ('open', 'full')
          AND EXISTS (SELECT 1 FROM answers a WHERE a.sentence_id = s.id AND a.status = 'new')
          AND NOT EXISTS (SELECT 1 FROM locks l WHERE l.sentence_id = s.id AND l.expires_at > ?1 AND l.reviewer_email <> ?2)
@@ -32,7 +32,7 @@ export async function claimNext(db: D1Database, email: string, now: number): Pro
        LIMIT 5`,
     )
     .bind(now, email)
-    .all<{ id: number; english: string }>();
+    .all<ReviewCard["sentence"]>();
   for (const s of candidates.results) {
     const lock = await db
       .prepare(
