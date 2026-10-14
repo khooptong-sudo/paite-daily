@@ -85,7 +85,7 @@ small { display: block; font-size: .75em; color: var(--muted); font-weight: 400;
 .alert { background: #fff; color: #000; padding: .6rem 1rem; font-weight: 700; border-radius: 14px; margin-bottom: 12px; }
 .alert p { margin: 0; }
 
-/* Community goal: shared by the front page and Pan Late. */
+/* Community goal: shared by the front page and Panlate. */
 .goal { display: grid; gap: 6px; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .goal b { color: var(--fg); }
 .goal small { display: inline; }

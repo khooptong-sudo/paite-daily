@@ -1,4 +1,4 @@
-/* Pan Late: the public contributors page. Builds on style.css tokens (AMOLED black, white, glass). */
+/* Panlate: the public contributors page. Builds on style.css tokens (AMOLED black, white, glass). */
 .cp { padding: 0; }
 .cp main { padding: 28px 16px max(48px, env(safe-area-inset-bottom)); gap: 32px; overflow-wrap: anywhere; }
 .p, .rows, .empty, .seg {

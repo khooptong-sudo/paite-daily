@@ -87,7 +87,7 @@ describe("community goal", () => {
       expect(r.headers.get("cache-control")).toBe("public, max-age=300");
     }
   });
-  it("Pan Late shows the bar and the invite link", async () => {
+  it("Panlate shows the bar and the invite link", async () => {
     const page = await (await call("/contributors")).text();
     expect(page).toContain('role="progressbar"');
     expect(page).toContain("https://wa.me/?text=Help%20write%20Paite");

@@ -31,7 +31,7 @@ window.STRINGS = {
   share: { pai: "Khakkhia", en: "Share" },
   shareLine: { pai: "Paite pau gelhdan sinsakna a panla kha kahi", en: "I helped write Paite into the future" },
   sentences: { pai: "thuvual", en: "sentences" },
-  contributorsTitle: { pai: "Pan Late", en: "Paite contributors" },
+  contributorsTitle: { pai: "Panlate", en: "Paite contributors" },
   thisWeek: { pai: "Tukar sung", en: "This week" },
   allTime: { pai: "Hunteng", en: "All time" },
   reviewed: { pai: "Etdik khit", en: "reviewed" },

@@ -94,7 +94,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
   const start = d.thisWeek.contributors.length + d.thisWeek.reviewers.length ? "thisWeek" : "allTime";
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Pan Late - Paite contributors</title>
+<title>Panlate - Paite contributors</title>
 <meta name="theme-color" content="#000000">
 <script>document.documentElement.className="js"</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
