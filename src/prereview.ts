@@ -20,6 +20,8 @@ flag "junk": gibberish, spam or unrelated text.
 type Row = { id: number; sentence_id: number; english: string; direction: string; paite_prompt: string | null; paite: string; ai_note: string | null };
 
 async function noteSentence(env: Env, fetcher: typeof fetch, rows: Row[]): Promise<number> {
+  const attempts = rows.filter((r) => r.ai_note === null).map((r) => env.DB.prepare("UPDATE answers SET ai_attempts = ai_attempts + 1 WHERE id = ?1").bind(r.id));
+  // A thrown fetch counts as an attempt (so it cannot retry forever); an HTTP error does not.
   const res = await fetcher("https://api.deepseek.com/chat/completions", {
     method: "POST",
     headers: { authorization: `Bearer ${env.DEEPSEEK_API_KEY}`, "content-type": "application/json" },
@@ -33,10 +35,9 @@ async function noteSentence(env: Env, fetcher: typeof fetch, rows: Row[]): Promi
       ],
     }),
     signal: AbortSignal.timeout(20_000),
-  });
+  }).catch(async (e) => { await env.DB.batch(attempts); throw e; });
   if (!res.ok) throw new Error(`DeepSeek ${res.status}`);
   const sent = new Set(rows.map((r) => r.id));
-  const attempts = rows.filter((r) => r.ai_note === null).map((r) => env.DB.prepare("UPDATE answers SET ai_attempts = ai_attempts + 1 WHERE id = ?1").bind(r.id));
   let out: any;
   try { out = JSON.parse(((await res.json()) as any).choices[0].message.content); } catch (e) { await env.DB.batch(attempts); throw e; }
   const stmts: D1PreparedStatement[] = [];

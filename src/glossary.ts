@@ -1,0 +1,115 @@
+import { esc } from "./contributors";
+import { PUAN } from "./puan";
+import type { Env } from "./types";
+
+const SYSTEM = `You extract a Paite (Zomi, ISO 639-3 pck) word list from a note a verified contributor wrote about their English-to-Paite translation.
+Reply with JSON only: {"entries":[{"paite":"<Paite word or short phrase>","english":"<meaning>","note":"<optional usage note, or empty>"}]}
+Only list Paite words or phrases that appear in the Paite sentence. Do not invent words. Return {"entries":[]} when the note explains no word.`;
+
+const MAX_ENTRIES = 10, MAX_PER_RUN = 20;
+const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "");
+
+type Pending = { id: number; sentence_id: number; paite: string; english: string; explanation: string };
+
+// Untrusted model output: validate shape, cap counts and lengths, drop words not in the answer text.
+export function cleanEntries(out: any, paiteText: string): { paite: string; english: string; note: string }[] {
+  const hay = paiteText.toLowerCase();
+  const res: { paite: string; english: string; note: string }[] = [];
+  for (const e of Array.isArray(out?.entries) ? out.entries.slice(0, MAX_ENTRIES) : []) {
+    const paite = clip(e?.paite, 60), english = clip(e?.english, 120), note = clip(e?.note, 200);
+    if (paite && english && hay.includes(paite.toLowerCase())) res.push({ paite, english, note });
+  }
+  return res;
+}
+
+async function extract(env: Env, fetcher: typeof fetch, p: Pending): Promise<number> {
+  await env.DB.prepare("UPDATE answers SET gloss_attempts = gloss_attempts + 1 WHERE id = ?1").bind(p.id).run();
+  const res = await fetcher("https://api.deepseek.com/chat/completions", {
+    method: "POST",
+    headers: { authorization: `Bearer ${env.DEEPSEEK_API_KEY}`, "content-type": "application/json" },
+    body: JSON.stringify({
+      model: "deepseek-chat",
+      temperature: 0,
+      response_format: { type: "json_object" },
+      messages: [{ role: "system", content: SYSTEM }, { role: "user", content: `English: ${p.english}\nPaite: ${p.paite}\nNote: ${p.explanation}` }],
+    }),
+    signal: AbortSignal.timeout(20_000),
+  });
+  if (!res.ok) throw new Error(`DeepSeek ${res.status}`);
+  let out: unknown;
+  try { out = JSON.parse(((await res.json()) as any).choices[0].message.content); } catch (e) { throw e; }
+  const entries = cleanEntries(out, p.paite);
+  await env.DB.batch([
+    ...entries.map((e) => env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, answer_id, sentence_id) VALUES (?1, ?2, ?3, ?4, ?5)").bind(e.paite, e.english, e.note || null, p.id, p.sentence_id)),
+    env.DB.prepare("UPDATE answers SET gloss_done = 1 WHERE id = ?1").bind(p.id),
+  ]);
+  return entries.length;
+}
+
+// Only en2pai notes explain Paite words. Returns null (no job row) when there is nothing to do.
+export async function runGlossary(env: Env, fetcher: typeof fetch): Promise<{ entries: number; failed: number } | null> {
+  if (!env.DEEPSEEK_API_KEY) return null;
+  const { results } = await env.DB.prepare(
+    `SELECT a.id, a.sentence_id, a.paite, s.english, a.explanation FROM answers a JOIN sentences s ON s.id = a.sentence_id
+     WHERE a.status IN ('accepted', 'also_correct') AND s.direction = 'en2pai' AND a.gloss_done = 0 AND a.gloss_attempts < 3
+       AND TRIM(COALESCE(a.explanation, '')) <> '' ORDER BY a.gloss_attempts, a.id LIMIT ${MAX_PER_RUN}`,
+  ).all<Pending>();
+  if (!results.length) return null;
+  let entries = 0, failed = 0;
+  for (const p of results) {
+    try { entries += await extract(env, fetcher, p); } catch (e) { console.error("glossary", String(e)); failed++; }
+  }
+  return { entries, failed };
+}
+
+export type Entry = { id: number; paite: string; english: string; note: string | null; example: { paite: string; english: string } };
+
+export async function getGlossary(env: Env, limit = -1): Promise<Entry[]> {
+  const { results } = await env.DB.prepare(
+    `SELECT g.id, g.paite, g.english, g.note, a.paite AS ex_paite, s.english AS ex_english FROM glossary g
+     JOIN answers a ON a.id = g.answer_id JOIN sentences s ON s.id = g.sentence_id WHERE g.hidden = 0 ORDER BY g.id DESC LIMIT ?1`,
+  ).bind(limit).all<{ id: number; paite: string; english: string; note: string | null; ex_paite: string; ex_english: string }>();
+  return results.map((r) => ({ id: r.id, paite: r.paite, english: r.english, note: r.note, example: { paite: r.ex_paite, english: r.ex_english } }));
+}
+
+export const glossaryJson = (xs: Entry[]) =>
+  JSON.stringify({ entries: [...xs].sort((a, b) => a.paite.localeCompare(b.paite)).map(({ id, ...e }) => e) }, null, 2) + "\n";
+
+const JS = `(function(){var S=window.STRINGS||{};
+document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
+var q=document.getElementById("q"),sr=S.search;if(sr&&sr.pai){q.placeholder=q.ariaLabel=sr.pai+" / "+sr.en;q.setAttribute("aria-label",q.placeholder)}q.addEventListener("input",function(){var t=q.value.trim().toLowerCase();
+document.querySelectorAll(".gl li").forEach(function(li){li.hidden=!!t&&li.textContent.toLowerCase().indexOf(t)<0});
+document.querySelectorAll(".gl section").forEach(function(s){s.hidden=!s.querySelector("li:not([hidden])")})});
+})();`;
+
+export function renderGlossary(xs: Entry[]): string {
+  const groups = new Map<string, Entry[]>();
+  for (const e of [...xs].sort((a, b) => a.paite.localeCompare(b.paite))) {
+    const l = e.paite.charAt(0).toUpperCase();
+    const k = /\p{L}/u.test(l) ? l : "#";
+    groups.set(k, [...(groups.get(k) ?? []), e]);
+  }
+  const li = (e: Entry) => `<li><b class="w">${esc(e.paite)}</b> <span class="m">${esc(e.english)}</span>${e.note ? `<span class="n">${esc(e.note)}</span>` : ""}<span class="ex">${esc(e.example.paite)}<br>${esc(e.example.english)}</span></li>`;
+  const body = groups.size
+    ? [...groups].map(([k, es]) => `<section class="rows" aria-label="${esc(k)}"><h2>${esc(k)}</h2><ul>${es.map(li).join("")}</ul></section>`).join("")
+    : '<p class="empty" data-s="glossaryEmpty">No words yet. They appear as contributors explain their translations.</p>';
+  return `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paite word list</title>
+<meta name="theme-color" content="#000000">
+<script>document.documentElement.className="js"</script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/contributors.css">
+</head>
+<body class="cp">
+<header class="hero">${PUAN}<h1 data-s="glossaryTitle">Paite word list</h1><p data-s="glossaryLine">Words from the notes of our contributors.</p></header>
+<main class="gl">
+<input id="q" type="search" placeholder="Search" aria-label="Search">
+${body}
+<a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
+</main>
+<script src="/strings.js"></script>
+<script>${JS}</script>
+</body></html>`;
+}

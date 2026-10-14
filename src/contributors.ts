@@ -50,7 +50,7 @@ export async function getContributors(env: Env): Promise<Contributors> {
   };
 }
 
-const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+export const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 const mdEsc = (s: string) => s.replace(/[\\`*_{}\[\]()#+\-.!|<>~&]/g, "\\$&").replace(/\s+/g, " ");
 
 const SEAL = '<svg class="seal-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.6 2.2 3.4-.2 1 3.3 2.9 1.8-1.1 3.2 1.1 3.2-2.9 1.8-1 3.3-3.4-.2L12 22l-2.6-2.2-3.4.2-1-3.3-2.9-1.8 1.1-3.2L2.1 9l2.9-1.8 1-3.3 3.4.2z"/><path d="M8 12.2l2.7 2.7L16 9.6"/></svg>';
@@ -99,6 +99,7 @@ ${goalBar(d.goal)}
 ${view("thisWeek")}
 ${view("allTime")}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
+<a class="cta glass-btn" href="/glossary"><span data-s="glossaryTitle">Paite word list</span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="cta glass-btn" id="invite" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(INVITE_EN + " https://paite.lamkalabs.com")}"><span data-s="invite">Send to a friend</span><span class="go" aria-hidden="true">&rarr;</span></a>
 </main>
 <script src="/strings.js"></script>

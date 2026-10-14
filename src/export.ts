@@ -1,6 +1,7 @@
 import { reviewerName } from "./access";
 import { runDigest } from "./digest";
 import { getContributors, renderMarkdown } from "./contributors";
+import { glossaryJson, getGlossary, runGlossary } from "./glossary";
 import { runReverse } from "./reverse";
 import { normaliseEnglish } from "./text";
 import type { Env } from "./types";
@@ -103,6 +104,25 @@ async function putContributors(env: Env, fetcher: typeof fetch): Promise<void> {
   } catch (e) {
     console.error("CONTRIBUTORS.md", e);
   }
+}
+
+// glossary.json: a second commit like CONTRIBUTORS.md. Skips the PUT when the file is unchanged. Throws on failure so the job is logged.
+export async function putGlossary(env: Env, fetcher: typeof fetch): Promise<boolean> {
+  const entries = await getGlossary(env);
+  const content = toBase64Utf8(glossaryJson(entries));
+  const url = `https://api.github.com/repos/${env.CORPUS_REPO}/contents/glossary.json`;
+  const cur = await fetcher(`${url}?ref=${encodeURIComponent(env.CORPUS_BRANCH)}`, { headers: ghHeaders(env), signal: AbortSignal.timeout(15_000) });
+  if (!entries.length && !cur.ok) return false;
+  const old = cur.ok ? ((await cur.json()) as { sha?: string; content?: string }) : {};
+  if ((old.content ?? "").replace(/\s/g, "") === content) return false;
+  const res = await fetcher(url, {
+    method: "PUT",
+    headers: { ...ghHeaders(env), "content-type": "application/json" },
+    body: JSON.stringify({ message: "community: update glossary.json", content, branch: env.CORPUS_BRANCH, sha: old.sha }),
+    signal: AbortSignal.timeout(15_000),
+  });
+  if (!res.ok) throw new Error(`glossary.json PUT ${res.status}`);
+  return true;
 }
 
 export async function exportVerified(env: Env, fetcher: typeof fetch): Promise<{ exported: number; path: string | null }> {
@@ -214,5 +234,10 @@ export async function runNightly(env: Env, fetcher: typeof fetch): Promise<void>
   await logged(env, "export", () => exportVerified(env, fetcher));
   await logged(env, "retire_owner", () => retireOwnerTranslations(env, fetcher));
   await logged(env, "reverse", () => runReverse(env));
+  await logged(env, "glossary", async () => {
+    const r = await runGlossary(env, fetcher);
+    const published = await putGlossary(env, fetcher);
+    return r || published ? { ...r, published } : null;
+  });
   await logged(env, "digest", () => runDigest(env));
 }

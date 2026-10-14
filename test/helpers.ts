@@ -7,7 +7,7 @@ import type { Deps } from "../src/types";
 
 // Storage is not isolated between tests in this pool version; wipe all tables (children first).
 beforeEach(async () => {
-  await env.DB.batch(["locks", "reviewer_phones", "reviews", "exports", "job_runs", "seen", "answers", "sentences"].map((t) => env.DB.prepare(`DELETE FROM ${t}`)));
+  await env.DB.batch(["glossary", "locks", "reviewer_phones", "reviews", "exports", "job_runs", "seen", "answers", "sentences"].map((t) => env.DB.prepare(`DELETE FROM ${t}`)));
 });
 
 export const PHONE_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";

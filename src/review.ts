@@ -1,6 +1,7 @@
 import { isOwner, reviewerName } from "./access";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
+import { getGlossary } from "./glossary";
 import { isPhoneId } from "./text";
 import { claimNext, decide, undo, type Decision } from "./reviewdb";
 import { json, type Deps, type Env } from "./types";
@@ -18,6 +19,12 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     return card ? json(card) : new Response(null, { status: 204 });
   }
   if (pathname === "/review/api/queue" && req.method === "GET") return json({ waiting: (await waitingCounts(env.DB, email, deps.now())).answers });
+  if (pathname === "/review/api/glossary" && req.method === "GET") return json({ entries: await getGlossary(env, 20) });
+  if (pathname === "/review/api/glossary/hide" && req.method === "POST") {
+    if (!Number.isInteger(b.id)) return json({ error: "bad_request" }, 400);
+    const r = await env.DB.prepare("UPDATE glossary SET hidden = 1 WHERE id = ?1").bind(b.id).run();
+    return r.meta.changes ? json({ ok: true }) : json({ error: "not_found" }, 404);
+  }
   if (pathname === "/review/api/decide" && req.method === "POST") {
     const ints = (x: unknown) => Array.isArray(x) && x.every(Number.isInteger);
     if (!Number.isInteger(b.sentenceId) || !["accept", "reject", "retire"].includes(b.decision as string) || !ints(b.answerIds) || (b.alsoCorrect !== undefined && !ints(b.alsoCorrect))) return json({ error: "bad_request" }, 400);

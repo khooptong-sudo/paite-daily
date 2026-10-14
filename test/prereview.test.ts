@@ -15,6 +15,14 @@ const reply = (o: unknown) => new Response(JSON.stringify({ choices: [{ message:
 const note = async (id: number) => env.DB.prepare("SELECT ai_note, ai_flag FROM answers WHERE id = ?1").bind(id).first<{ ai_note: string | null; ai_flag: string | null }>();
 
 describe("prereview", () => {
+  it("a thrown fetch counts the attempt, so the 4th run does nothing", async () => {
+    const [s] = await addSentences("Hello");
+    await answer(s, "Dam maw");
+    const boom = (async () => { throw new Error("network"); }) as unknown as typeof fetch;
+    for (let i = 0; i < 3; i++) expect(await runPrereview(keyed, boom)).toEqual({ noted: 0, failed: 1 });
+    expect(await runPrereview(keyed, boom)).toBeNull();
+  });
+
   it("writes notes, trims, ignores invalid ids/flags, sends only answer text", async () => {
     const [s] = await addSentences("Hello");
     const a = await answer(s, "Dam maw"), b = await answer(s, "Nong dam hiam"), c = await answer(s, "x");

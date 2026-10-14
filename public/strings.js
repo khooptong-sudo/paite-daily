@@ -44,6 +44,10 @@ window.STRINGS = {
   gotIt: { pai: "", en: "Got it" },
   invite: { pai: "", en: "Send to a friend" },
   inviteText: { pai: "", en: "Help write Paite into the future. One sentence a day:" },
+  glossaryTitle: { pai: "", en: "Paite word list" },
+  glossaryLine: { pai: "", en: "Words from the notes of our contributors." },
+  glossaryEmpty: { pai: "", en: "No words yet. They appear as contributors explain their translations." },
+  search: { pai: "", en: "Search" },
   goalLine: { pai: "", en: "verified sentences" },
   tooFast: { pai: "Hon awl deuh hiau in, kin law zezen.", en: "Slow down a little, then try again." },
 };

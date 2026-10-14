@@ -141,7 +141,25 @@
     } catch {}
   }
 
+  // Word list: newest 20 entries, each with a Hide button.
+  async function words() {
+    try {
+      const r = await fetch("/review/api/glossary");
+      if (!r.ok) return;
+      const { entries } = await r.json();
+      $("words").replaceChildren(...entries.map((e) => {
+        const li = document.createElement("li"); li.className = "answer";
+        const t = document.createElement("p"); t.textContent = e.paite + " = " + e.english;
+        const m = document.createElement("div"); m.className = "meta"; m.textContent = (e.note ? e.note + " · " : "") + e.example.paite + " / " + e.example.english;
+        const h = document.createElement("button"); h.type = "button"; h.textContent = "Hide"; h.setAttribute("aria-label", "Hide word: " + e.paite);
+        h.addEventListener("click", async () => { h.disabled = true; const x = await post("/review/api/glossary/hide", { id: e.id }); if (x.ok) li.remove(); else h.disabled = false; });
+        li.append(t, m, h);
+        return li;
+      }));
+    } catch {}
+  }
+
   // Link this browser's contributor phone id to the signed-in reviewer (for the badge on /contributors).
   const linkPhone = () => { try { const id = JSON.parse(localStorage.getItem("pd:phone")); if (id) post("/review/api/link-phone", { phoneId: id }).catch(() => {}); } catch {} };
-  me().then((ok) => { if (ok) { linkPhone(); next(); if (isOwner) health(); } });
+  me().then((ok) => { if (ok) { linkPhone(); next(); words(); if (isOwner) health(); } });
 })();

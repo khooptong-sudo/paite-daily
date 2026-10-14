@@ -134,5 +134,5 @@ it("runNightly logs both jobs, even when one fails", async () => {
   const failing = (async () => { throw new Error("network down"); }) as typeof fetch;
   await runNightly(env, failing);
   const runs = await env.DB.prepare("SELECT job, ok FROM job_runs ORDER BY id").all();
-  expect(runs.results).toEqual([{ job: "export", ok: 1 }, { job: "retire_owner", ok: 0 }]);
+  expect(runs.results).toEqual([{ job: "export", ok: 1 }, { job: "retire_owner", ok: 0 }, { job: "glossary", ok: 0 }]);
 });
