@@ -43,6 +43,7 @@ describe("export", () => {
   it("writes one JSON line per accepted review, with reviewer display name and CC0", async () => {
     await verified("I am well.", "Ka dam e.");
     await verified("Good night for now.", "Mangpha phot le.", null);
+    await env.DB.prepare("UPDATE answers SET explanation = 'gloss' WHERE paite = 'Ka dam e.'").run();
     const gh = github();
     const r = await exportVerified(env, gh.fetcher);
     expect(r.exported).toBe(2);
@@ -51,6 +52,8 @@ describe("export", () => {
     const lines = decode(gh.puts[0].body.content).trim().split("\n").map((l) => JSON.parse(l));
     expect(lines[0]).toMatchObject({ english: "I am well.", paite: "Ka dam e.", register: "spoken", contributor: "Mang", verified_by: "Rev One", licence: "CC0-1.0" });
     expect(lines[1].contributor).toBe("");
+    expect(lines[0].explanation).toBe("gloss");
+    expect(lines[1]).toHaveProperty("explanation", null);
     expect(JSON.stringify(lines)).not.toContain("rev@example.org");
   });
 

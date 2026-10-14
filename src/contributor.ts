@@ -50,11 +50,13 @@ export async function handleContributor(req: Request, env: Env, deps: Deps): Pro
     const paite = cleanText(b.paite, 300);
     const register = (b.register ?? "both") as Register;
     const name = b.name === undefined || b.name === "" ? null : cleanText(b.name, 60);
-    if (!Number.isInteger(b.sentenceId) || !paite || !["spoken", "written", "both"].includes(register) || (b.name && !name)) {
+    const blank = b.explanation === undefined || b.explanation === null || (typeof b.explanation === "string" && !b.explanation.trim());
+    const explanation = blank ? null : cleanText(b.explanation, 500);
+    if (!Number.isInteger(b.sentenceId) || !paite || (!blank && !explanation) || !["spoken", "written", "both"].includes(register) || (b.name && !name)) {
       return json({ error: "bad_request" }, 400);
     }
     if ((await answersInLastMinute(env.DB, phoneId)) >= 10) return json({ error: "slow_down" }, 429);
-    const result = await recordAnswer(env.DB, { phoneId, sentenceId: b.sentenceId as number, paite, register, name }, deps.now());
+    const result = await recordAnswer(env.DB, { phoneId, sentenceId: b.sentenceId as number, paite, register, name, explanation }, deps.now());
     return result === "ok" ? json({ ok: true }) : json({ error: "closed" }, 409);
   }
 

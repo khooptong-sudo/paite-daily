@@ -62,6 +62,21 @@ describe("answers", () => {
     expect(row).toEqual({ register: "spoken", contributor_name: "Mang" });
   });
 
+  it("stores a trimmed explanation, nulls an empty one, rejects over 500", async () => {
+    const [a, b, c] = await addSentences("One.", "Two.", "Three.");
+    expect((await answer(PHONE_A, a, "Ka dam e.", { explanation: "  gloss  " })).status).toBe(200);
+    expect((await answer(PHONE_A, b, "Ka dam e.", { explanation: "   " })).status).toBe(200);
+    expect((await answer(PHONE_A, c, "Ka dam e.", { explanation: "x".repeat(501) })).status).toBe(400);
+    const q = (id: number) => env.DB.prepare("SELECT explanation FROM answers WHERE sentence_id = ?1").bind(id).first();
+    expect(await q(a)).toEqual({ explanation: "gloss" });
+    expect(await q(b)).toEqual({ explanation: null });
+  });
+
+  it("rejects a non-string explanation", async () => {
+    const [a] = await addSentences("One.");
+    expect((await answer(PHONE_A, a, "Ka dam e.", { explanation: 123 })).status).toBe(400);
+  });
+
   it("rate limit: the 11th answer within a minute is refused", async () => {
     const ids = await addSentences(...Array.from({ length: 11 }, (_, i) => `Sentence ${i}.`));
     for (const id of ids.slice(0, 10)) expect((await answer(PHONE_A, id)).status).toBe(200);

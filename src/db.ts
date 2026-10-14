@@ -31,7 +31,7 @@ export async function answersInLastMinute(db: D1Database, phoneId: string): Prom
  */
 export async function recordAnswer(
   db: D1Database,
-  a: { phoneId: string; sentenceId: number; paite: string; register: Register; name: string | null },
+  a: { phoneId: string; sentenceId: number; paite: string; register: Register; name: string | null; explanation?: string | null },
   now: number,
 ): Promise<"ok" | "closed"> {
   const claim = await db
@@ -48,8 +48,8 @@ export async function recordAnswer(
   if (claim.meta.changes !== 1) return "closed";
   try {
     await db.batch([
-      db.prepare("INSERT INTO answers (sentence_id, paite, register, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5)")
-        .bind(a.sentenceId, a.paite, a.register, a.phoneId, a.name),
+      db.prepare("INSERT INTO answers (sentence_id, paite, register, phone_id, contributor_name, explanation) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
+        .bind(a.sentenceId, a.paite, a.register, a.phoneId, a.name, a.explanation ?? null),
       db.prepare("INSERT INTO seen (phone_id, sentence_id, action) VALUES (?1, ?2, 'answered')").bind(a.phoneId, a.sentenceId),
     ]);
   } catch (e) {

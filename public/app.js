@@ -9,6 +9,7 @@
   const tBoth = (key) => (S[key].pai ? `${S[key].pai}<small>${S[key].en}</small>` : S[key].en);
 
   document.querySelectorAll("[data-s]").forEach((el) => { el.innerHTML = tBoth(el.dataset.s); });
+  $("explanation").placeholder = t("explanationHint");
 
   let phoneId = store.get("phone", null);
   if (!phoneId) { phoneId = crypto.randomUUID(); store.set("phone", phoneId); }
@@ -92,7 +93,7 @@
     const register = new FormData($("form")).get("register");
     try {
       const r = await api("/api/answer", { method: "POST",
-        body: JSON.stringify({ sentenceId: current.id, paite, register, name: store.get("name", "") }) });
+        body: JSON.stringify({ sentenceId: current.id, paite, register, name: store.get("name", ""), explanation: $("explanation").value.trim() }) });
       if (r.status === 429) { status(tBoth("tooFast")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (!r.ok && r.status !== 409) { status(tBoth("offline")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (r.ok) {
@@ -101,7 +102,7 @@
         status(n % 5 === 0 ? tBoth("thanks") : "", true);
         if (!store.get("askedName", false)) { store.set("askedName", true); $("ask-name").hidden = false; }
       }
-      $("paite").value = "";
+      $("paite").value = ""; $("explanation").value = "";
       next();
     } catch {
       status(tBoth("offline"));
@@ -111,6 +112,7 @@
 
   $("skip").addEventListener("click", async () => {
     if (current) { try { await api("/api/skip", { method: "POST", body: JSON.stringify({ sentenceId: current.id }) }); } catch {} }
+    $("explanation").value = "";
     status("");
     next();
   });

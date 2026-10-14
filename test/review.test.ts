@@ -64,6 +64,15 @@ describe("review flow", () => {
     expect((await rev("/review/api/next", undefined, "owner@example.org")).status).toBe(204);
   });
 
+  it("returns the contributor's explanation with each answer", async () => {
+    const [id] = await addSentences("I am well.");
+    for (const [ph, ex] of [[PHONE_A, "dam = well"], [PHONE_B, undefined]] as const) {
+      await call("/api/answer", { method: "POST", session: await session(ph), body: JSON.stringify({ sentenceId: id, paite: "Ka dam e.", register: "both", explanation: ex }) });
+    }
+    const card = await (await rev("/review/api/next")).json<{ answers: { explanation: string | null }[] }>();
+    expect(card.answers.map((a) => a.explanation).sort()).toEqual(["dam = well", null].sort());
+  });
+
   it("accept verifies the sentence and records the reviewer", async () => {
     const id = await fullSentence();
     const card = await (await rev("/review/api/next")).json<{ answers: { id: number; paite: string }[] }>();
