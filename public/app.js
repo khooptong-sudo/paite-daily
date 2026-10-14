@@ -98,7 +98,7 @@
       if (!r.ok && r.status !== 409) { status(tBoth("offline")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (r.ok) {
         const n = store.get(todayKey(), 0) + 1;
-        store.set(todayKey(), n); showToday();
+        store.set(todayKey(), n); showToday(); refreshMe();
         status(n % 5 === 0 ? tBoth("thanks") : "", true);
         if (!store.get("askedName", false)) { store.set("askedName", true); $("ask-name").hidden = false; }
       }
@@ -144,7 +144,53 @@
     } catch {}
   }
 
+  const shareText = "https://paite.lamkalabs.com";
+  async function shareCard(total) {
+    await document.fonts.ready;
+    const c = document.createElement("canvas"); c.width = 1080; c.height = 1920;
+    const g = c.getContext("2d"), css = getComputedStyle(document.documentElement);
+    g.fillStyle = css.getPropertyValue("--bg") || "#f7f4ef"; g.fillRect(0, 0, 1080, 1920);
+    // The header band is an inline SVG: serialise it and draw it as an image.
+    const svg = document.querySelector("svg.puan").cloneNode(true);
+    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg"); svg.setAttribute("width", 1080); svg.setAttribute("height", 118);
+    const img = new Image();
+    img.src = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" }));
+    await img.decode(); g.drawImage(img, 0, 0, 1080, 118); URL.revokeObjectURL(img.src);
+    const display = css.getPropertyValue("--display"), body = css.getPropertyValue("--body");
+    g.textAlign = "center"; g.fillStyle = css.getPropertyValue("--fg") || "#1b1616";
+    const wrap = (text, y, font, lh) => {
+      g.font = font; let line = "";
+      for (const w of text.split(" ")) {
+        if (line && g.measureText(line + " " + w).width > 920) { g.fillText(line, 540, y); y += lh; line = w; } else line = line ? line + " " + w : w;
+      }
+      g.fillText(line, 540, y); return y + lh;
+    };
+    let y = wrap(S.shareLine.pai || S.shareLine.en, 520, `72px ${display}`, 90);
+    if (S.shareLine.pai) y = wrap(S.shareLine.en, y + 20, `44px ${body}`, 60);
+    g.fillStyle = css.getPropertyValue("--accent") || "#b0102e";
+    y = wrap(`${total} ${S.sentences.pai || S.sentences.en}${S.sentences.pai ? " / " + total + " " + S.sentences.en : ""}`, y + 80, `700 52px ${body}`, 70);
+    g.fillStyle = css.getPropertyValue("--muted") || "#625755";
+    wrap("paite.lamkalabs.com", 1760, `40px ${body}`, 50);
+    const blob = await new Promise((res) => c.toBlob(res, "image/png"));
+    const file = new File([blob], "paite-daily.png", { type: "image/png" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], text: shareText }); } catch (e) { if (e.name !== "AbortError") throw e; }
+    } else {
+      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "paite-daily.png"; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+  }
+  let total = 0;
+  async function refreshMe() {
+    try {
+      total = (await (await api("/api/me")).json()).total;
+      $("share").hidden = total < 5;
+    } catch {}
+  }
+  $("share").addEventListener("click", () => shareCard(total).catch(() => status(tBoth("offline"))));
+
   showToday();
   next();
+  refreshMe();
   feedback();
 })();

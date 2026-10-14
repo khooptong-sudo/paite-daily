@@ -38,6 +38,12 @@ export async function handleContributor(req: Request, env: Env, deps: Deps): Pro
     return json({ items: await feedbackFor(env.DB, phoneId, Number.isInteger(after) && after > 0 ? after : 0) });
   }
 
+  if (pathname === "/api/me" && req.method === "GET") {
+    const r = await env.DB.prepare("SELECT count(*) AS total, COALESCE(SUM(status IN ('accepted', 'also_correct')), 0) AS verified FROM answers WHERE phone_id = ?1")
+      .bind(phoneId).first<{ total: number; verified: number }>();
+    return json({ total: r!.total, verified: r!.verified });
+  }
+
   if (pathname === "/api/skip" && req.method === "POST") {
     const b = await body(req);
     if (!Number.isInteger(b.sentenceId)) return json({ error: "bad_request" }, 400);

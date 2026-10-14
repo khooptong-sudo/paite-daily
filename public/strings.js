@@ -25,6 +25,9 @@ window.STRINGS = {
   note: { pai: "Endiktu note", en: "Reviewer note" },
   explanationLabel: { pai: "Hilhchetna", en: "Explanation" },
   explanationHint: { pai: "A gen ut. Gen dan dang in.", en: "Word meanings, other ways to say it (optional)" },
+  share: { pai: "Khakkhia", en: "Share" },
+  shareLine: { pai: "Paite pau gelhdan sinsakna a panla kha kahi", en: "I helped write Paite into the future" },
+  sentences: { pai: "thuvual", en: "sentences" },
   gotIt: { pai: "", en: "Got it" },
   tooFast: { pai: "Hon awl deuh hiau in, kin law zezen.", en: "Slow down a little, then try again." },
 };
