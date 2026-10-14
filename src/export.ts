@@ -125,9 +125,10 @@ export async function retireOwnerTranslations(env: Env, fetcher: typeof fetch): 
   return retired;
 }
 
-async function logged(env: Env, job: string, fn: () => Promise<unknown>): Promise<void> {
+export async function logged(env: Env, job: string, fn: () => Promise<unknown>): Promise<void> {
   try {
     const result = await fn();
+    if (result === null) return; // nothing ran, no row
     await env.DB.prepare("INSERT INTO job_runs (job, ok, detail) VALUES (?1, 1, ?2)").bind(job, JSON.stringify(result)).run();
   } catch (e) {
     console.error(job, e);

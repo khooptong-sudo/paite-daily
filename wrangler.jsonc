@@ -8,7 +8,7 @@
     { "binding": "DB", "database_name": "paite-daily", "database_id": "2f5a853a-51cb-4fe0-bf5a-29ebce3feb12", "migrations_dir": "migrations" }
   ],
   "routes": [{ "pattern": "paite.lamkalabs.com", "custom_domain": true }],
-  "triggers": { "crons": ["0 3 * * *"] },
+  "triggers": { "crons": ["0 3 * * *", "*/15 * * * *"] },
   "vars": {
     "ACCESS_TEAM_DOMAIN": "lamka-labs-transcription-pages.cloudflareaccess.com",
     "ACCESS_AUD": "2ebfb8063ca42a015b26e56ea83ea7827be1fdd902e748e54b9fb662a9962a53",

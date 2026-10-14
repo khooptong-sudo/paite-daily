@@ -27,7 +27,7 @@
       const meta = document.createElement("div"); meta.className = "meta";
       meta.textContent = `${a.register}${a.contributor_name ? " · " + a.contributor_name : ""}`;
       box.append(p, meta);
-      if (a.ai_note) { const ai = document.createElement("div"); ai.className = "ai"; ai.textContent = "AI note: " + a.ai_note; box.append(ai); }
+      if (a.ai_note) { const ai = document.createElement("div"); ai.className = "ai"; ai.textContent = "AI note (advisory)" + (a.ai_flag ? " [" + a.ai_flag + "]" : "") + ": " + a.ai_note; box.append(ai); }
       const edit = document.createElement("textarea"); edit.value = a.paite; edit.maxLength = 300; edit.setAttribute("aria-label", "Edit before accepting: " + a.paite);
       const also = document.createElement("label");
       const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.answerId = a.id; cb.setAttribute("aria-label", "Also correct: " + a.paite);

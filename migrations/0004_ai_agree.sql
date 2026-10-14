@@ -1,0 +1,1 @@
+ALTER TABLE sentences ADD COLUMN ai_agree INTEGER;

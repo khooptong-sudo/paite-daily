@@ -4,7 +4,7 @@ const LOCK_MS = 10 * 60_000;
 
 export type ReviewCard = {
   sentence: { id: number; english: string };
-  answers: { id: number; paite: string; register: string; contributor_name: string | null; ai_note: string | null }[];
+  answers: { id: number; paite: string; register: string; contributor_name: string | null; ai_note: string | null; ai_flag: string | null }[];
 };
 
 export type Decision = {
@@ -25,7 +25,10 @@ export async function claimNext(db: D1Database, email: string, now: number): Pro
        WHERE s.status IN ('open', 'full')
          AND EXISTS (SELECT 1 FROM answers a WHERE a.sentence_id = s.id AND a.status = 'new')
          AND NOT EXISTS (SELECT 1 FROM locks l WHERE l.sentence_id = s.id AND l.expires_at > ?1 AND l.reviewer_email <> ?2)
-       ORDER BY (s.status = 'full') DESC, s.id
+       ORDER BY CASE
+           WHEN EXISTS (SELECT 1 FROM answers a WHERE a.sentence_id = s.id AND a.status = 'new' AND a.ai_flag IN ('junk', 'english')) THEN 2
+           WHEN s.ai_agree = 1 THEN 0 ELSE 1 END,
+         (s.status = 'full') DESC, s.id
        LIMIT 5`,
     )
     .bind(now, email)
@@ -41,7 +44,7 @@ export async function claimNext(db: D1Database, email: string, now: number): Pro
       .run();
     if (lock.meta.changes !== 1) continue;
     const answers = await db
-      .prepare("SELECT id, paite, register, contributor_name, ai_note FROM answers WHERE sentence_id = ?1 AND status = 'new' ORDER BY id")
+      .prepare("SELECT id, paite, register, contributor_name, ai_note, ai_flag FROM answers WHERE sentence_id = ?1 AND status = 'new' ORDER BY id")
       .bind(s.id)
       .all<ReviewCard["answers"][number]>();
     return { sentence: s, answers: answers.results };
