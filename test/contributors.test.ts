@@ -1,5 +1,6 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
+import { badgeFor } from "../src/contributors";
 import { exportVerified } from "../src/export";
 import { addSentences, call, fakeDeps, PHONE_A, PHONE_B, PHONE_C } from "./helpers";
 
@@ -22,14 +23,53 @@ describe("contributors", () => {
     const r = await call("/api/contributors");
     const text = await r.text();
     expect(JSON.parse(text)).toEqual({
-      contributors: [{ name: "Mang & Co", verified: 3, reviewer: true }],
-      reviewers: [{ name: "Rev One", decisions: 1 }, { name: "Owner", decisions: 0 }],
+      contributors: [{ name: "Mang & Co", verified: 3, weekly: 0, badge: null, reviewer: true }],
+      reviewers: [{ name: "Rev One", decisions: 1, weekly: 1 }, { name: "Owner", decisions: 0, weekly: 0 }],
+      thisWeek: { contributors: [], reviewers: [{ name: "Rev One", n: 1, badge: null }] },
+      allTime: { contributors: [{ name: "Mang & Co", n: 3, badge: null, reviewer: true }], reviewers: [{ name: "Rev One", n: 1, badge: null }, { name: "Owner", n: 0, badge: null }] },
     });
     expect(text).not.toMatch(/aaaaaaaa|example\.org/);
     const page = await (await call("/contributors")).text();
     expect(page).toContain("Mang &amp; Co");
     expect(page).toContain("Owner");
     expect(page).not.toMatch(/aaaaaaaa|example\.org/);
+  });
+
+  it("badgeFor boundaries", () => {
+    expect([0, 9, 10, 49, 50, 99, 100, 499, 500, 1000].map(badgeFor)).toEqual([null, null, 10, 10, 50, 50, 100, 100, 500, 500]);
+  });
+
+  it("thisWeek counts only live accepts from the last 7 days; allTime ranks with badge", async () => {
+    const [s1, s2, s3] = await addSentences("One.", "Two.", "Three.");
+    await ans(PHONE_A, "Alpha", "accepted", s1);
+    await ans(PHONE_A, "Alpha", "accepted", s2);
+    await ans(PHONE_A, "Alpha", "accepted", s3);
+    const rows = (await env.DB.prepare("SELECT id, sentence_id FROM answers WHERE phone_id = ?1 ORDER BY id").bind(PHONE_A).all<{ id: number; sentence_id: number }>()).results;
+    const rv = (a: { id: number }, when: string, undone: string | null) =>
+      env.DB.prepare("INSERT INTO reviews (sentence_id, reviewer_email, decision, final_paite, register, answer_ids, created_at, undone_at) VALUES (?1, 'rev@example.org', 'accept', 'x', 'both', ?2, datetime('now', ?3), ?4)")
+        .bind(rows.find((r) => r.id === a.id)!.sentence_id, JSON.stringify([a.id]), when, undone).run();
+    await rv(rows[0], "-1 days", null);
+    await rv(rows[1], "-8 days", null);
+    await rv(rows[2], "-1 days", "2026-01-01");
+    const d = await (await call("/api/contributors")).json<any>();
+    expect(d.thisWeek.contributors).toEqual([{ name: "Alpha", n: 1, badge: null, reviewer: false }]);
+    expect(d.thisWeek.reviewers).toEqual([{ name: "Rev One", n: 1, badge: null }]);
+    expect(d.allTime.contributors).toEqual([{ name: "Alpha", n: 3, badge: null, reviewer: false }]);
+  });
+
+  it("reviewer badge follows the phone, not the typed name", async () => {
+    await env.DB.prepare("DELETE FROM reviewer_phones").run();
+    const [s1] = await addSentences("One.");
+    await ans(PHONE_A, "Same", "accepted", s1);
+    await ans(PHONE_B, "Same", "accepted", s1);
+    await env.DB.prepare("INSERT INTO reviewer_phones (phone_id, reviewer_email) VALUES (?1, 'rev@example.org')").bind(PHONE_A).run();
+    const d = await (await call("/api/contributors")).json<any>();
+    expect(d.contributors.filter((c: any) => c.reviewer)).toHaveLength(1);
+    expect(d.allTime.contributors.filter((c: any) => c.reviewer)).toHaveLength(1);
+    expect(d.allTime.contributors).toHaveLength(2);
+    const page = await (await call("/contributors")).text();
+    const contribLi = page.split("<li>").map((l) => l.split("</li>")[0]).filter((l) => l.includes("Same"));
+    expect(contribLi.filter((l) => l.includes("reviewerBadge"))).toHaveLength(1 * 1);
   });
 
   it("escapes HTML in names", async () => {

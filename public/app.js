@@ -183,7 +183,9 @@
   let total = 0;
   async function refreshMe() {
     try {
-      total = (await (await api("/api/me")).json()).total;
+      const me = await (await api("/api/me")).json();
+      total = me.total;
+      $("badge").textContent = me.badge || ""; $("badge").hidden = !me.badge;
       $("share").hidden = total < 5;
     } catch {}
   }

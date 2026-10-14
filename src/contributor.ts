@@ -1,4 +1,4 @@
-import { getContributors } from "./contributors";
+import { badgeFor, getContributors } from "./contributors";
 import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, skipSentence, type Register } from "./db";
 import { readSession, signSession } from "./session";
 import { cleanText, isPhoneId } from "./text";
@@ -44,7 +44,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps): Pro
   if (pathname === "/api/me" && req.method === "GET") {
     const r = await env.DB.prepare("SELECT count(*) AS total, COALESCE(SUM(status IN ('accepted', 'also_correct')), 0) AS verified FROM answers WHERE phone_id = ?1")
       .bind(phoneId).first<{ total: number; verified: number }>();
-    return json({ total: r!.total, verified: r!.verified });
+    return json({ total: r!.total, verified: r!.verified, badge: badgeFor(r!.verified) });
   }
 
   if (pathname === "/api/skip" && req.method === "POST") {
