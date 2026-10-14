@@ -96,7 +96,9 @@ small { display: block; font-size: .75em; color: var(--muted); font-weight: 400;
 /* Footer: credit line, coffee button, desktop UPI panel. */
 .foot { display: grid; gap: 12px; justify-items: center; text-align: center; color: var(--muted); font-size: .9rem; }
 .foot p { margin: 0; }
-.foot .lab { color: var(--fg); font-weight: 700; }
+.lab { color:#fff; font-weight:700; text-decoration:none; }
+.lab:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.lab span { color:#DC143C; }
 .coffee { display: inline-block; padding: 12px 18px; border-radius: 14px; border: 1px solid var(--hair); background: rgba(255, 255, 255, .06); color: var(--fg); font-weight: 700; text-decoration: none; }
 #upi { justify-items: center; width: 100%; }
 #upi p { margin: 0; }
