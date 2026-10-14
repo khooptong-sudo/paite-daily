@@ -174,22 +174,25 @@
     const blob = await new Promise((res) => c.toBlob(res, "image/png"));
     const file = new File([blob], "paite-daily.png", { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], text: shareText }); } catch (e) { if (e.name !== "AbortError") throw e; }
-    } else {
-      const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "paite-daily.png"; a.click();
-      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    }
+      try { await navigator.share({ files: [file], text: shareText }); } catch (e) { if (e.name !== "AbortError") { download(blob); status(tBoth("shareFailed")); } }
+    } else download(blob);
+  }
+  function download(blob) {
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "paite-daily.png"; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
   let total = 0;
   async function refreshMe() {
     try {
-      const me = await (await api("/api/me")).json();
+      const r = await api("/api/me");
+      if (!r.ok) return;
+      const me = await r.json();
       total = me.total;
       $("badge").textContent = me.badge || ""; $("badge").hidden = !me.badge;
       $("share").hidden = total < 5;
     } catch {}
   }
-  $("share").addEventListener("click", () => shareCard(total).catch(() => status(tBoth("offline"))));
+  $("share").addEventListener("click", () => shareCard(total).catch(() => status(tBoth("shareError"))));
 
   showToday();
   next();

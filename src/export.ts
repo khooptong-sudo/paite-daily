@@ -158,7 +158,11 @@ export async function logged(env: Env, job: string, fn: () => Promise<unknown>):
     await env.DB.prepare("INSERT INTO job_runs (job, ok, detail) VALUES (?1, 1, ?2)").bind(job, JSON.stringify(result)).run();
   } catch (e) {
     console.error(job, e);
-    await env.DB.prepare("INSERT INTO job_runs (job, ok, detail) VALUES (?1, 0, ?2)").bind(job, String(e)).run();
+    try {
+      await env.DB.prepare("INSERT INTO job_runs (job, ok, detail) VALUES (?1, 0, ?2)").bind(job, String(e)).run();
+    } catch (e2) {
+      console.error(job, "failure row insert", e2);
+    }
     await alertIfSecondFailure(env, job);
   }
 }

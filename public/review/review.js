@@ -21,7 +21,6 @@
 
   function render() {
     $("english").textContent = card.sentence.english;
-    $("english").focus();
     const multi = card.answers.length > 1;
     const hint = document.createElement("p"); hint.className = "meta"; hint.hidden = !multi;
     hint.textContent = "Press Accept this on the best answer. Tick any other correct answers to keep them as variants.";
@@ -48,6 +47,8 @@
       box.append(edit, also, accept);
       return box;
     }));
+    const first = $("answers").querySelector(".answer p");
+    if (first) { first.tabIndex = -1; first.focus(); } else $("english").focus();
   }
 
   async function next(keepStatus = false) {

@@ -1,7 +1,7 @@
 /* Pan Late: the public contributors page. Builds on style.css tokens (AMOLED black, white, glass). */
 .cp { padding: 0; }
 .cp main { padding: 28px 16px max(48px, env(safe-area-inset-bottom)); gap: 32px; overflow-wrap: anywhere; }
-.glass, .p, .rows, .empty, .seg {
+.p, .rows, .empty, .seg {
   background: var(--surface); border: 1px solid var(--line);
   -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 12px 32px rgba(0, 0, 0, .5);

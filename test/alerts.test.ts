@@ -56,4 +56,12 @@ describe("alert email", () => {
     await fail(); await expect(fail()).resolves.toBeUndefined();
     expect((await env.DB.prepare("SELECT COUNT(*) AS n FROM job_runs WHERE ok = 0").first<{ n: number }>())!.n).toBe(2);
   });
+  it("still attempts the alert when the failure-row insert throws", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+    const send = vi.fn(async () => ({})); bind(send);
+    await run(false); await run(false);
+    const db = { prepare: (q: string) => (q.includes("INSERT INTO job_runs") ? { bind: () => ({ run: async () => { throw new Error("d1 down"); } }) } : env.DB.prepare(q)) };
+    await expect(logged({ ...env, DB: db as unknown as D1Database }, "export", async () => { throw new Error("boom"); })).resolves.toBeUndefined();
+    expect(send).toHaveBeenCalledTimes(1);
+  });
 });
