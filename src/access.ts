@@ -20,6 +20,10 @@ export async function verifyAccess(req: Request, env: Env, getKey?: JWTVerifyGet
   }
 }
 
+export function isOwner(env: Env, email: string): boolean {
+  return (env.OWNER_EMAIL ?? "").split(",").some((o) => o.trim() !== "" && o.trim().toLowerCase() === email);
+}
+
 export function reviewerName(env: Env, email: string): string | null {
   try {
     const map = JSON.parse(env.REVIEWERS) as Record<string, string>;

@@ -24,7 +24,7 @@ Copy the printed `database_id` into `wrangler.jsonc`. Set these vars there: `ACC
 "routes": [{ "pattern": "paite.lamkalabs.com", "custom_domain": true }],
 ```
 
-Set the secrets. Each command asks for the value. `REVIEWERS` is a JSON map of each reviewer email to a display name, for example `{"a@example.org":"Ann"}`. `OWNER_EMAIL` is the owner email.
+Set the secrets. Each command asks for the value. `REVIEWERS` is a JSON map of each reviewer email to a display name, for example `{"a@example.org":"Ann"}`. `OWNER_EMAIL` is the owner email. It may hold several emails, separated by commas.
 
 ```powershell
 npx wrangler secret put TURNSTILE_SECRET
@@ -41,7 +41,7 @@ For `SESSION_SECRET`, paste the output of `node -e "console.log(crypto.randomUUI
 ## Migrate, seed, deploy
 
 ```powershell
-node scripts/seed.mjs ../paite_corpus/prompts/everyday_en.txt seed.sql; npx wrangler d1 migrations apply paite-daily --remote; npx wrangler d1 execute paite-daily --remote --file seed.sql; npx wrangler d1 execute paite-daily --remote --command "SELECT count(*) AS n FROM sentences"; npm run deploy
+node scripts/seed.mjs ../paite_corpus/prompts/everyday_en.txt seed.sql; if ($LASTEXITCODE -eq 0) { npx wrangler d1 migrations apply paite-daily --remote }; if ($LASTEXITCODE -eq 0) { npx wrangler d1 execute paite-daily --remote --file seed.sql }; if ($LASTEXITCODE -eq 0) { npx wrangler d1 execute paite-daily --remote --command "SELECT count(*) AS n FROM sentences" }; if ($LASTEXITCODE -eq 0) { npm run deploy }
 ```
 
 The count must be 196.

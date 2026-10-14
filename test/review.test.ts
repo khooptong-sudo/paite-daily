@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { addSentences, call, fakeDeps, NOW, PHONE_A, PHONE_B, PHONE_C, session } from "./helpers";
 
 const as = (email: string | null, now = NOW) => fakeDeps({ verifyAccess: async () => email, now: () => now });
@@ -14,6 +14,31 @@ async function fullSentence(english = "I am well.", answers = ["Ka dam e.", "Ka 
   }
   return id;
 }
+
+describe("owner list", () => {
+  const saved = { o: env.OWNER_EMAIL, r: env.REVIEWERS };
+  afterEach(() => { env.OWNER_EMAIL = saved.o; env.REVIEWERS = saved.r; });
+  const me = async (email: string) => (await rev("/review/api/me", undefined, email)).json<{ owner: boolean }>();
+
+  it("several comma-separated owners all get owner=true and can undo", async () => {
+    env.OWNER_EMAIL = " Owner@example.org , rev@example.org ,, ";
+    expect((await me("owner@example.org")).owner).toBe(true);
+    expect((await me("rev@example.org")).owner).toBe(true);
+    expect((await rev("/review/api/undo", { reviewId: "x" }, "rev@example.org")).status).toBe(400);
+    expect((await rev("/review/api/undo", { reviewId: "x" }, "owner@example.org")).status).toBe(400);
+  });
+  it("a reviewer who is not listed gets 403 on undo", async () => {
+    env.OWNER_EMAIL = "owner@example.org,rev@example.org";
+    env.REVIEWERS = JSON.stringify({ "third@example.org": "Third" });
+    expect((await rev("/review/api/undo", { reviewId: 1 }, "third@example.org")).status).toBe(403);
+  });
+  it("empty OWNER_EMAIL means nobody is owner", async () => {
+    env.OWNER_EMAIL = "";
+    const r = await rev("/review/api/me", undefined, "owner@example.org");
+    expect(r.status).toBe(200);
+    expect((await r.json<{ owner: boolean }>()).owner).toBe(false);
+  });
+});
 
 describe("review access", () => {
   it("refuses requests without a valid Access identity", async () => {
