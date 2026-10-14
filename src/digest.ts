@@ -1,3 +1,4 @@
+import { activeReviewers } from "./access";
 import type { Env } from "./types";
 
 // Same rule as claimNext, ignoring locks: new answers on open or full sentences.
@@ -17,9 +18,7 @@ export async function runDigest(env: Env): Promise<{ sent: number } | null> {
   if (!env.ALERT_EMAIL) return null;
   const { answers, sentences } = await waitingCounts(env.DB);
   if (answers === 0) return null;
-  let map: Record<string, string> = {};
-  try { map = JSON.parse(env.REVIEWERS); } catch {}
-  const to = [...new Set(Object.keys(map).map((e) => e.trim().toLowerCase()).filter(Boolean))];
+  const to = (await activeReviewers(env)).filter((r) => r.listed).map((r) => r.email);
   let sent = 0, failed = 0;
   for (const addr of to) {
     try {

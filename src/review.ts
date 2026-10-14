@@ -1,4 +1,5 @@
 import { isOwner, reviewerName } from "./access";
+import { handleOwnerReview } from "./apply";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
 import { getGlossary } from "./glossary";
@@ -9,10 +10,13 @@ import { json, type Deps, type Env } from "./types";
 export async function handleReview(req: Request, env: Env, deps: Deps): Promise<Response> {
   const email = await deps.verifyAccess(req, env);
   if (!email) return json({ error: "sign_in" }, 401);
-  if (!reviewerName(env, email)) return json({ error: "not_a_reviewer" }, 403);
+  if (!(await reviewerName(env, email))) return json({ error: "not_a_reviewer" }, 403);
   const { pathname } = new URL(req.url);
   let b: Record<string, unknown> = {};
   if (req.method === "POST") { try { b = (await req.json()) as Record<string, unknown>; } catch {} }
+
+  const owned = await handleOwnerReview(pathname, req.method, b, env, email);
+  if (owned) return owned;
 
   if (pathname === "/review/api/next" && req.method === "GET") {
     const card = await claimNext(env.DB, email, deps.now());
@@ -40,7 +44,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     return result === "ok" ? json({ ok: true }) : json({ error: result, reason: result }, result === "missing" ? 404 : 409);
   }
   if (pathname === "/review/api/me" && req.method === "GET") {
-    return json({ name: reviewerName(env, email), owner: isOwner(env, email) });
+    return json({ name: await reviewerName(env, email), owner: isOwner(env, email) });
   }
   if (pathname === "/review/api/link-phone" && req.method === "POST") {
     if (!isPhoneId(b.phoneId)) return json({ error: "bad_request" }, 400);

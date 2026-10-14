@@ -159,7 +159,43 @@
     } catch {}
   }
 
+  // Owner only: pending applications and the reviewer list.
+  async function people() {
+    const row = (title, sub, ...btns) => {
+      const li = document.createElement("li"); li.className = "answer";
+      const t = document.createElement("p"); t.textContent = title;
+      const m = document.createElement("div"); m.className = "meta"; m.textContent = sub;
+      li.append(t, m, ...btns); return li;
+    };
+    const act = (label, aria, fn) => {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.setAttribute("aria-label", aria);
+      b.addEventListener("click", async () => { b.disabled = true; if (!(await fn())) b.disabled = false; else people(); });
+      return b;
+    };
+    try {
+      const a = await fetch("/review/api/applications");
+      if (a.ok) {
+        const { applications } = await a.json();
+        $("apps-card").hidden = false;
+        $("apps").replaceChildren(...applications.map((x) => row(x.name + " <" + x.email + ">", x.note || "", ...["approve", "decline"].map((d) =>
+          act(d === "approve" ? "Approve" : "Decline", (d === "approve" ? "Approve " : "Decline ") + x.name, async () => (await post("/review/api/applications/decide", { id: x.id, decision: d })).ok)))));
+        if (!applications.length) { const li = document.createElement("li"); li.className = "meta"; li.textContent = "No pending applications."; $("apps").replaceChildren(li); }
+      }
+      const r = await fetch("/review/api/reviewers");
+      if (r.ok) {
+        const { reviewers } = await r.json();
+        $("revs-card").hidden = false;
+        $("revs").replaceChildren(...reviewers.map((x) => row(x.name + " <" + x.email + ">", x.source, ...(x.source === "db" ? [act("Remove", "Remove " + x.name, async () => {
+          if (!confirm("Remove " + x.name + " (" + x.email + ") as a reviewer?")) return false;
+          const d = await post("/review/api/reviewers/remove", { email: x.email });
+          if (!d.ok) status((await d.json().catch(() => ({}))).message || "Could not remove.");
+          return d.ok;
+        })] : []))));
+      }
+    } catch {}
+  }
+
   // Link this browser's contributor phone id to the signed-in reviewer (for the badge on /contributors).
   const linkPhone = () => { try { const id = JSON.parse(localStorage.getItem("pd:phone")); if (id) post("/review/api/link-phone", { phoneId: id }).catch(() => {}); } catch {} };
-  me().then((ok) => { if (ok) { linkPhone(); next(); words(); if (isOwner) health(); } });
+  me().then((ok) => { if (ok) { linkPhone(); next(); words(); if (isOwner) { health(); people(); } } });
 })();

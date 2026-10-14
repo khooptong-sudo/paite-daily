@@ -1,3 +1,4 @@
+import { activeReviewers } from "./access";
 import { PUAN } from "./puan";
 import { getGoal } from "./goal";
 import type { Env } from "./types";
@@ -29,11 +30,9 @@ export async function getContributors(env: Env): Promise<Contributors> {
   const counts = await env.DB.prepare("SELECT lower(reviewer_email) AS email, COUNT(*) AS n, SUM(created_at >= datetime('now', '-7 days')) AS w FROM reviews WHERE undone_at IS NULL GROUP BY 1")
     .all<{ email: string; n: number; w: number }>();
   const done = new Map(counts.results.map((r) => [r.email, r]));
-  let map: Record<string, string> = {};
-  try { map = JSON.parse(env.REVIEWERS); } catch {}
   const contributors = c.results.map((r) => ({ name: r.name, verified: r.verified, weekly: r.weekly, badge: badgeFor(r.verified), reviewer: r.reviewer === 1 })).sort(byCountThenName((x) => x.verified));
   const merged = new Map<string, { name: string; decisions: number; weekly: number }>();
-  for (const [email, name] of Object.entries(map)) {
+  for (const { email, name } of (await activeReviewers(env)).filter((r) => r.listed)) {
     const d = done.get(email.toLowerCase()), m = merged.get(name) ?? { name, decisions: 0, weekly: 0 };
     m.decisions += d?.n ?? 0; m.weekly += d?.w ?? 0; merged.set(name, m);
   }
@@ -60,6 +59,16 @@ var iv=S.inviteText,inv=document.getElementById("invite");if(iv&&inv)inv.href="h
 var m=document.querySelector("main"),v=m.querySelectorAll("[data-view]"),b=m.querySelectorAll(".seg button");
 function show(k){v.forEach(function(x){x.classList.toggle("on",x.dataset.view===k)});b.forEach(function(x){x.setAttribute("aria-pressed",x.dataset.v===k)})}
 b.forEach(function(x){x.addEventListener("click",function(){show(x.dataset.v)})});show(m.dataset.start);
+var ready=new Promise(function(r){window.onTurnstileLoad=r}),wid=null,w=null;
+function token(){return new Promise(function(res,rej){var t=setTimeout(function(){rej(new Error("t"))},15000);var me=w={resolve:function(v){clearTimeout(t);res(v)},reject:function(e){clearTimeout(t);rej(e)}};
+ready.then(function(){if(wid===null)wid=window.turnstile.render("#turnstile",{sitekey:document.body.dataset.sitekey,appearance:"interaction-only",callback:function(v){w&&w.resolve(v)},"error-callback":function(){w&&w.reject(new Error("t"))}});else window.turnstile.reset(wid)})})}
+var af=document.getElementById("apply");
+if(af)af.addEventListener("submit",async function(e){e.preventDefault();var st=document.getElementById("apply-status"),btn=af.querySelector("button");
+function say(k,d){st.textContent=(S[k]&&(S[k].pai?S[k].pai+" ":"")+S[k].en)||d}
+if(!af.name.value.trim()||!af.email.checkValidity()){say("applyInvalid","Please enter your name and a valid email.");return}
+btn.disabled=true;try{var r=await fetch("/api/apply",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({name:af.name.value,email:af.email.value,note:af.note.value,turnstileToken:await token()})});
+if(r.ok){say("applyThanks","Thanks. The owner will review your request.");af.reset()}else if(r.status===429)say("tooFast","Slow down a little, then try again.");else if(r.status===400)say("applyInvalid","Please enter your name and a valid email.");else say("applyFailed","Could not send. Try again later.")}
+catch(x){say("applyFailed","Could not send. Try again later.")}btn.disabled=false});
 function up(e){var n=+e.dataset.n,t=null;function f(T){t=t||T;var p=Math.min((T-t)/700,1);e.textContent=Math.round(n*(1-Math.pow(1-p,3)));if(p<1)requestAnimationFrame(f)}requestAnimationFrame(f)}
 if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&"IntersectionObserver"in window){var io=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){io.unobserve(x.target);up(x.target)}})});document.querySelectorAll("b[data-n]").forEach(function(e){io.observe(e)})}
 })();`;
@@ -68,7 +77,7 @@ const INVITE_EN = "Help write Paite into the future. One sentence a day:";
 const goalBar = (g: { verified: number; goal: number }) =>
   `<div class="goal"><div class="goal-t"><b>${g.verified}</b> / ${g.goal} <span data-s="goalLine">verified sentences</span></div><div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${g.goal}" aria-valuenow="${g.verified}"><i style="width:${Math.min(100, Math.round((g.verified / g.goal) * 100))}%"></i></div></div>`;
 
-export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="/contributors.css">'): string {
+export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="/contributors.css">', siteKey = ""): string {
   const count = (n: number, key: string, en: string) => `<span class="c"><b data-n="${n}">${n}</b><span class="u" data-s="${key}">${en}</span></span>`;
   const pills = (x: Row) => `${x.badge ? `<span class="badge t${x.badge}">${x.badge}+</span>` : ""}${x.reviewer ? '<span class="badge seal" data-s="reviewerBadge">Reviewer</span>' : ""}`;
   const contributors = (xs: Row[], empty: string) => {
@@ -91,7 +100,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 ${css}</head>
-<body class="cp">
+<body class="cp" data-sitekey="${esc(siteKey)}">
 <header class="hero">${PUAN}<h1 data-s="contributorsTitle">Paite contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
 ${goalBar(d.goal)}
 <main data-start="${start}">
@@ -101,7 +110,17 @@ ${view("allTime")}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="cta glass-btn" href="/glossary"><span data-s="glossaryTitle">Paite word list</span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="cta glass-btn" id="invite" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(INVITE_EN + " https://paite.lamkalabs.com")}"><span data-s="invite">Send to a friend</span><span class="go" aria-hidden="true">&rarr;</span></a>
+<section class="card apply" aria-labelledby="h-apply"><h2 id="h-apply" data-s="applyTitle">Become a reviewer</h2><p data-s="applyNote">Reviewers check translations. Tell us who you are.</p>
+<form id="apply" novalidate>
+<label><span data-s="applyName">Your name</span><input name="name" required maxlength="80" autocomplete="name"></label>
+<label><span data-s="applyEmail">Your email</span><input name="email" type="email" required maxlength="120" autocomplete="email"></label>
+<label><span data-s="applyNoteLabel">Note (optional)</span><textarea name="note" maxlength="300" rows="3"></textarea></label>
+<button type="submit" class="cta" data-s="applySend">Send request</button>
+<p id="apply-status" role="status" aria-live="polite"></p>
+<div id="turnstile"></div>
+</form></section>
 </main>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 <script src="/strings.js"></script>
 <script>${JS}</script>
 </body></html>`;

@@ -132,3 +132,10 @@
 .gl ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .gl .w { font-size: 1.15rem; }
 .gl .n, .gl .ex { display: block; color: var(--muted); font-size: .9rem; margin-top: 2px; }
+
+/* Reviewer application */
+.apply { display: grid; gap: 14px; padding: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .16), 0 12px 32px rgba(0, 0, 0, .5); }
+.apply h2, .apply p { margin: 0; }
+.apply form { display: grid; gap: 14px; }
+.apply button.cta { border: 0; cursor: pointer; justify-content: center; }
+.apply button.cta:disabled { opacity: .6; }

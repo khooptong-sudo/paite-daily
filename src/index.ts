@@ -10,11 +10,11 @@ import { verifyTurnstile } from "./turnstile";
 import type { Deps, Env } from "./types";
 
 export function createApp(deps: Deps) {
-  return async (req: Request, env: Env): Promise<Response> => {
+  return async (req: Request, env: Env, ctx?: ExecutionContext): Promise<Response> => {
     const { pathname } = new URL(req.url);
     if (pathname === "/glossary") return new Response(renderGlossary(await getGlossary(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
-    if (pathname === "/contributors") return new Response(renderPage(await getContributors(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
-    if (pathname.startsWith("/api/")) return handleContributor(req, env, deps);
+    if (pathname === "/contributors") return new Response(renderPage(await getContributors(env), undefined, env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+    if (pathname.startsWith("/api/")) return handleContributor(req, env, deps, ctx);
     if (pathname.startsWith("/review/api/")) return handleReview(req, env, deps);
     if (pathname === "/" || pathname === "/index.html") {
       const page = await env.ASSETS.fetch(req);
@@ -33,7 +33,7 @@ const app = createApp({
 });
 
 export default {
-  fetch: (req: Request, env: Env) => app(req, env),
+  fetch: (req: Request, env: Env, ctx: ExecutionContext) => app(req, env, ctx),
   scheduled: async (c: ScheduledController, env: Env, ctx: ExecutionContext) => {
     ctx.waitUntil(
       c.cron === "*/15 * * * *" ? logged(env, "prereview", () => runPrereview(env, fetch))

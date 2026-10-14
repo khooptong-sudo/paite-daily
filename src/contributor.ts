@@ -1,3 +1,4 @@
+import { handleApply } from "./apply";
 import { getGoal } from "./goal";
 import { badgeFor, getContributors } from "./contributors";
 import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, skipSentence, type Register } from "./db";
@@ -16,7 +17,7 @@ async function body(req: Request): Promise<Record<string, unknown>> {
   }
 }
 
-export async function handleContributor(req: Request, env: Env, deps: Deps): Promise<Response> {
+export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?: ExecutionContext): Promise<Response> {
   const { pathname } = new URL(req.url);
 
   if (pathname === "/api/session" && req.method === "POST") {
@@ -27,6 +28,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps): Pro
     return json({ session: await signSession(b.phoneId, deps.now() + DAY_MS, env.SESSION_SECRET) });
   }
 
+  if (pathname === "/api/apply" && req.method === "POST") return handleApply(req, env, deps, ctx);
   if (pathname === "/api/contributors" && req.method === "GET") return json(await getContributors(env), 200, "public, max-age=300");
   if (pathname === "/api/goal" && req.method === "GET") return json(await getGoal(env), 200, "public, max-age=300");
 

@@ -1,4 +1,4 @@
-import { reviewerName } from "./access";
+import { activeReviewers } from "./access";
 import { runDigest } from "./digest";
 import { getContributors, renderMarkdown } from "./contributors";
 import { glossaryJson, getGlossary, runGlossary } from "./glossary";
@@ -52,6 +52,7 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
     for (const x of rows.results) also.set(x.sentence_id, [...(also.get(x.sentence_id) ?? []), x.paite]);
   }
   // pai2en: paite is the prompt, english is the contributor's (reviewed) answer, original_english is the round-trip source.
+  const names = new Map((await activeReviewers(env)).map((r) => [r.email, r.name]));
   const lines = results.map((row) => JSON.stringify({
     id: `community:${row.sentence_id}`,
     direction: row.direction,
@@ -60,7 +61,7 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
       : { english: row.english, paite: row.final_paite }),
     register: row.register,
     contributor: row.contributor_name ?? "",
-    verified_by: reviewerName(env, row.reviewer_email.toLowerCase()) ?? "Reviewer",
+    verified_by: names.get(row.reviewer_email.toLowerCase()) ?? "Reviewer",
     verified_at: row.created_at,
     licence: "CC0-1.0",
     also_correct: also.get(row.sentence_id) ?? [],
