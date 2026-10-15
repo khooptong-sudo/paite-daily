@@ -46,6 +46,26 @@ node scripts/seed.mjs ../paite_corpus/prompts/everyday_en.txt seed.sql; if ($LAS
 
 The count must be 196.
 
+## Mobile app
+
+The site is also a Progressive Web App. `public/manifest.webmanifest` and `public/sw.js` make it installable, and the front page, the word list and the contributors page each carry a download row. The review page has no download row.
+
+`public/paite-daily.apk` is a signed Android package. It is a Trusted Web Activity made with Bubblewrap, so Android opens the site in the app with no browser bar. `public/.well-known/assetlinks.json` holds the signing certificate fingerprint that makes that work.
+
+The Android project and the signing key live outside this repository, at `F:\Resources\paite-android`. Keep them there. The key must never enter the repository. The keystore password is in `F:\KEYS\Paite Daily Android keystore.txt`.
+
+Build a new package and copy it into the site:
+
+```powershell
+cd F:\Resources\paite-android
+$env:BUBBLEWRAP_KEYSTORE_PASSWORD = (Select-String -Path "F:\KEYS\Paite Daily Android keystore.txt" -Pattern "^password: ").Line -replace "^password: ", ""
+$env:BUBBLEWRAP_KEY_PASSWORD = $env:BUBBLEWRAP_KEYSTORE_PASSWORD
+npx bubblewrap build
+Copy-Item app-release-signed.apk F:\Resources\paite-daily\public\paite-daily.apk
+```
+
+Use the same signing key for every build. A different key breaks the update path on every installed device.
+
 ## Run tests
 
 ```powershell

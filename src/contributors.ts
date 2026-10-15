@@ -96,6 +96,9 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Panlate - Contributors</title>
 <meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" href="/icons/icon-192.png" sizes="192x192">
 <script>document.documentElement.className="js"</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <link rel="stylesheet" href="/style.css">
@@ -110,6 +113,14 @@ ${view("allTime")}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="cta glass-btn" href="/glossary"><span data-s="glossaryTitle">Paite word list</span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="cta glass-btn" id="invite" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(INVITE_EN + " https://paite.lamkalabs.com")}"><span data-s="invite">Send to a friend</span><span class="go" aria-hidden="true">&rarr;</span></a>
+<a class="pan" href="/paite-daily.apk" download>
+<span><b data-s="getApp">Get the Android app</b><small data-s="getAppNote">Download the APK file.</small></span>
+<span class="go" aria-hidden="true">&darr;</span>
+</a>
+<button type="button" class="pan" id="install-app" hidden>
+<span><b data-s="installApp">Install on this device</b><small data-s="installAppNote">Add Paite Daily to your home screen. No download.</small></span>
+<span class="go" aria-hidden="true">&darr;</span>
+</button>
 <section class="card apply" aria-labelledby="h-apply"><h2 id="h-apply" data-s="applyTitle">Become a reviewer</h2><p data-s="applyNote">Reviewers check translations. Tell us who you are.</p>
 <form id="apply" novalidate>
 <label><span data-s="applyName">Your name</span><input name="name" required maxlength="80" autocomplete="name"></label>
@@ -123,6 +134,7 @@ ${view("allTime")}
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 <script src="/strings.js"></script>
 <script src="/back.js"></script>
+<script src="/pwa.js"></script>
 <script>${JS}</script>
 </body></html>`;
 }

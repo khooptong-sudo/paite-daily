@@ -1,0 +1,12 @@
+/manifest.webmanifest
+  Content-Type: application/manifest+json
+
+/sw.js
+  Cache-Control: no-cache
+
+/paite-daily.apk
+  Content-Type: application/vnd.android.package-archive
+  Content-Disposition: attachment
+
+/.well-known/assetlinks.json
+  Content-Type: application/json

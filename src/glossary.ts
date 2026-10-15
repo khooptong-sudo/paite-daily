@@ -100,6 +100,9 @@ export function renderGlossary(xs: Entry[]): string {
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Paite word list</title>
 <meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" href="/icons/icon-192.png" sizes="192x192">
 <script>document.documentElement.className="js"</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <link rel="stylesheet" href="/style.css">
@@ -111,9 +114,18 @@ export function renderGlossary(xs: Entry[]): string {
 <input id="q" type="search" placeholder="Search" aria-label="Search">
 ${body}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
+<a class="pan" href="/paite-daily.apk" download>
+<span><b data-s="getApp">Get the Android app</b><small data-s="getAppNote">Download the APK file.</small></span>
+<span class="go" aria-hidden="true">&darr;</span>
+</a>
+<button type="button" class="pan" id="install-app" hidden>
+<span><b data-s="installApp">Install on this device</b><small data-s="installAppNote">Add Paite Daily to your home screen. No download.</small></span>
+<span class="go" aria-hidden="true">&darr;</span>
+</button>
 </main>
 <script src="/strings.js"></script>
 <script src="/back.js"></script>
+<script src="/pwa.js"></script>
 <script>${JS}</script>
 </body></html>`;
 }

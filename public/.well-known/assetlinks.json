@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.lamkalabs.paitedaily",
+      "sha256_cert_fingerprints": [
+        "6E:5B:8C:2A:78:C7:2F:6A:F9:3B:79:10:0A:01:89:4C:C5:4B:F3:82:E4:27:C0:0E:66:2B:82:0D:76:E1:7B:FF"
+      ]
+    }
+  }
+]
