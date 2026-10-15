@@ -108,3 +108,7 @@ small { display: block; font-size: .75em; color: var(--muted); font-weight: 400;
 #upi { justify-items: center; width: 100%; }
 #upi p { margin: 0; }
 .qr { background: #fff; padding: 12px; border-radius: 16px; width: min(100%, 220px); line-height: 0; }
+
+.back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 700; font-size: .95rem; color: var(--fg); text-decoration: none; }
+.back:hover { text-decoration: underline; text-underline-offset: 3px; }
+.hero .back { display: flex; justify-content: flex-start; margin-bottom: 8px; }

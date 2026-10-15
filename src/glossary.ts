@@ -106,13 +106,14 @@ export function renderGlossary(xs: Entry[]): string {
 <link rel="stylesheet" href="/contributors.css">
 </head>
 <body class="cp">
-<header class="hero">${PUAN}<h1 data-s="glossaryTitle">Paite word list</h1><p data-s="glossaryLine">Words from the notes of our contributors.</p></header>
+<header class="hero"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a>${PUAN}<h1 data-s="glossaryTitle">Paite word list</h1><p data-s="glossaryLine">Words from the notes of our contributors.</p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
 ${body}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
 </main>
 <script src="/strings.js"></script>
+<script src="/back.js"></script>
 <script>${JS}</script>
 </body></html>`;
 }

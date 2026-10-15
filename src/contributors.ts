@@ -101,7 +101,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <link rel="stylesheet" href="/style.css">
 ${css}</head>
 <body class="cp" data-sitekey="${esc(siteKey)}">
-<header class="hero">${PUAN}<h1 data-s="contributorsTitle">Contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
+<header class="hero"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a>${PUAN}<h1 data-s="contributorsTitle">Contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
 ${goalBar(d.goal)}
 <main data-start="${start}">
 <div class="seg" role="group" aria-label="Period"><button type="button" data-v="thisWeek" aria-pressed="false" data-s="thisWeek">This week</button><button type="button" data-v="allTime" aria-pressed="false" data-s="allTime">All time</button></div>
@@ -122,6 +122,7 @@ ${view("allTime")}
 </main>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 <script src="/strings.js"></script>
+<script src="/back.js"></script>
 <script>${JS}</script>
 </body></html>`;
 }

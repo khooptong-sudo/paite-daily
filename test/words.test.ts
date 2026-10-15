@@ -102,6 +102,7 @@ describe("glossary page", () => {
     await env.DB.prepare("INSERT INTO glossary (paite, english, source, contributor_name) VALUES ('dam', 'well', 'contributed', 'Mang <i>')").run();
     await env.DB.prepare("INSERT INTO glossary (paite, english, source) VALUES ('ngah', 'to get', 'contributed')").run();
     const html = renderGlossary(await getGlossary(env));
+    expect(html).toContain("data-back");
     expect(html).toContain("Added by Mang &lt;i&gt;");
     expect(html.match(/data-s="srcContributed"/g)).toHaveLength(1);
     expect(html).toContain('<b class="w">Dam</b>');
