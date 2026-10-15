@@ -1,9 +1,13 @@
 // Paite Daily service worker.
-// Keeps the shell of the app on the device, so the page opens with no network.
-// Nothing under /api/ or /review/ is cached: answers must reach the server, and
-// the review pages belong to Cloudflare Access.
+// Fresh copy first. The stored copy answers only when the network is gone, so
+// the app still opens with no connection.
+//
+// An earlier version of this file trusted the stored copy first. That pinned
+// the old styles and strings on every device that had visited, and hid every
+// later deploy. Do not go back to that order. Raise CACHE when the shell
+// changes, so the old store is dropped on activate.
 
-const CACHE = "paite-daily-v1";
+const CACHE = "paite-daily-v2";
 
 const SHELL = [
   "/",
@@ -37,33 +41,24 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const request = event.request;
-  if (request.method !== "GET") return;
 
+  // Only reads of our own pages and files. Answers must reach the server, and
+  // the review pages belong to Cloudflare Access.
+  if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/review")) return;
 
-  // A page: take the fresh copy, and keep it for the next offline visit.
-  if (request.mode === "navigate") {
-    event.respondWith((async () => {
-      try {
-        const response = await fetch(request);
-        if (response.ok) (await caches.open(CACHE)).put(request, response.clone());
-        return response;
-      } catch (error) {
-        const hit = await caches.match(request);
-        return hit || (await caches.match("/index.html")) || Response.error();
-      }
-    })());
-    return;
-  }
-
-  // A file: take the stored copy, and fill the store from the network.
   event.respondWith((async () => {
-    const hit = await caches.match(request);
-    if (hit) return hit;
-    const response = await fetch(request);
-    if (response.ok) (await caches.open(CACHE)).put(request, response.clone());
-    return response;
+    try {
+      const response = await fetch(request);
+      if (response.ok) (await caches.open(CACHE)).put(request, response.clone());
+      return response;
+    } catch (error) {
+      const hit = await caches.match(request);
+      if (hit) return hit;
+      if (request.mode === "navigate") return (await caches.match("/index.html")) || Response.error();
+      throw error;
+    }
   })());
 });
