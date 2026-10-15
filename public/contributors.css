@@ -98,10 +98,10 @@
 /* CTA */
 .cta {
   display: flex; align-items: center; justify-content: space-between; gap: 12px; text-decoration: none;
-  color: #fff; border-radius: 20px; padding: 16px 20px; -webkit-backdrop-filter: blur(12px) saturate(140%); backdrop-filter: blur(12px) saturate(140%);
+  color: #000; border-radius: 20px; padding: 16px 20px; -webkit-backdrop-filter: blur(12px) saturate(140%); backdrop-filter: blur(12px) saturate(140%);
   font: 700 1.1rem/1.2 var(--body); transition: transform .15s;
 }
-.cta small { color: #fff; opacity: .8; font-weight: 400; font-size: .85rem; margin-top: 2px; }
+.cta small { color: inherit; opacity: .7; font-weight: 400; font-size: .85rem; margin-top: 2px; }
 .cta .go { font-size: 1.5rem; }
 .cta.glass-btn {
   background: var(--surface); color: #000; background: rgba(255, 255, 255, .55); border: 1px solid rgba(0, 0, 0, .14); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 4px 14px rgba(0, 0, 0, .08);
@@ -137,7 +137,7 @@
 .apply { display: grid; gap: 14px; padding: 22px; background: var(--surface); border: 1px solid var(--line); border-radius: 20px; -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 8px 28px rgba(0, 0, 0, .08); }
 .apply h2, .apply p { margin: 0; }
 .apply form { display: grid; gap: 14px; }
-.apply button.cta { border: 0; cursor: pointer; justify-content: center; }
+.apply button.cta { cursor: pointer; justify-content: center; }
 .apply button.cta:disabled { opacity: .6; }
 .gl summary { cursor: pointer; }
 .gl summary .m { color: var(--muted); font-size: .85rem; }
