@@ -139,6 +139,18 @@
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 6px 18px rgba(0, 0, 0, .22);
   }
   .screen .lic { font-size: 15px; color: var(--muted); line-height: 1.35; margin-top: auto; }
+
+  /* ---------- captions ---------- */
+  .cap {
+    position: absolute; left: 0; right: 0; bottom: 26px; z-index: 9;
+    text-align: center; padding: 0 40px;
+  }
+  .cap span {
+    display: inline-block; max-width: 1400px;
+    background: rgba(0, 0, 0, .86); color: #fff;
+    font: 700 34px/1.25 var(--body);
+    padding: 13px 26px; border-radius: 18px;
+  }
 </style>
 </head>
 <body>
@@ -208,6 +220,22 @@
     </div>
   </div>
 
+  <!-- captions : one group for each spoken phrase -->
+  <div class="cap" id="cap1"><span>Paite Daily.</span></div>
+  <div class="cap" id="cap2"><span>One sentence a day, in Paite.</span></div>
+  <div class="cap" id="cap3"><span>Read a simple English sentence.</span></div>
+  <div class="cap" id="cap4"><span>Write it in Paite.</span></div>
+  <div class="cap" id="cap5"><span>Read it. Type it in Paite.</span></div>
+  <div class="cap" id="cap6"><span>Then tap Send.</span></div>
+  <div class="cap" id="cap7"><span>Reviewers check each answer.</span></div>
+  <div class="cap" id="cap8"><span>The data is open and free.</span></div>
+
+  <!-- narration -->
+  <audio id="vo1" data-start="0.5" data-duration="2.54" data-track-index="5" src="audio/vo1.wav"></audio>
+  <audio id="vo2" data-start="4.9" data-duration="2.76" data-track-index="5" src="audio/vo2.wav"></audio>
+  <audio id="vo3" data-start="9.2" data-duration="2.46" data-track-index="5" src="audio/vo3.wav"></audio>
+  <audio id="vo4" data-start="13.6" data-duration="3.38" data-track-index="5" src="audio/vo4.wav"></audio>
+
 </div>
 
 <script>
@@ -254,13 +282,30 @@
 
   /* ---------- scene 4 ---------- */
   tl.from("#s4", { opacity: 0, duration: 0.5, ease: "power1.inOut" }, 13.2);
-  tl.from("#s4 .label", { y: 18, autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 13.4);
-  tl.from("#s4 h2", { y: 38, autoAlpha: 0, duration: 0.85, ease: "power3.out" }, 13.55);
+  tl.from("#s4 .label", { y: 18, autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 13.3);
+  tl.from("#s4 h2", { y: 38, autoAlpha: 0, duration: 0.85, ease: "power3.out" }, 13.45);
   tl.from("#s4 .body", { y: 24, autoAlpha: 0, duration: 0.75, ease: "power2.out" }, 13.85);
   tl.from("#s4 .cta", { y: 30, autoAlpha: 0, scale: 0.98, duration: 0.8, ease: "back.out(1.35)" }, 14.15);
   tl.from("#s4 .fine", { y: 14, autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 14.6);
   tl.fromTo("#band2", { "--reveal": "0%" }, { "--reveal": "114%", duration: 1.0, ease: "power2.inOut" }, 14.6);
   tl.to("#s4", { opacity: 0, duration: 0.7, ease: "power2.in" }, 17.3);
+
+  /* ---------- captions : one group for each spoken phrase ---------- */
+  const caps = [
+    ["#cap1", 0.5, 1.31],
+    ["#cap2", 1.31, 3.04],
+    ["#cap3", 4.9, 6.6],
+    ["#cap4", 6.6, 7.65],
+    ["#cap5", 9.2, 10.79],
+    ["#cap6", 10.79, 11.65],
+    ["#cap7", 13.6, 15.4],
+    ["#cap8", 15.4, 17.0]
+  ];
+  caps.forEach(([sel, a, b]) => {
+    tl.fromTo(sel, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.22, ease: "power2.out" }, a);
+    tl.to(sel, { opacity: 0, duration: 0.2, ease: "power2.in" }, b - 0.2);
+    tl.set(sel, { opacity: 0 }, b);
+  });
 
   window.__timelines["main"] = tl;
   tl.seek(0);

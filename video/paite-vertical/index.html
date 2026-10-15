@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Paite Daily — starter video, vertical</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<!-- GSAP comes from jsDelivr with no SRI hash: the version is pinned, and this
+     page renders only in a local headless browser, never in a user session. -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+  :root {
+    --paper: #fff;
+    --ink: #000;
+    --muted: rgba(0, 0, 0, .65);
+    --surface: rgba(0, 0, 0, .035);
+    --line: rgba(0, 0, 0, .12);
+    --hair: rgba(0, 0, 0, .45);
+    --display: "Young Serif", Georgia, "Times New Roman", serif;
+    --body: "Atkinson Hyperlegible", system-ui, "Segoe UI", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--paper); }
+  body { font: 400 30px/1.5 var(--body); color: var(--ink); }
+
+  #root {
+    position: relative; width: 1080px; height: 1920px; overflow: hidden;
+    background: var(--paper);
+  }
+  #root::before {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background:
+      radial-gradient(70% 40% at 15% 12%, rgba(0, 0, 0, .07), transparent 70%),
+      radial-gradient(65% 35% at 90% 55%, rgba(0, 0, 0, .05), transparent 70%),
+      radial-gradient(80% 30% at 20% 100%, rgba(0, 0, 0, .06), transparent 70%);
+  }
+
+  .scene { position: absolute; inset: 0; z-index: 1; }
+  .scene-content {
+    width: 100%; height: 100%; padding: 250px 80px 420px;
+    display: flex; flex-direction: column; box-sizing: border-box;
+  }
+
+  /* ---------- shared type ---------- */
+  .label {
+    font: 700 22px/1 var(--body); letter-spacing: .12em;
+    text-transform: uppercase; color: var(--muted); margin-bottom: 24px;
+  }
+  .display { font-family: var(--display); font-weight: 400; letter-spacing: -.015em; line-height: 1.1; }
+  .body { color: var(--muted); }
+  .band-wrap { overflow: hidden; }
+  .band { display: block; width: 100%; height: auto; }
+  .band-mask {
+    -webkit-mask-image: linear-gradient(90deg, #000 var(--reveal, 0%), transparent 0);
+    mask-image: linear-gradient(90deg, #000 var(--reveal, 0%), transparent 0);
+  }
+
+  /* ---------- scene 1 : title ---------- */
+  #s1 .scene-content { align-items: center; justify-content: center; text-align: center; gap: 22px; padding-bottom: 190px; }
+  #s1 .band-wrap { width: 700px; margin-bottom: 30px; }
+  #s1 h1 { font-size: 122px; }
+  #s1 .sub { font: 400 40px/1.3 var(--display); color: var(--ink); }
+  #s1 .fine { font-size: 24px; color: var(--muted); margin-top: 10px; }
+
+  /* ---------- scenes 2 and 3 : text above the phone ---------- */
+  .col { width: 100%; }
+  #s2 h2 { font-size: 68px; margin-bottom: 26px; }
+  #s2 .body { font-size: 32px; }
+  #s2 .fine { font-size: 24px; color: var(--muted); margin-top: 22px; }
+
+  .step { display: flex; align-items: flex-start; gap: 22px; margin-bottom: 26px; }
+  .step .n {
+    flex: none; width: 52px; height: 52px; border-radius: 50%;
+    background: rgba(0, 0, 0, .85); color: #fff;
+    font: 700 24px/52px var(--body); text-align: center;
+  }
+  .step .t { font-size: 34px; line-height: 1.3; }
+  .step .t small { display: block; font-size: 23px; color: var(--muted); margin-top: 3px; }
+  #s3 .fine { font-size: 23px; color: var(--muted); margin-top: 8px; }
+
+  /* ---------- scene 4 : outcome and address ---------- */
+  #s4 .scene-content { align-items: center; justify-content: center; text-align: center; gap: 20px; padding-bottom: 300px; }
+  #s4 h2 { font-size: 76px; }
+  #s4 .body { font-size: 32px; }
+  #s4 .cta {
+    margin-top: 26px; padding: 28px 40px; border-radius: 24px;
+    border: 1px solid var(--line); background: var(--surface);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .8), 0 8px 28px rgba(0, 0, 0, .08);
+    font: 400 50px/1 var(--display);
+  }
+  #s4 .fine { font-size: 23px; color: var(--muted); margin-top: 20px; }
+  #s4 .band-wrap { width: 460px; margin-top: 32px; }
+
+  /* ---------- the phone ---------- */
+  .phone {
+    position: absolute; z-index: 5; left: 310px; top: 680px;
+    width: 460px; height: 830px; padding: 12px;
+    border-radius: 46px; background: #0b0b0b;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, .28), inset 0 1px 0 rgba(255, 255, 255, .18);
+  }
+  .screen {
+    width: 100%; height: 100%; border-radius: 36px; overflow: hidden;
+    background: var(--paper); padding: 26px 22px;
+    display: flex; flex-direction: column; gap: 16px;
+    font-family: var(--body);
+  }
+  .screen .band-wrap { width: 100%; margin-bottom: 2px; }
+  .screen h3 { font: 400 28px/1.1 var(--display); }
+  .screen .lbl {
+    font: 700 13px/1 var(--body); letter-spacing: .1em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .field { position: relative; }
+  .ring {
+    position: absolute; inset: -6px; border: 3px solid var(--ink);
+    border-radius: 18px; opacity: 0;
+  }
+  .sentence { font: 400 42px/1.2 var(--display); padding: 4px 2px 12px; }
+  .box {
+    height: 272px; border: 1px solid var(--hair); border-radius: 14px;
+    background: rgba(0, 0, 0, .04); padding: 14px 16px;
+  }
+  .caret { width: 3px; height: 34px; background: var(--ink); }
+  .radios { display: flex; gap: 12px; font-size: 19px; color: var(--muted); }
+  .radios b { font-weight: 400; color: var(--ink); }
+  .radios i {
+    display: inline-block; width: 15px; height: 15px; border-radius: 50%;
+    border: 2px solid rgba(0, 0, 0, .7); margin-right: 6px; vertical-align: -2px;
+  }
+  .radios b i { background: radial-gradient(#000 0 45%, transparent 50%); border-color: #000; }
+  .send {
+    position: relative; margin-top: 2px; border-radius: 14px;
+    background: rgba(0, 0, 0, .85); color: #fff; text-align: center;
+    font: 700 23px/60px var(--body); height: 60px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18), 0 6px 18px rgba(0, 0, 0, .22);
+  }
+  .screen .lic { font-size: 15px; color: var(--muted); line-height: 1.35; margin-top: auto; }
+
+  /* ---------- captions ---------- */
+  .cap {
+    position: absolute; left: 0; right: 0; bottom: 128px; z-index: 9;
+    text-align: center; padding: 0 40px;
+  }
+  .cap span {
+    display: inline-block; max-width: 960px;
+    background: rgba(0, 0, 0, .86); color: #fff;
+    font: 700 40px/1.25 var(--body);
+    padding: 16px 30px; border-radius: 20px;
+  }
+</style>
+</head>
+<body>
+
+<svg id="puan-sprite" width="0" height="0" aria-hidden="true" style="position:absolute"><defs><g id="puanBand"><defs><path id="wave" d="M0,0.00 L8,1.06 16,2.05 24,2.89 32,3.52 40,3.90 48,4.00 56,3.80 64,3.34 72,2.63 80,1.74 88,0.71 96,-0.36 104,-1.41 112,-2.35 120,-3.13 128,-3.68 136,-3.96 144,-3.96 152,-3.68 160,-3.13 168,-2.35 176,-1.41 184,-0.36 192,0.71 200,1.74 208,2.63 216,3.34 224,3.80 232,4.00 240,3.90 248,3.52 256,2.89 264,2.05 272,1.06 280,0.00 288,-1.06 296,-2.05 304,-2.89 312,-3.52 320,-3.90 328,-4.00 336,-3.80 344,-3.34 352,-2.63 360,-1.74 368,-0.71 376,0.36 384,1.41 392,2.35 400,3.13 408,3.68 416,3.96 424,3.96 432,3.68 440,3.13 448,2.35 456,1.41 464,0.36 472,-0.71 480,-1.74 488,-2.63 496,-3.34 504,-3.80 512,-4.00 520,-3.90 528,-3.52 536,-2.89 544,-2.05 552,-1.06 560,-0.00" fill="none"/><clipPath id="cloth"><path d="M0,5.00 L8,6.06 L16,7.05 L24,7.89 L32,8.52 L40,8.90 L48,9.00 L56,8.80 L64,8.34 L72,7.63 L80,6.74 L88,5.71 L96,4.64 L104,3.59 L112,2.65 L120,1.87 L128,1.32 L136,1.04 L144,1.04 L152,1.32 L160,1.87 L168,2.65 L176,3.59 L184,4.64 L192,5.71 L200,6.74 L208,7.63 L216,8.34 L224,8.80 L232,9.00 L240,8.90 L248,8.52 L256,7.89 L264,7.05 L272,6.06 L280,5.00 L288,3.94 L296,2.95 L304,2.11 L312,1.48 L320,1.10 L328,1.00 L336,1.20 L344,1.66 L352,2.37 L360,3.26 L368,4.29 L376,5.36 L384,6.41 L392,7.35 L400,8.13 L408,8.68 L416,8.96 L424,8.96 L432,8.68 L440,8.13 L448,7.35 L456,6.41 L464,5.36 L472,4.29 L480,3.26 L488,2.37 L496,1.66 L504,1.20 L512,1.00 L520,1.10 L528,1.48 L536,2.11 L544,2.95 L552,3.94 L560,5.00 L560,56.00 L552,54.94 L544,53.95 L536,53.11 L528,52.48 L520,52.10 L512,52.00 L504,52.20 L496,52.66 L488,53.37 L480,54.26 L472,55.29 L464,56.36 L456,57.41 L448,58.35 L440,59.13 L432,59.68 L424,59.96 L416,59.96 L408,59.68 L400,59.13 L392,58.35 L384,57.41 L376,56.36 L368,55.29 L360,54.26 L352,53.37 L344,52.66 L336,52.20 L328,52.00 L320,52.10 L312,52.48 L304,53.11 L296,53.95 L288,54.94 L280,56.00 L272,57.06 L264,58.05 L256,58.89 L248,59.52 L240,59.90 L232,60.00 L224,59.80 L216,59.34 L208,58.63 L200,57.74 L192,56.71 L184,55.64 L176,54.59 L168,53.65 L160,52.87 L152,52.32 L144,52.04 L136,52.04 L128,52.32 L120,52.87 L112,53.65 L104,54.59 L96,55.64 L88,56.71 L80,57.74 L72,58.63 L64,59.34 L56,59.80 L48,60.00 L40,59.90 L32,59.52 L24,58.89 L16,58.05 L8,57.06 L0,56.00 Z"/></clipPath></defs><g fill="none"><use href="#wave" y="7.50" stroke="#000000" stroke-width="5.15"/><use href="#wave" y="10.80" stroke="#00a651" stroke-width="1.75"/><use href="#wave" y="12.40" stroke="#f6ff00" stroke-width="1.75"/><use href="#wave" y="16.70" stroke="#b0102e" stroke-width="7.15"/><use href="#wave" y="21.00" stroke="#f6ff00" stroke-width="1.75"/><use href="#wave" y="22.60" stroke="#00a651" stroke-width="1.75"/><use href="#wave" y="26.40" stroke="#000000" stroke-width="6.15"/><use href="#wave" y="30.50" stroke="#ffffff" stroke-width="2.35"/><use href="#wave" y="34.60" stroke="#000000" stroke-width="6.15"/><use href="#wave" y="38.40" stroke="#00a651" stroke-width="1.75"/><use href="#wave" y="40.00" stroke="#f6ff00" stroke-width="1.75"/><use href="#wave" y="44.30" stroke="#b0102e" stroke-width="7.15"/><use href="#wave" y="48.60" stroke="#f6ff00" stroke-width="1.75"/><use href="#wave" y="50.20" stroke="#00a651" stroke-width="1.75"/><use href="#wave" y="53.50" stroke="#000000" stroke-width="5.15"/><use href="#wave" y="30.50" stroke="#1725d4" stroke-width="2.2" stroke-dasharray="5 35" stroke-dashoffset="-16"/><use href="#wave" y="30.50" stroke="#ec008c" stroke-width="2.2" stroke-dasharray="5 35" stroke-dashoffset="-22"/><use href="#wave" y="30.50" stroke="#00a651" stroke-width="2.2" stroke-dasharray="5 35" stroke-dashoffset="-28"/></g><g clip-path="url(#cloth)"><rect x="40.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="41.5" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="45.5" y="0" width="2.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="48.0" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="52.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="134.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="135.5" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="139.5" y="0" width="2.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="142.0" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="146.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="228.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="229.5" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="233.5" y="0" width="2.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="236.0" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="240.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="322.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="323.5" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="327.5" y="0" width="2.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="330.0" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="334.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="416.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="417.5" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="421.5" y="0" width="2.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="424.0" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="428.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="510.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="511.5" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="515.5" y="0" width="2.5" height="61.0" fill="#f6ff00" opacity="0.75"/><rect x="518.0" y="0" width="4" height="61.0" fill="#4a0505" opacity="0.6"/><rect x="522.0" y="0" width="1.5" height="61.0" fill="#f6ff00" opacity="0.75"/></g></g></defs></svg>
+
+<div id="root" data-composition-id="main" data-start="0" data-duration="18" data-width="1080" data-height="1920">
+
+  <!-- scene 1 : title -->
+  <div class="scene clip" id="s1" data-start="0" data-duration="4.6" data-track-index="0">
+    <div class="scene-content">
+      <div class="band-wrap band-mask" id="band1"><svg class="band" viewBox="0 0 560 61" aria-hidden="true"><use href="#puanBand"/></svg></div>
+      <h1 class="display">Paite Daily</h1>
+      <p class="sub">The people writing Paite into the future.</p>
+      <p class="fine">One sentence a day. No account. No cost.</p>
+    </div>
+  </div>
+
+  <!-- scene 2 : what it is -->
+  <div class="scene split" id="s2" data-start="4.2" data-duration="4.7" data-track-index="1">
+    <div class="scene-content">
+      <div class="col">
+        <p class="label">What it is</p>
+        <h2 class="display">One English sentence a day.</h2>
+        <p class="body">The site shows a simple English sentence. You write the same sentence in Paite.</p>
+        <p class="fine">It takes about a minute. Your answer helps keep the language alive.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- scene 3 : how to use it -->
+  <div class="scene split" id="s3" data-start="8.5" data-duration="5.1" data-track-index="2">
+    <div class="scene-content">
+      <div class="col">
+        <p class="label">How to use it</p>
+        <div class="step"><span class="n">1</span><span class="t">Read the English sentence.</span></div>
+        <div class="step"><span class="n">2</span><span class="t">Type it in Paite.<small>A note helps the reviewer. The note is optional.</small></span></div>
+        <div class="step"><span class="n">3</span><span class="t">Tap Send.</span></div>
+        <p class="fine">That is one contribution. Come back tomorrow for a new sentence.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- scene 4 : outcome and address -->
+  <div class="scene clip" id="s4" data-start="13.2" data-duration="4.8" data-track-index="3">
+    <div class="scene-content">
+      <p class="label">What happens next</p>
+      <h2 class="display">Reviewers check every answer.</h2>
+      <p class="body">The checked sentences join an open dataset. Everyone can use it, free, under CC0.</p>
+      <p class="cta">paite.lamkalabs.com</p>
+      <p class="fine">Built by Lamka Labs.</p>
+      <div class="band-wrap band-mask" id="band2"><svg class="band" viewBox="0 0 560 61" aria-hidden="true"><use href="#puanBand"/></svg></div>
+    </div>
+  </div>
+
+  <!-- the phone : one object for the middle of the film -->
+  <div class="clip phone" id="phone" data-start="4.2" data-duration="9.4" data-track-index="4">
+    <div class="screen">
+      <div class="band-wrap"><svg class="band" viewBox="0 0 560 61" aria-hidden="true"><use href="#puanBand"/></svg></div>
+      <h3>Paite Daily</h3>
+      <p class="lbl">Translate into Paite</p>
+      <div class="field sentence">Good morning.<span class="ring" id="ring-sentence"></span></div>
+      <div class="field box"><div class="caret" id="caret"></div><span class="ring" id="ring-box"></span></div>
+      <div class="radios"><b><i></i>Both</b><span><i></i>Spoken</span><span><i></i>Written</span></div>
+      <div class="send" id="p-send">Send<span class="ring" id="ring-send"></span></div>
+      <p class="lic">Your translations are given to everyone, free (public domain).</p>
+    </div>
+  </div>
+
+  <!-- captions : one group for each spoken phrase -->
+  <div class="cap" id="cap1"><span>Paite Daily.</span></div>
+  <div class="cap" id="cap2"><span>One sentence a day, in Paite.</span></div>
+  <div class="cap" id="cap3"><span>Read a simple English sentence.</span></div>
+  <div class="cap" id="cap4"><span>Write it in Paite.</span></div>
+  <div class="cap" id="cap5"><span>Read it. Type it in Paite.</span></div>
+  <div class="cap" id="cap6"><span>Then tap Send.</span></div>
+  <div class="cap" id="cap7"><span>Reviewers check each answer.</span></div>
+  <div class="cap" id="cap8"><span>The data is open and free.</span></div>
+
+  <!-- narration -->
+  <audio id="vo1" data-start="0.5" data-duration="2.54" data-track-index="5" src="audio/vo1.wav"></audio>
+  <audio id="vo2" data-start="4.9" data-duration="2.76" data-track-index="5" src="audio/vo2.wav"></audio>
+  <audio id="vo3" data-start="9.2" data-duration="2.46" data-track-index="5" src="audio/vo3.wav"></audio>
+  <audio id="vo4" data-start="13.6" data-duration="3.38" data-track-index="5" src="audio/vo4.wav"></audio>
+
+</div>
+
+<script>
+  window.__timelines = window.__timelines || {};
+  const tl = gsap.timeline({ paused: true });
+
+  /* ---------- scene 1 ---------- */
+  tl.fromTo("#band1", { "--reveal": "0%" }, { "--reveal": "114%", duration: 1.1, ease: "power2.inOut" }, 0.15);
+  tl.from("#s1 h1", { y: 46, autoAlpha: 0, duration: 0.95, ease: "power3.out" }, 0.4);
+  tl.from("#s1 .sub", { y: 26, autoAlpha: 0, duration: 0.8, ease: "power2.out" }, 0.8);
+  tl.from("#s1 .fine", { y: 18, autoAlpha: 0, duration: 0.7, ease: "power2.out" }, 1.15);
+  tl.to("#s1", { opacity: 0, duration: 0.45, ease: "power1.inOut" }, 4.05);
+
+  /* ---------- the phone enters ---------- */
+  tl.from("#phone", { y: 78, opacity: 0, duration: 0.75, ease: "power3.out" }, 4.35);
+
+  /* ---------- scene 2 ---------- */
+  tl.from("#s2", { opacity: 0, duration: 0.45, ease: "power1.inOut" }, 4.2);
+  tl.from("#s2 .label", { y: 18, autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 4.4);
+  tl.from("#s2 h2", { y: 40, autoAlpha: 0, duration: 0.9, ease: "expo.out" }, 4.55);
+  tl.from("#s2 .body", { y: 26, autoAlpha: 0, duration: 0.8, ease: "power2.out" }, 4.8);
+  tl.from("#s2 .fine", { y: 18, autoAlpha: 0, duration: 0.7, ease: "power2.out" }, 5.15);
+  tl.to("#ring-sentence", { opacity: 1, duration: 0.45, ease: "power2.out" }, 5.4);
+  tl.to("#ring-sentence", { opacity: 0, duration: 0.4, ease: "power2.inOut" }, 8.2);
+  tl.to("#s2", { opacity: 0, duration: 0.45, ease: "power1.inOut" }, 8.35);
+
+  /* ---------- scene 3 ---------- */
+  tl.from("#s3", { opacity: 0, duration: 0.45, ease: "power1.inOut" }, 8.5);
+  tl.from("#s3 .label", { y: 18, autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 8.7);
+  tl.from("#s3 .step", { y: 34, autoAlpha: 0, duration: 0.7, stagger: 0.34, ease: "power3.out" }, 8.95);
+  tl.from("#s3 .fine", { y: 16, autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 10.5);
+  tl.from("#caret", { autoAlpha: 0, duration: 0.3 }, 10.0);
+  tl.to("#caret", { opacity: 0, duration: 0.34, repeat: 6, yoyo: true, ease: "none" }, 10.1);
+  tl.to("#caret", { opacity: 1, duration: 0.2 }, 14.2);
+  tl.to("#ring-box", { opacity: 1, duration: 0.4, ease: "power2.out" }, 10.5);
+  tl.to("#ring-box", { opacity: 0, duration: 0.35, ease: "power2.inOut" }, 11.9);
+  tl.to("#ring-send", { opacity: 1, duration: 0.35, ease: "power2.out" }, 12.05);
+  tl.to("#p-send", { scale: 0.97, duration: 0.14, ease: "power2.in" }, 12.55);
+  tl.to("#p-send", { scale: 1, duration: 0.32, ease: "back.out(2)" }, 12.69);
+  tl.to("#ring-send", { opacity: 0, duration: 0.35, ease: "power2.inOut" }, 12.9);
+  tl.to("#phone", { opacity: 0, y: -40, duration: 0.6, ease: "power2.inOut" }, 12.95);
+  tl.to("#s3", { opacity: 0, duration: 0.45, ease: "power1.inOut" }, 13.05);
+
+  /* ---------- scene 4 ---------- */
+  tl.from("#s4", { opacity: 0, duration: 0.5, ease: "power1.inOut" }, 13.2);
+  tl.from("#s4 .label", { y: 18, autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 13.3);
+  tl.from("#s4 h2", { y: 38, autoAlpha: 0, duration: 0.85, ease: "power3.out" }, 13.45);
+  tl.from("#s4 .body", { y: 24, autoAlpha: 0, duration: 0.75, ease: "power2.out" }, 13.85);
+  tl.from("#s4 .cta", { y: 30, autoAlpha: 0, scale: 0.98, duration: 0.8, ease: "back.out(1.35)" }, 14.15);
+  tl.from("#s4 .fine", { y: 14, autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 14.6);
+  tl.fromTo("#band2", { "--reveal": "0%" }, { "--reveal": "114%", duration: 1.0, ease: "power2.inOut" }, 14.6);
+  tl.to("#s4", { opacity: 0, duration: 0.7, ease: "power2.in" }, 17.3);
+
+  /* ---------- captions : one group for each spoken phrase ---------- */
+  const caps = [
+    ["#cap1", 0.5, 1.31],
+    ["#cap2", 1.31, 3.04],
+    ["#cap3", 4.9, 6.6],
+    ["#cap4", 6.6, 7.65],
+    ["#cap5", 9.2, 10.79],
+    ["#cap6", 10.79, 11.65],
+    ["#cap7", 13.6, 15.4],
+    ["#cap8", 15.4, 17.0]
+  ];
+  caps.forEach(([sel, a, b]) => {
+    tl.fromTo(sel, { opacity: 0, y: 16 }, { opacity: 1, y: 0, duration: 0.22, ease: "power2.out" }, a);
+    tl.to(sel, { opacity: 0, duration: 0.2, ease: "power2.in" }, b - 0.2);
+    tl.set(sel, { opacity: 0 }, b);
+  });
+
+  window.__timelines["main"] = tl;
+  tl.seek(0);
+</script>
+</body>
+</html>
