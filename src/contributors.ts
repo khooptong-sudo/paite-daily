@@ -94,14 +94,14 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
   const start = d.thisWeek.contributors.length + d.thisWeek.reviewers.length ? "thisWeek" : "allTime";
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Panlate - Paite contributors</title>
+<title>Panlate - Contributors</title>
 <meta name="theme-color" content="#ffffff">
 <script>document.documentElement.className="js"</script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 ${css}</head>
 <body class="cp" data-sitekey="${esc(siteKey)}">
-<header class="hero">${PUAN}<h1 data-s="contributorsTitle">Paite contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
+<header class="hero">${PUAN}<h1 data-s="contributorsTitle">Contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
 ${goalBar(d.goal)}
 <main data-start="${start}">
 <div class="seg" role="group" aria-label="Period"><button type="button" data-v="thisWeek" aria-pressed="false" data-s="thisWeek">This week</button><button type="button" data-v="allTime" aria-pressed="false" data-s="allTime">All time</button></div>
