@@ -1,4 +1,4 @@
-import { cleanText } from "./text";
+import { cap, cleanText } from "./text";
 import { json, type Env } from "./types";
 
 const DAILY_LIMIT = 20;
@@ -14,7 +14,7 @@ export async function submitWord(env: Env, phoneId: string, b: Record<string, un
     `SELECT 1 FROM glossary WHERE lower(paite) = lower(?1) AND lower(english) = lower(?2)
      UNION ALL SELECT 1 FROM word_submissions WHERE status IN ('pending', 'rejected') AND lower(paite) = lower(?1) AND lower(english) = lower(?2)`,
   ).bind(paite, english).first();
-  if (!dup) await env.DB.prepare("INSERT INTO word_submissions (paite, english, note, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5)").bind(paite, english, note, phoneId, name).run();
+  if (!dup) await env.DB.prepare("INSERT INTO word_submissions (paite, english, note, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5)").bind(cap(paite), cap(english), note, phoneId, name).run();
   return json({ ok: true });
 }
 
@@ -22,7 +22,7 @@ export async function submitWord(env: Env, phoneId: string, b: Record<string, un
 export async function handleWords(pathname: string, method: string, b: Record<string, unknown>, env: Env, email: string): Promise<Response | null> {
   if (pathname === "/review/api/words/pending" && method === "GET") {
     const { results } = await env.DB.prepare("SELECT id, paite, english, note, contributor_name AS name FROM word_submissions WHERE status = 'pending' ORDER BY id LIMIT 50").all();
-    return json({ words: results });
+    return json({ words: results.map((r: any) => ({ ...r, paite: cap(r.paite), english: cap(r.english) })) });
   }
   if (pathname === "/review/api/words/decide" && method === "POST") {
     if (!Number.isInteger(b.id) || !["approve", "reject"].includes(b.decision as string)) return json({ error: "bad_request" }, 400);
@@ -32,7 +32,7 @@ export async function handleWords(pathname: string, method: string, b: Record<st
       .bind(approve ? "approved" : "rejected", email, b.id).run();
     if (!r.meta.changes) return json({ error: "already_decided" }, 409);
     if (approve) {
-      await env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, source) SELECT paite, english, note, 'contributed' FROM word_submissions WHERE id = ?1").bind(b.id).run();
+      await env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, source, contributor_name) SELECT paite, english, note, 'contributed', contributor_name FROM word_submissions WHERE id = ?1").bind(b.id).run();
     }
     return json({ ok: true });
   }

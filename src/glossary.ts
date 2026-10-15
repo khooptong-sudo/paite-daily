@@ -1,5 +1,6 @@
 import { esc } from "./contributors";
 import { PUAN } from "./puan";
+import { cap } from "./text";
 import type { Env } from "./types";
 
 const SYSTEM = `You extract a Paite (Zomi, ISO 639-3 pck) word list from a note a verified contributor wrote about their English-to-Paite translation.
@@ -17,7 +18,7 @@ export function cleanEntries(out: any, paiteText: string): { paite: string; engl
   const res: { paite: string; english: string; note: string }[] = [];
   for (const e of Array.isArray(out?.entries) ? out.entries.slice(0, MAX_ENTRIES) : []) {
     const paite = clip(e?.paite, 60), english = clip(e?.english, 120), note = clip(e?.note, 200);
-    if (paite && english && hay.includes(paite.toLowerCase())) res.push({ paite, english, note });
+    if (paite && english && hay.includes(paite.toLowerCase())) res.push({ paite: cap(paite), english: cap(english), note });
   }
   return res;
 }
@@ -62,18 +63,18 @@ export async function runGlossary(env: Env, fetcher: typeof fetch): Promise<{ en
   return { entries, failed };
 }
 
-export type Entry = { id: number; paite: string; english: string; note: string | null; source: string; example: { paite: string; english: string } | null };
+export type Entry = { id: number; paite: string; english: string; note: string | null; source: string; by: string | null; example: { paite: string; english: string } | null };
 
 export async function getGlossary(env: Env, limit = -1): Promise<Entry[]> {
   const { results } = await env.DB.prepare(
-    `SELECT g.id, g.paite, g.english, g.note, g.source, a.paite AS ex_paite, s.english AS ex_english FROM glossary g
+    `SELECT g.id, g.paite, g.english, g.note, g.source, g.contributor_name AS by, a.paite AS ex_paite, s.english AS ex_english FROM glossary g
      LEFT JOIN answers a ON a.id = g.answer_id LEFT JOIN sentences s ON s.id = g.sentence_id WHERE g.hidden = 0 ORDER BY g.id DESC LIMIT ?1`,
-  ).bind(limit).all<{ id: number; paite: string; english: string; note: string | null; source: string; ex_paite: string | null; ex_english: string | null }>();
-  return results.map((r) => ({ id: r.id, paite: r.paite, english: r.english, note: r.note, source: r.source, example: r.ex_paite && r.ex_english ? { paite: r.ex_paite, english: r.ex_english } : null }));
+  ).bind(limit).all<{ id: number; paite: string; english: string; note: string | null; source: string; by: string | null; ex_paite: string | null; ex_english: string | null }>();
+  return results.map((r) => ({ id: r.id, paite: cap(r.paite), english: cap(r.english), note: r.note, source: r.source, by: r.by, example: r.ex_paite && r.ex_english ? { paite: r.ex_paite, english: r.ex_english } : null }));
 }
 
 export const glossaryJson = (xs: Entry[]) =>
-  JSON.stringify({ entries: [...xs].sort((a, b) => a.paite.localeCompare(b.paite)).map(({ id, ...e }) => e) }, null, 2) + "\n";
+  JSON.stringify({ entries: [...xs].sort((a, b) => a.paite.localeCompare(b.paite)).map(({ id, by, ...e }) => e) }, null, 2) + "\n";
 
 const JS = `(function(){var S=window.STRINGS||{};
 document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
@@ -91,7 +92,7 @@ export function renderGlossary(xs: Entry[]): string {
     const k = /\p{L}/u.test(l) ? l : "#";
     groups.set(k, [...(groups.get(k) ?? []), e]);
   }
-  const li = (e: Entry) => `<li id="w-${e.id}" data-q="${esc([e.paite, e.english, e.note, e.example?.paite, e.example?.english].filter(Boolean).join(" ").toLowerCase())}"><details><summary><b class="w">${esc(e.paite)}</b> <small class="m">${esc(e.english)}</small></summary><p class="m">${esc(e.english)}</p>${e.note ? `<span class="n">${esc(e.note)}</span>` : ""}${e.example ? `<span class="ex">${esc(e.example.paite)}<br>${esc(e.example.english)}</span>` : ""}<span class="n" data-s="${e.source === "contributed" ? "srcContributed" : "srcNote"}">${e.source === "contributed" ? "Added by a contributor" : "From a contributor's note"}</span></details></li>`;
+  const li = (e: Entry) => `<li id="w-${e.id}" data-q="${esc([e.paite, e.english, e.note, e.example?.paite, e.example?.english].filter(Boolean).join(" ").toLowerCase())}"><details><summary><b class="w">${esc(e.paite)}</b> <small class="m">${esc(e.english)}</small></summary><p class="m">${esc(e.english)}</p>${e.note ? `<span class="n">${esc(e.note)}</span>` : ""}${e.example ? `<span class="ex">${esc(e.example.paite)}<br>${esc(e.example.english)}</span>` : ""}${e.source === "contributed" && e.by ? `<span class="n">Added by ${esc(e.by)}</span>` : `<span class="n" data-s="${e.source === "contributed" ? "srcContributed" : "srcNote"}">${e.source === "contributed" ? "Added by a contributor" : "From a contributor's note"}</span>`}</details></li>`;
   const body = groups.size
     ? [...groups].map(([k, es]) => `<section class="rows" aria-label="${esc(k)}"><h2>${esc(k)}</h2><ul>${es.map(li).join("")}</ul></section>`).join("")
     : '<p class="empty"><span data-s="glossaryEmpty">No words yet. Add the first one on the front page.</span> <a href="/">Paite Daily</a></p>';

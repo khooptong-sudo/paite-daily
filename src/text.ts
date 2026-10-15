@@ -14,3 +14,6 @@ export function cleanText(s: unknown, max: number): string | null {
 export function isPhoneId(s: unknown): s is string {
   return typeof s === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(s);
 }
+
+// Words always start with a capital, however they were typed.
+export const cap = (v: string) => v.charAt(0).toLocaleUpperCase() + v.slice(1);

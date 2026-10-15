@@ -26,7 +26,7 @@ describe("POST /api/word", () => {
     expect((await word({ paite: "dam", english: "well", note: "ka dam", name: "Ann" })).status).toBe(200);
     expect((await word({ paite: "DAM", english: "Well" })).status).toBe(200);
     expect(await n("word_submissions")).toBe(1);
-    expect(await env.DB.prepare("SELECT paite, note, contributor_name AS name, status FROM word_submissions").first()).toEqual({ paite: "dam", note: "ka dam", name: "Ann", status: "pending" });
+    expect(await env.DB.prepare("SELECT paite, note, contributor_name AS name, status FROM word_submissions").first()).toEqual({ paite: "Dam", note: "ka dam", name: "Ann", status: "pending" });
   });
   it("blocks resubmission of a rejected pair", async () => {
     asReviewer();
@@ -63,14 +63,14 @@ describe("review word endpoints", () => {
     await word({ paite: "dam", english: "well", name: "Ann" });
     await word({ paite: "pa", english: "father" });
     const { words } = (await (await rev("/review/api/words/pending")).json()) as { words: { id: number; paite: string }[] };
-    expect(words.map((w) => w.paite)).toEqual(["dam", "pa"]);
+    expect(words.map((w) => w.paite)).toEqual(["Dam", "Pa"]);
     expect(JSON.stringify(words)).not.toContain(PHONE_A);
     expect((await rev("/review/api/words/decide", { id: words[0].id, decision: "maybe" })).status).toBe(400);
     expect((await rev("/review/api/words/decide", { id: words[0].id, decision: "approve" })).status).toBe(200);
     expect((await rev("/review/api/words/decide", { id: words[0].id, decision: "approve" })).status).toBe(409);
     expect((await rev("/review/api/words/decide", { id: words[1].id, decision: "reject" })).status).toBe(200);
     expect((await rev("/review/api/words/decide", { id: words[1].id, decision: "approve" })).status).toBe(409);
-    expect(await env.DB.prepare("SELECT paite, source, answer_id FROM glossary").all().then((r) => r.results)).toEqual([{ paite: "dam", source: "contributed", answer_id: null }]);
+    expect(await env.DB.prepare("SELECT paite, source, answer_id FROM glossary").all().then((r) => r.results)).toEqual([{ paite: "Dam", source: "contributed", answer_id: null }]);
     expect(await n("word_submissions WHERE status = 'pending'")).toBe(0);
     expect((await env.DB.prepare("SELECT decided_by FROM word_submissions WHERE id = ?1").bind(words[0].id).first<any>()).decided_by).toBe("rev@example.org");
   });
@@ -98,6 +98,18 @@ describe("digest with words", () => {
 });
 
 describe("glossary page", () => {
+  it("credits a named contributor, falls back when unnamed, and capitalises words", async () => {
+    await env.DB.prepare("INSERT INTO glossary (paite, english, source, contributor_name) VALUES ('dam', 'well', 'contributed', 'Mang <i>')").run();
+    await env.DB.prepare("INSERT INTO glossary (paite, english, source) VALUES ('ngah', 'to get', 'contributed')").run();
+    const html = renderGlossary(await getGlossary(env));
+    expect(html).toContain("Added by Mang &lt;i&gt;");
+    expect(html.match(/data-s="srcContributed"/g)).toHaveLength(1);
+    expect(html).toContain('<b class="w">Dam</b>');
+    expect(html).toContain('<b class="w">Ngah</b>');
+    expect(html).toContain("<p class=\"m\">Well</p>");
+    expect(JSON.stringify(JSON.parse(glossaryJson(await getGlossary(env))))).not.toContain("Mang");
+  });
+
   it("renders contributed and noted entries as details with ids, escaped, and exports source", async () => {
     await env.DB.prepare("INSERT INTO glossary (paite, english, note, source) VALUES ('<b>x</b>', 'a&b', '<i>n</i>', 'contributed')").run();
     const html = renderGlossary(await getGlossary(env));
