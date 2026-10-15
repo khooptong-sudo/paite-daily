@@ -43,7 +43,7 @@ window.STRINGS = {
   heroLine: { pai: "", en: "The people writing Paite into the future." },
   addSentence: { pai: "", en: "Add a sentence" },
   reviewerBadge: { pai: "Endiktu", en: "Reviewer" },
-  gotIt: { pai: "", en: "Got it" },
+  gotIt: { pai: "Awle, theisiam", en: "Got it" },
   invite: { pai: "", en: "Send to a friend" },
   inviteText: { pai: "", en: "Help write Paite into the future. One sentence a day:" },
   glossaryTitle: { pai: "", en: "Paite word list" },
