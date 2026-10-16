@@ -120,3 +120,10 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .back { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; font-weight: 700; font-size: .95rem; color: var(--fg); text-decoration: none; }
 .back:hover { text-decoration: underline; text-underline-offset: 3px; }
 .hero .back { display: flex; justify-content: flex-start; margin-bottom: 8px; }
+/* Hero row: the way back on the left, the reviewer door on the right. */
+.hero-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.hero-nav .back { margin-bottom: 0; }
+/* WhatsApp mark in the footer: a target a thumb can hit, no number on the page. */
+.foot .wa { display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; min-width: 44px; min-height: 44px; border-radius: 12px; }
+.foot .wa svg { width: 22px; height: 22px; fill: currentColor; }
+.foot .wa:hover { background: rgba(0, 0, 0, .06); }

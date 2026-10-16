@@ -123,7 +123,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <link rel="stylesheet" href="/style.css">
 ${css}</head>
 <body class="cp" data-sitekey="${esc(siteKey)}">
-<header class="hero"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a>${PUAN}<h1 data-s="contributorsTitle">Contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="contributorsTitle">Contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
 ${goalBar(d.goal)}
 <main data-start="${start}">
 <div class="seg" role="group" aria-label="Period"><button type="button" data-v="thisWeek" aria-pressed="false" data-s="thisWeek">This week</button><button type="button" data-v="allTime" aria-pressed="false" data-s="allTime">All time</button></div>

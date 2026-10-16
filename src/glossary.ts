@@ -128,7 +128,7 @@ export function renderGlossary(xs: Entry[]): string {
 <link rel="stylesheet" href="/contributors.css">
 </head>
 <body class="cp">
-<header class="hero"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a>${PUAN}<h1 data-s="glossaryTitle">Paite word list</h1><p data-s="glossaryLine">Words from the notes of our contributors.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="glossaryTitle">Paite word list</h1><p data-s="glossaryLine">Words from the notes of our contributors.</p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
 ${body}

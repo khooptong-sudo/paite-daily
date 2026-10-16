@@ -75,7 +75,7 @@ describe("errors", () => {
     const broken = { ASSETS: { fetch: async () => { throw new Error("no assets"); } } } as unknown as Parameters<typeof errorPage>[1];
     const r = await errorPage(new Request("https://paite.lamkalabs.com/"), broken);
     expect(r.status).toBe(500);
-    expect(await r.text()).toContain("khooptong@lamkalabs.com");
+    expect(await r.text()).toContain("theconcierge@lamkalabs.com");
   });
 
   it("lists the errors for the owner", async () => {

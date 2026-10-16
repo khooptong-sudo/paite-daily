@@ -91,7 +91,11 @@ describe("page, hide, export", () => {
     expect(html).toContain("Buy Us a Coffee");
     expect(html).toContain('<script src="/footer.js"></script>');
     expect(html).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png">');
-    expect(html).toContain("khooptong@lamka.net");
+    expect(html).toContain("theconcierge@lamkalabs.com");
+    expect(html).not.toContain("khooptong@lamkalabs.com");
+    expect(html).not.toContain("khooptong@lamka.net");
+    expect(html).not.toContain("83750 98415");
+    expect(html).toContain('<a class="back" href="/review">Reviewer');
     expect(html).toContain('<script src="/track.js"></script>');
   });
 

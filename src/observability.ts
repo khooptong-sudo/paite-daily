@@ -45,7 +45,7 @@ export async function recordError(env: Env, route: string, method: string, err: 
   }
 }
 
-const FALLBACK = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Paite Daily is having a moment</title></head><body style="font:17px/1.55 system-ui,sans-serif;max-width:34rem;margin:12vh auto;padding:0 1.2rem;color:#111"><h1 style="font-size:1.6rem">Something broke on our side</h1><p>The page could not load. We have the error and will fix it.</p><p>Write to <a href="mailto:khooptong@lamkalabs.com">khooptong@lamkalabs.com</a> or message <a href="https://wa.me/918375098415">WhatsApp</a>.</p><p><a href="/">Try the front page</a></p></body></html>`;
+const FALLBACK = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Paite Daily is having a moment</title></head><body style="font:17px/1.55 system-ui,sans-serif;max-width:34rem;margin:12vh auto;padding:0 1.2rem;color:#111"><h1 style="font-size:1.6rem">Something broke on our side</h1><p>The page could not load. We have the error and will fix it.</p><p>Write to <a href="mailto:theconcierge@lamkalabs.com">theconcierge@lamkalabs.com</a>.</p><p><a href="/">Try the front page</a></p></body></html>`;
 
 /** The page a visitor sees when a request throws: HTML for a page, JSON for an API path. */
 export async function errorPage(req: Request, env: Env): Promise<Response> {

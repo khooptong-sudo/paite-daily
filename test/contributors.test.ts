@@ -39,8 +39,12 @@ describe("contributors", () => {
     expect(page).toContain('<script src="/footer.js"></script>');
     expect(page).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png">');
     expect(page).toContain('<meta name="twitter:card" content="summary_large_image">');
-    expect(page).toContain("khooptong@lamkalabs.com");
+    expect(page).toContain("theconcierge@lamkalabs.com");
     expect(page).toContain("wa.me/918375098415");
+    expect(page).not.toContain("khooptong@lamkalabs.com");
+    expect(page).not.toContain("khooptong@lamka.net");
+    expect(page).not.toContain("83750 98415");
+    expect(page).toContain('<a class="back" href="/review">Reviewer');
     expect(page).toContain('<script src="/track.js"></script>');
   });
 
