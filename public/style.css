@@ -127,6 +127,8 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 /* Contact row in the footer: a mail mark and a WhatsApp mark, no address and no number on the page. */
 .foot .contact { display: flex; justify-content: center; gap: 8px; margin: 4px 0 0; }
 .foot .contact a { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; color: var(--muted); }
-.foot .contact a svg { width: 22px; height: 22px; fill: currentColor; }
+/* fill:none must win over any inherited fill: CSS beats the fill="none" attribute on the SVG,
+   which is what turned both marks into solid black shapes. */
+.foot .contact a svg { width: 22px; height: 22px; fill: none; stroke: currentColor; }
 .foot .contact a:hover { background: rgba(0, 0, 0, .06); color: var(--fg); }
 .foot .contact a:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
