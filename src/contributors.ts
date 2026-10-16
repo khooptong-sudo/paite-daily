@@ -131,8 +131,8 @@ ${view("allTime")}
 <p id="apply-status" role="status" aria-live="polite"></p>
 <div id="turnstile"></div>
 </form></section>
-</main>
 ${FOOTER}
+</main>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 <script src="/strings.js"></script>
 <script src="/back.js"></script>

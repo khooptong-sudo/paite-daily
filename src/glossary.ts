@@ -123,8 +123,8 @@ ${body}
 <span><b data-s="installApp">Install on this device</b><small data-s="installAppNote">Add Paite Daily to your home screen. No download.</small></span>
 <span class="go" aria-hidden="true">&darr;</span>
 </button>
-</main>
 ${FOOTER}
+</main>
 <script src="/strings.js"></script>
 <script src="/back.js"></script>
 <script src="/pwa.js"></script>
