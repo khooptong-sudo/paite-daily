@@ -19,6 +19,7 @@ window.STRINGS = {
   tryAgain: { pai: "", en: "Try again" },
   empty: { pai: "Tuni a dia bei phot, zingchiang in hong en nawn in.", en: "No more sentences right now. Come back tomorrow." },
   offline: { pai: "Na submission paisuak lou, na internet check mah.", en: "Could not send. Check your internet and try again." },
+  verifyFailed: { pai: "", en: "Verification failed. Reload the page, then try again." },
   feedbackTitle: { pai: "Na dawnna aki etdan", en: "What the reviewers said" },
   yours: { pai: "Na dawnna", en: "You wrote" },
   correct: { pai: "Dik", en: "Correct" },

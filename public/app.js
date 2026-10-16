@@ -98,11 +98,13 @@
       $("send").disabled = false;
       $("paite").focus();
       if (window.pdTrack) window.pdTrack("card");
-    } catch {
+    } catch (e) {
       current = null;
       $("sentence").textContent = "";
       $("send").disabled = false;
-      status(tBoth("offline"));
+      // The challenge and the session are not the visitor's connection. Say so, so a reload is the obvious next step.
+      const blocked = e && (e.message === "turnstile" || e.message === "session");
+      status(tBoth(blocked ? "verifyFailed" : "offline"));
     } finally {
       $("skip").disabled = false;
     }
