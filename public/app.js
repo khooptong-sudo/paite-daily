@@ -110,6 +110,18 @@
     }
   }
 
+  // The name ask appears in the card the contributor is using, and it comes back for the next
+  // contribution until they give a name or turn it down. Asking before they submit lets the name
+  // travel with the contribution itself.
+  const named = () => store.get("name", "") || store.get("noName", false);
+  function askName(from) {
+    if (named()) return;
+    const box = $("ask-name");
+    const host = from && from.closest("section.card");
+    if (host && host !== box.parentElement) host.append(box);
+    box.hidden = false;
+  }
+
   $("form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const paite = $("paite").value.trim();
@@ -127,7 +139,7 @@
         const n = store.get(todayKey(), 0) + 1;
         store.set(todayKey(), n); showToday(); refreshMe();
         status(n % 5 === 0 ? tBoth("thanks") : "", true);
-        if (!store.get("askedName", false)) { store.set("askedName", true); $("ask-name").hidden = false; }
+        askName($("send"));
       }
       $("paite").value = ""; $("explanation").value = "";
       next();
@@ -159,7 +171,7 @@
     try {
       const r = await api("/api/word/meaning", { method: "POST",
         body: JSON.stringify({ id: meaningWord.id, english, note: $("m-note").value.trim(), name: store.get("name", "") }) });
-      if (r.ok) { ms(tBoth("wordThanks"), true); $("meaning-form").reset(); refreshMe(); nextMeaning(); }
+      if (r.ok) { ms(tBoth("wordThanks"), true); $("meaning-form").reset(); refreshMe(); nextMeaning(); askName($("m-send")); }
       else ms(tBoth(r.status === 429 ? "tooFast" : "offline"));
     } catch { ms(tBoth("offline")); }
     $("m-send").disabled = false;
@@ -174,10 +186,12 @@
     $("w-send").disabled = true;
     try {
       const r = await api("/api/word", { method: "POST", body: JSON.stringify({ paite: w("w-paite"), english: w("w-english"), note: w("w-note"), name: store.get("name", "") }) });
-      if (r.ok) { ws(tBoth("wordThanks"), true); $("word-form").reset(); } else ws(tBoth(r.status === 429 ? "tooFast" : "offline"));
+      if (r.ok) { ws(tBoth("wordThanks"), true); $("word-form").reset(); refreshMe(); askName($("w-send")); } else ws(tBoth(r.status === 429 ? "tooFast" : "offline"));
     } catch { ws(tBoth("offline")); }
     $("w-send").disabled = false;
   });
+
+  for (const id of ["paite", "w-paite", "m-english"]) $(id).addEventListener("focus", (e) => askName(e.target));
 
   $("skip").addEventListener("click", async () => {
     if (current) { try { await api("/api/skip", { method: "POST", body: JSON.stringify({ sentenceId: current.id }) }); } catch {} }
@@ -186,8 +200,12 @@
     next();
   });
 
-  $("save-name").addEventListener("click", () => { store.set("name", $("name").value.trim().slice(0, 60)); $("ask-name").hidden = true; $("paite").focus(); });
-  $("no-name").addEventListener("click", () => { $("ask-name").hidden = true; $("paite").focus(); });
+  $("save-name").addEventListener("click", () => {
+    const v = $("name").value.trim().slice(0, 60);
+    if (v) store.set("name", v); else store.set("noName", true);
+    $("ask-name").hidden = true;
+  });
+  $("no-name").addEventListener("click", () => { store.set("noName", true); $("ask-name").hidden = true; });
 
   async function feedback() {
     try {

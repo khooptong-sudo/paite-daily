@@ -13,6 +13,7 @@ window.STRINGS = {
   askName: { pai: "Na min i tuangsak diam contributors list ah?", en: "Want your name on the Paite contributors list?" },
   yourName: { pai: "Na min", en: "Your Name" },
   noThanks: { pai: "Ngailou", en: "No Thanks" },
+  saveName: { pai: "", en: "Add My Name" },
   licence: { pai: "Mipi muh leh zat theih dia kikoih khia ahi.", en: "Your translations are given to everyone, free (public domain)" },
   loading: { pai: "Aban adi hong ki load lel ahi", en: "Loading the next sentence…" },
   refilling: { pai: "", en: "Getting more sentences…" },
