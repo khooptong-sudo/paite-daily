@@ -1,5 +1,5 @@
 import { activeReviewers, isOwner } from "./access";
-import { cleanText } from "./text";
+import { cleanText, isId } from "./text";
 import { json, type Deps, type Env } from "./types";
 
 const LIMIT_PER_DAY = 5;
@@ -78,7 +78,7 @@ export async function handleOwnerReview(pathname: string, method: string, b: Rec
     return json({ applications: results });
   }
   if (pathname === "/review/api/applications/decide" && method === "POST") {
-    if (!Number.isInteger(b.id) || (b.decision !== "approve" && b.decision !== "decline")) return json({ error: "bad_request" }, 400);
+    if (!isId(b.id) || (b.decision !== "approve" && b.decision !== "decline")) return json({ error: "bad_request" }, 400);
     const app = await env.DB.prepare("SELECT name, email FROM reviewer_applications WHERE id = ?1 AND status = 'pending'").bind(b.id).first<{ name: string; email: string }>();
     if (!app) return json({ error: "not_found" }, 404);
     const approve = b.decision === "approve";

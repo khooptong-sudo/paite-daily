@@ -97,10 +97,28 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Panlate - Contributors</title>
 <meta name="theme-color" content="#ffffff">
+<link rel="canonical" href="https://paite.lamkalabs.com/contributors">
+<meta property="og:site_name" content="Paite Daily">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_IN">
+<meta property="og:url" content="https://paite.lamkalabs.com/contributors">
+<meta property="og:title" content="Contributors of Paite Daily">
+<meta property="og:description" content="The people writing Paite into the future. See this week's contributors and reviewers, and add a sentence.">
+<meta property="og:image" content="https://paite.lamkalabs.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Paite Daily: translate one sentence a day. Free and open data for the Paite language.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Contributors of Paite Daily">
+<meta name="twitter:description" content="The people writing Paite into the future. See this week's contributors and reviewers, and add a sentence.">
+<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png">
+<meta name="twitter:image:alt" content="Paite Daily: translate one sentence a day.">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
 <script>document.documentElement.className="js"</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 ${css}</head>
@@ -137,6 +155,7 @@ ${FOOTER}
 <script src="/strings.js"></script>
 <script src="/back.js"></script>
 <script src="/pwa.js"></script>
+<script src="/track.js"></script>
 <script>${JS}</script>
 </body></html>`;
 }

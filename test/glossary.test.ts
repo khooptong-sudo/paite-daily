@@ -90,6 +90,9 @@ describe("page, hide, export", () => {
     expect(html).toContain('<footer class="foot">');
     expect(html).toContain("Buy Us a Coffee");
     expect(html).toContain('<script src="/footer.js"></script>');
+    expect(html).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png">');
+    expect(html).toContain("khooptong@lamka.net");
+    expect(html).toContain('<script src="/track.js"></script>');
   });
 
   it("hide is reviewer only and removes the entry from page and export", async () => {

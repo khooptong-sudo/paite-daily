@@ -5,6 +5,7 @@ import { lockedRefill } from "./refill";
 import { handleContributor } from "./contributor";
 import { getContributors, renderPage } from "./contributors";
 import { getGlossary, renderGlossary } from "./glossary";
+import { errorPage, handleEvent, recordError } from "./observability";
 import { handleReview } from "./review";
 import { verifyTurnstile } from "./turnstile";
 import type { Deps, Env } from "./types";
@@ -12,17 +13,25 @@ import type { Deps, Env } from "./types";
 export function createApp(deps: Deps) {
   return async (req: Request, env: Env, ctx?: ExecutionContext): Promise<Response> => {
     const { pathname } = new URL(req.url);
-    if (pathname === "/glossary") return new Response(renderGlossary(await getGlossary(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
-    if (pathname === "/contributors") return new Response(renderPage(await getContributors(env), undefined, env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
-    if (pathname.startsWith("/api/")) return handleContributor(req, env, deps, ctx);
-    if (pathname.startsWith("/review/api/")) return handleReview(req, env, deps);
-    if (pathname === "/" || pathname === "/index.html") {
-      const page = await env.ASSETS.fetch(req);
-      return new HTMLRewriter()
-        .on("html", { element: (el) => { el.setAttribute("data-sitekey", env.TURNSTILE_SITE_KEY); } })
-        .transform(page);
+    try {
+      if (pathname === "/api/event" && req.method === "POST") return await handleEvent(req, env);
+      if (pathname === "/glossary") return new Response(renderGlossary(await getGlossary(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+      if (pathname === "/contributors") return new Response(renderPage(await getContributors(env), undefined, env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+      if (pathname.startsWith("/api/")) return await handleContributor(req, env, deps, ctx);
+      if (pathname.startsWith("/review/api/")) return await handleReview(req, env, deps);
+      if (pathname === "/" || pathname === "/index.html") {
+        const page = await env.ASSETS.fetch(req);
+        return new HTMLRewriter()
+          .on("html", { element: (el) => { el.setAttribute("data-sitekey", env.TURNSTILE_SITE_KEY); } })
+          .transform(page);
+      }
+      return await env.ASSETS.fetch(req);
+    } catch (err) {
+      // Nothing may reach the visitor as a raw stack trace: log it, alert the owner, serve a plain page.
+      const task = recordError(env, pathname, req.method, err);
+      if (ctx) ctx.waitUntil(task); else await task;
+      return errorPage(req, env);
     }
-    return env.ASSETS.fetch(req);
   };
 }
 

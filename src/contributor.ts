@@ -3,7 +3,7 @@ import { getGoal } from "./goal";
 import { badgeFor, getContributors } from "./contributors";
 import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, skipSentence, type Register } from "./db";
 import { readSession, signSession } from "./session";
-import { cleanText, isPhoneId } from "./text";
+import { cleanText, isId, isPhoneId } from "./text";
 import { refillOnDemand } from "./refill";
 import { submitWord } from "./words";
 import { json, type Deps, type Env } from "./types";
@@ -24,7 +24,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
 
   if (pathname === "/api/session" && req.method === "POST") {
     const b = await body(req);
-    if (!isPhoneId(b.phoneId) || typeof b.turnstileToken !== "string") return json({ error: "bad_request" }, 400);
+    if (!isPhoneId(b.phoneId) || typeof b.turnstileToken !== "string" || b.turnstileToken.length > 4096) return json({ error: "bad_request" }, 400);
     const ok = await deps.verifyTurnstile(b.turnstileToken, req.headers.get("CF-Connecting-IP"), env);
     if (!ok) return json({ error: "turnstile_failed" }, 403);
     return json({ session: await signSession(b.phoneId, deps.now() + DAY_MS, env.SESSION_SECRET) });
@@ -58,7 +58,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
 
   if (pathname === "/api/skip" && req.method === "POST") {
     const b = await body(req);
-    if (!Number.isInteger(b.sentenceId)) return json({ error: "bad_request" }, 400);
+    if (!isId(b.sentenceId)) return json({ error: "bad_request" }, 400);
     await skipSentence(env.DB, phoneId, b.sentenceId as number);
     return json({ ok: true });
   }
@@ -70,7 +70,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
     const name = b.name === undefined || b.name === "" ? null : cleanText(b.name, 60);
     const blank = b.explanation === undefined || b.explanation === null || (typeof b.explanation === "string" && !b.explanation.trim());
     const explanation = blank ? null : cleanText(b.explanation, 500);
-    if (!Number.isInteger(b.sentenceId) || !paite || (!blank && !explanation) || !["spoken", "written", "both"].includes(register) || (b.name && !name)) {
+    if (!isId(b.sentenceId) || !paite || (!blank && !explanation) || !["spoken", "written", "both"].includes(register) || (b.name && !name)) {
       return json({ error: "bad_request" }, 400);
     }
     if ((await answersInLastMinute(env.DB, phoneId)) >= 10) return json({ error: "slow_down" }, 429);

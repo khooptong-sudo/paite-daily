@@ -12,7 +12,12 @@
   $("explanation").placeholder = t("explanationHint");
 
   let phoneId = store.get("phone", null);
-  if (!phoneId) { phoneId = crypto.randomUUID(); store.set("phone", phoneId); }
+  // Older Android browsers have no crypto.randomUUID; the id only has to be unique enough.
+  const newId = () => (crypto.randomUUID ? crypto.randomUUID() : "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
+  }));
+  if (!phoneId) { phoneId = newId(); store.set("phone", phoneId); }
   let session = null, current = null;
 
   const status = (msg, ok = false) => { $("status").innerHTML = msg; $("status").className = "status " + (ok ? "ok" : msg ? "err" : ""); };
@@ -55,7 +60,7 @@
 
   async function api(path, opts = {}, retried = false) {
     if (!session) {
-      sessionP ??= getSession().finally(() => { sessionP = null; });
+      if (!sessionP) sessionP = getSession().finally(() => { sessionP = null; });
       session = await sessionP;
     }
     const r = await fetch(path, { ...opts, headers: { "content-type": "application/json", "X-Session": session } });
@@ -92,6 +97,7 @@
       $("sentence").textContent = current.english;
       $("send").disabled = false;
       $("paite").focus();
+      if (window.pdTrack) window.pdTrack("card");
     } catch {
       current = null;
       $("sentence").textContent = "";
@@ -115,6 +121,7 @@
       if (r.status === 429) { status(tBoth("tooFast")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (!r.ok && r.status !== 409) { status(tBoth("offline")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (r.ok) {
+        if (window.pdTrack) window.pdTrack("answer");
         const n = store.get(todayKey(), 0) + 1;
         store.set(todayKey(), n); showToday(); refreshMe();
         status(n % 5 === 0 ? tBoth("thanks") : "", true);
@@ -124,6 +131,7 @@
       next();
     } catch {
       status(tBoth("offline"));
+      if (window.pdTrack) window.pdTrack("blocked", { path: "answer" });
       $("send").disabled = false; $("skip").disabled = false;
     }
   });

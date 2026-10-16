@@ -37,6 +37,11 @@ describe("contributors", () => {
     expect(page).toContain('<footer class="foot">');
     expect(page).toContain("Buy Us a Coffee");
     expect(page).toContain('<script src="/footer.js"></script>');
+    expect(page).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png">');
+    expect(page).toContain('<meta name="twitter:card" content="summary_large_image">');
+    expect(page).toContain("khooptong@lamkalabs.com");
+    expect(page).toContain("wa.me/918375098415");
+    expect(page).toContain('<script src="/track.js"></script>');
   });
 
   it("badgeFor boundaries", () => {

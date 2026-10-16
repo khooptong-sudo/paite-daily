@@ -17,3 +17,13 @@ export function isPhoneId(s: unknown): s is string {
 
 // Words always start with a capital, however they were typed.
 export const cap = (v: string) => v.charAt(0).toLocaleUpperCase() + v.slice(1);
+
+// Row ids arrive from the client, so bound them: a positive integer that fits in a row id.
+export function isId(v: unknown): v is number {
+  return typeof v === "number" && Number.isInteger(v) && v > 0 && v <= 2_147_483_647;
+}
+
+// A list of row ids from the client, with a cap so one call cannot carry a giant list.
+export function isIdList(v: unknown, max = 50): v is number[] {
+  return Array.isArray(v) && v.length <= max && v.every(isId);
+}

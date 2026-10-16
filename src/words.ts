@@ -1,4 +1,4 @@
-import { cap, cleanText } from "./text";
+import { cap, cleanText, isId } from "./text";
 import { json, type Env } from "./types";
 
 const DAILY_LIMIT = 20;
@@ -25,7 +25,7 @@ export async function handleWords(pathname: string, method: string, b: Record<st
     return json({ words: results.map((r: any) => ({ ...r, paite: cap(r.paite), english: cap(r.english) })) });
   }
   if (pathname === "/review/api/words/decide" && method === "POST") {
-    if (!Number.isInteger(b.id) || !["approve", "reject"].includes(b.decision as string)) return json({ error: "bad_request" }, 400);
+    if (!isId(b.id) || !["approve", "reject"].includes(b.decision as string)) return json({ error: "bad_request" }, 400);
     const approve = b.decision === "approve";
     // Only the request that flips pending -> decided may insert, so a second decision cannot double-insert.
     const r = await env.DB.prepare("UPDATE word_submissions SET status = ?1, decided_at = datetime('now'), decided_by = ?2 WHERE id = ?3 AND status = 'pending'")
