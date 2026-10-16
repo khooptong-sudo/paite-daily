@@ -35,7 +35,9 @@ describe("contributors", () => {
     expect(page).toContain("Owner");
     expect(page).not.toMatch(/aaaaaaaa|example\.org/);
     expect(page).toContain('<footer class="foot">');
-    expect(page).toContain("Buy Us a Coffee");
+    expect(page).toContain("Click Here to Buy Us Coffee");
+    expect(page).toContain("the data stays free for everyone");
+    expect(page).toContain('<p class="contact">');
     expect(page).toContain('<script src="/footer.js"></script>');
     expect(page).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png">');
     expect(page).toContain('<meta name="twitter:card" content="summary_large_image">');

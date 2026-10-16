@@ -88,7 +88,9 @@ describe("page, hide, export", () => {
     expect(html).toContain('aria-label="#"');
     expect(html).not.toMatch(/secret-phone|SecretName/);
     expect(html).toContain('<footer class="foot">');
-    expect(html).toContain("Buy Us a Coffee");
+    expect(html).toContain("Click Here to Buy Us Coffee");
+    expect(html).toContain("the data stays free for everyone");
+    expect(html).toContain('<p class="contact">');
     expect(html).toContain('<script src="/footer.js"></script>');
     expect(html).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png">');
     expect(html).toContain('<a class="mail" href="mailto:theconcierge@lamkalabs.com"');

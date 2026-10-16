@@ -112,7 +112,7 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .lab:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
 .lab span { color:#DC143C; }
 /* The note sits inside the coffee button, so it needs its own weight and a width that wraps in two lines. */
-.coffee-note { display: block; margin: 6px auto 0; max-width: 24ch; font-size: .78rem; line-height: 1.35; font-weight: 400; color: var(--muted); }
+.coffee-note { display: block; margin: 6px auto 0; max-width: 34ch; font-size: .78rem; line-height: 1.35; font-weight: 400; color: var(--muted); }
 .coffee { display: inline-block; padding: 12px 18px; border-radius: 14px; border: 1px solid rgba(0, 0, 0, .14); background: rgba(255, 255, 255, .55); -webkit-backdrop-filter: blur(12px) saturate(140%); backdrop-filter: blur(12px) saturate(140%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 4px 14px rgba(0, 0, 0, .08); transition: transform .15s; color: var(--fg); font-weight: 700; text-decoration: none; }
 #upi { justify-items: center; width: 100%; }
 #upi p { margin: 0; }
