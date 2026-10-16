@@ -31,7 +31,7 @@ window.STRINGS = {
   explanationHint: { pai: "A gen ut. Gen dan dang in.", en: "Word meanings, other ways to say it (optional)" },
   shareError: { pai: "", en: "Could not make the share image. Try again." },
   shareFailed: { pai: "", en: "Could not share. The image was saved instead." },
-  share: { pai: "Khiakkhiak WhatsApp Status Di'n", en: "Share Your Score as WhatsApp Status" },
+  share: { pai: "Khakkhiak WhatsApp Status Di'n", en: "Share Your Score as WhatsApp Status" },
   shareLine: { pai: "Paite pau gelhdan sinsakna a panla kha kahi", en: "I helped write Paite into the future" },
   sentences: { pai: "thuvual", en: "sentences" },
   words: { pai: "kammal", en: "Words" },
