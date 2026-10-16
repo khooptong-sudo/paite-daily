@@ -1,6 +1,6 @@
 (() => {
   const $ = (id) => document.getElementById(id);
-  let card = null, isOwner = false, undoId = null;
+  let card = null, isOwner = false, undoId = null, lastUndo = null;
 
   const status = (m, ok = false) => { $("status").textContent = m; $("status").className = "status " + (ok ? "ok" : m ? "err" : ""); };
   const post = (path, body) => fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -12,6 +12,7 @@
       if (!r.ok) { $("english").textContent = "Sign-in needed. Reload the page."; return false; }
       const m = await r.json();
       $("who").textContent = m.name; isOwner = m.owner === true;
+      if (m.lastReviewId) lastUndo = m.lastReviewId;
       return true;
     } catch { $("english").textContent = "Sign-in needed. Reload the page."; return false; }
   }
@@ -27,7 +28,7 @@
     $("register").parentElement.hidden = rev;
     const multi = card.answers.length > 1;
     const hint = document.createElement("p"); hint.className = "meta"; hint.hidden = !multi;
-    hint.textContent = "Press Accept this on the best answer. Tick any other correct answers to keep them as variants.";
+    hint.textContent = "Press Accept this on the best answer. Tick any other correct answers to keep them as variants. Reject removes one answer only; Reject all closes the whole sentence.";
     $("answers").replaceChildren(hint, ...card.answers.map((a) => {
       const box = document.createElement("div");
       box.className = "answer";
@@ -49,7 +50,10 @@
         finalPaite: edit.value.trim() === a.paite ? undefined : edit.value,
         alsoCorrect: [...document.querySelectorAll("[data-answer-id]:checked")].map((c) => Number(c.dataset.answerId)).filter((id) => id !== a.id),
       }));
-      box.append(edit, also, accept);
+      const reject = document.createElement("button"); reject.type = "button"; reject.textContent = "✕ Reject"; reject.setAttribute("aria-label", "Reject this answer only: " + a.paite);
+      reject.addEventListener("click", () => send({ decision: "reject", answerIds: [a.id] }, "Answer rejected. The rest stay open."));
+      const row = document.createElement("div"); row.className = "row3"; row.append(accept, reject);
+      box.append(edit, also, row);
       return box;
     }));
     const first = $("answers").querySelector(".answer p");
@@ -93,7 +97,7 @@
   const EXPIRED = "Sign-in expired. Reload the page.";
   const expired = (r) => r.status === 401 || r.status === 403 || r.type === "opaqueredirect" || (r.redirected && !new URL(r.url).pathname.startsWith("/review/api/"));
   let busy = false;
-  async function send(extra) {
+  async function send(extra, done = "Saved.") {
     if (!card || busy) return;
     busy = true; hideUndo();
     try {
@@ -104,7 +108,7 @@
       if (expired(r)) { status(EXPIRED); return; }
       if (r.status === 409) status("Your lock ran out or someone else took this one. Loading the next.");
       else if (!r.ok) { status("Could not save. Try again."); return; }
-      else { status("Saved.", true); if (isOwner) showUndo((await r.json()).reviewId); }
+      else { status(done, true); showUndo((await r.json()).reviewId); }
       await next(true);
     } catch { status(EXPIRED); }
     finally { busy = false; }
@@ -115,17 +119,17 @@
     busy = true;
     try {
       const r = await post("/review/api/undo", { reviewId: undoId });
-      if (r.status === 409) {
-        const j = await r.json().catch(() => ({}));
-        status(j.reason === "exported" ? "Already published; cannot undo." : j.reason === "not_latest" ? "A newer review exists; cannot undo." : "Cannot undo.");
-      } else if (expired(r)) status(EXPIRED);
-      else if (!r.ok) status("Cannot undo.");
-      else { hideUndo(); status("Undone.", true); await next(true); }
+      const j = r.ok ? {} : await r.json().catch(() => ({}));
+      if (r.ok) { hideUndo(); status("Undone.", true); await next(true); }
+      else if (j.reason === "not_yours") status("You can undo only your own review.");
+      else if (j.reason === "exported") status("Already published; cannot undo.");
+      else if (j.reason === "not_latest") status("A newer review exists; cannot undo.");
+      else status(expired(r) ? EXPIRED : "Cannot undo.");
     } catch { status(EXPIRED); }
     finally { busy = false; }
   });
-  $("reject").addEventListener("click", () => send({ decision: "reject" }));
-  $("retire").addEventListener("click", () => send({ decision: "retire" }));
+  $("reject").addEventListener("click", () => send({ decision: "reject" }, "All answers rejected."));
+  $("retire").addEventListener("click", () => send({ decision: "retire" }, "Sentence retired."));
 
   async function health() {
     try {
@@ -222,5 +226,5 @@
 
   // Link this browser's contributor phone id to the signed-in reviewer (for the badge on /contributors).
   const linkPhone = () => { try { const id = JSON.parse(localStorage.getItem("pd:phone")); if (id) post("/review/api/link-phone", { phoneId: id }).catch(() => {}); } catch {} };
-  me().then((ok) => { if (ok) { linkPhone(); next(); words(); newWords(); if (isOwner) { health(); people(); } } });
+  me().then((ok) => { if (ok) { linkPhone(); next().then(() => { if (lastUndo !== null) showUndo(lastUndo); }); words(); newWords(); if (isOwner) { health(); people(); } } });
 })();

@@ -27,10 +27,10 @@ describe("owner list", () => {
     expect((await rev("/review/api/undo", { reviewId: "x" }, "rev@example.org")).status).toBe(400);
     expect((await rev("/review/api/undo", { reviewId: "x" }, "owner@example.org")).status).toBe(400);
   });
-  it("a reviewer who is not listed gets 403 on undo", async () => {
-    env.OWNER_EMAIL = "owner@example.org,rev@example.org";
-    env.REVIEWERS = JSON.stringify({ "third@example.org": "Third" });
-    expect((await rev("/review/api/undo", { reviewId: 1 }, "third@example.org")).status).toBe(403);
+  it("a non-owner reviewer may call undo; ownership is checked per review", async () => {
+    env.OWNER_EMAIL = "owner@example.org";
+    env.REVIEWERS = JSON.stringify({ "rev@example.org": "Rev One" });
+    expect((await rev("/review/api/undo", { reviewId: 999 }, "rev@example.org")).status).toBe(404);
   });
   it("unset OWNER_EMAIL means nobody is owner and does not throw", async () => {
     (env as any).OWNER_EMAIL = undefined;
@@ -56,6 +56,9 @@ describe("review access", () => {
 });
 
 describe("review flow", () => {
+  const savedReviewers = { r: env.REVIEWERS };
+  afterEach(() => { env.REVIEWERS = savedReviewers.r; });
+
   it("serves a full sentence with its answers and locks it", async () => {
     const id = await fullSentence();
     const card = await (await rev("/review/api/next")).json<{ sentence: { id: number }; answers: { paite: string }[] }>();
@@ -110,6 +113,17 @@ describe("review flow", () => {
     expect(await env.DB.prepare("SELECT status, answer_count FROM sentences WHERE id = ?1").bind(id).first()).toEqual({ status: "full", answer_count: 2 });
   });
 
+  it("rejecting one answer leaves the others open, and the reviewer can undo it", async () => {
+    const id = await fullSentence();
+    const card = await (await rev("/review/api/next")).json<{ answers: { id: number }[] }>();
+    const { reviewId } = await (await rev("/review/api/decide", { sentenceId: id, decision: "reject", answerIds: [card.answers[0].id] })).json<{ reviewId: number }>();
+    const st = () => env.DB.prepare("SELECT status FROM answers WHERE sentence_id = ?1 ORDER BY id").bind(id).all<{ status: string }>();
+    expect((await st()).results.map((s) => s.status)).toEqual(["rejected", "new"]);
+    expect(await env.DB.prepare("SELECT status, answer_count FROM sentences WHERE id = ?1").bind(id).first()).toEqual({ status: "open", answer_count: 1 });
+    expect((await rev("/review/api/undo", { reviewId })).status).toBe(200);
+    expect((await st()).results.map((s) => s.status)).toEqual(["new", "new"]);
+  });
+
   it("deciding without holding the lock is refused", async () => {
     const id = await fullSentence();
     expect((await rev("/review/api/decide", { sentenceId: id, decision: "reject", answerIds: [1] })).status).toBe(409);
@@ -123,14 +137,20 @@ describe("review flow", () => {
     expect((await rev("/review/api/decide", { sentenceId: id, decision: "reject", answerIds: card.answers.map((a) => a.id) }, "rev@example.org", later)).status).toBe(409);
   });
 
-  it("owner can undo a decision that is not yet exported; others cannot", async () => {
+  it("a reviewer can undo their own latest decision; another reviewer cannot", async () => {
+    env.REVIEWERS = JSON.stringify({ "rev@example.org": "Rev One", "other@example.org": "Other" });
     const id = await fullSentence();
     const card = await (await rev("/review/api/next")).json<{ answers: { id: number }[] }>();
+    const last = async (email: string) => (await rev("/review/api/me", undefined, email)).json<{ lastReviewId: number | null }>();
+    expect((await last("rev@example.org")).lastReviewId).toBeNull();
     const dec = await (await rev("/review/api/decide", { sentenceId: id, decision: "accept", answerIds: card.answers.map((a) => a.id), answerId: card.answers[0].id })).json<{ reviewId: number }>();
     const { id: reviewId } = (await env.DB.prepare("SELECT id FROM reviews WHERE sentence_id = ?1").bind(id).first<{ id: number }>())!;
     expect(dec.reviewId).toBe(reviewId);
-    expect((await rev("/review/api/undo", { reviewId })).status).toBe(403);
-    expect((await rev("/review/api/undo", { reviewId }, "owner@example.org")).status).toBe(200);
+    expect((await last("rev@example.org")).lastReviewId).toBe(reviewId);
+    expect((await last("other@example.org")).lastReviewId).toBeNull();
+    expect((await rev("/review/api/undo", { reviewId }, "other@example.org")).status).toBe(403);
+    expect((await rev("/review/api/undo", { reviewId })).status).toBe(200);
+    expect((await last("rev@example.org")).lastReviewId).toBeNull();
     expect(await env.DB.prepare("SELECT status FROM sentences WHERE id = ?1").bind(id).first()).toEqual({ status: "full" });
     const st = await env.DB.prepare("SELECT status FROM answers WHERE sentence_id = ?1").bind(id).all();
     expect(st.results.map((s) => s.status)).toEqual(["new", "new"]);

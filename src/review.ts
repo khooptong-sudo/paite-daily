@@ -42,13 +42,17 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     return json({ ok: true, reviewId: result });
   }
   if (pathname === "/review/api/undo" && req.method === "POST") {
-    if (!isOwner(env, email)) return json({ error: "owner_only" }, 403);
     if (!Number.isInteger(b.reviewId)) return json({ error: "bad_request" }, 400);
-    const result = await undo(env.DB, b.reviewId as number);
-    return result === "ok" ? json({ ok: true }) : json({ error: result, reason: result }, result === "missing" ? 404 : 409);
+    const result = await undo(env.DB, b.reviewId as number, email, isOwner(env, email));
+    if (result === "ok") return json({ ok: true });
+    return json({ error: result, reason: result }, result === "missing" ? 404 : result === "not_yours" ? 403 : 409);
   }
   if (pathname === "/review/api/me" && req.method === "GET") {
-    return json({ name: await reviewerName(env, email), owner: isOwner(env, email) });
+    // The newest review by this person that is still undoable; null when none is.
+    const last = await env.DB.prepare(
+      `SELECT id FROM reviews WHERE reviewer_email = ?1 AND undone_at IS NULL
+         AND id > (SELECT COALESCE(MAX(last_review_id), 0) FROM exports) ORDER BY id DESC LIMIT 1`).bind(email).first<{ id: number }>();
+    return json({ name: await reviewerName(env, email), owner: isOwner(env, email), lastReviewId: last?.id ?? null });
   }
   if (pathname === "/review/api/link-phone" && req.method === "POST") {
     if (!isPhoneId(b.phoneId)) return json({ error: "bad_request" }, 400);

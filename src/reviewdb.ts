@@ -105,9 +105,10 @@ export async function decide(db: D1Database, email: string, now: number, d: Deci
   return res[0].meta.changes === 1 ? res[0].meta.last_row_id : "no_lock";
 }
 
-export async function undo(db: D1Database, reviewId: number): Promise<"ok" | "exported" | "missing" | "not_latest"> {
-  const r = await db.prepare("SELECT sentence_id FROM reviews WHERE id = ?1 AND undone_at IS NULL").bind(reviewId).first<{ sentence_id: number }>();
+export async function undo(db: D1Database, reviewId: number, email: string, owner: boolean): Promise<"ok" | "exported" | "missing" | "not_latest" | "not_yours"> {
+  const r = await db.prepare("SELECT sentence_id, reviewer_email FROM reviews WHERE id = ?1 AND undone_at IS NULL").bind(reviewId).first<{ sentence_id: number; reviewer_email: string }>();
   if (!r) return "missing";
+  if (!owner && r.reviewer_email.toLowerCase() !== email.toLowerCase()) return "not_yours";
   const last = await db.prepare("SELECT COALESCE(MAX(last_review_id), 0) AS n FROM exports").first<{ n: number }>();
   if (reviewId <= (last?.n ?? 0)) return "exported";
   const latest = await db.prepare("SELECT MAX(id) AS n FROM reviews WHERE sentence_id = ?1 AND undone_at IS NULL").bind(r.sentence_id).first<{ n: number }>();
