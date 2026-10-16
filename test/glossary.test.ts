@@ -91,7 +91,9 @@ describe("page, hide, export", () => {
     expect(html).toContain("Buy Us a Coffee");
     expect(html).toContain('<script src="/footer.js"></script>');
     expect(html).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png">');
-    expect(html).toContain("theconcierge@lamkalabs.com");
+    expect(html).toContain('<a class="mail" href="mailto:theconcierge@lamkalabs.com"');
+    expect(html).toContain("wa.me/918375098415");
+    expect(html).not.toContain("Write to");
     expect(html).not.toContain("khooptong@lamkalabs.com");
     expect(html).not.toContain("khooptong@lamka.net");
     expect(html).not.toContain("83750 98415");
