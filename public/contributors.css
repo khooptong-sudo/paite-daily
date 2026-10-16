@@ -68,6 +68,10 @@
 .c b { font: 700 1.3rem/1.1 var(--body); font-variant-numeric: tabular-nums; }
 .p1 .c b { font-size: 1.6rem; }
 .u { font-size: .72rem; color: var(--muted); }
+/* A phone has two counts now: sentences, then words. */
+.p .c + .c { margin-top: 4px; }
+.rows li .c { grid-column: 3; }
+.rows li .c + .c { margin-top: 2px; }
 .u small { display: inline; font-size: inherit; color: inherit; }
 .podium + .rows { margin-top: 12px; }
 

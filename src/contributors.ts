@@ -4,11 +4,11 @@ import { PUAN } from "./puan";
 import { getGoal } from "./goal";
 import type { Env } from "./types";
 
-type Row = { name: string; n: number; badge: Badge; reviewer?: boolean };
+type Row = { name: string; n: number; words?: number; badge: Badge; reviewer?: boolean };
 export type Badge = null | 10 | 50 | 100 | 500;
 export type Contributors = {
   goal: { verified: number; goal: number };
-  contributors: { name: string; verified: number; weekly: number; badge: Badge; reviewer: boolean }[];
+  contributors: { name: string; sentences: number; words: number; sentencesWeek: number; wordsWeek: number; verified: number; weekly: number; badge: Badge; reviewer: boolean }[];
   reviewers: { name: string; decisions: number; weekly: number }[];
   thisWeek: { contributors: Row[]; reviewers: Row[] };
   allTime: { contributors: Row[]; reviewers: Row[] };
@@ -20,18 +20,42 @@ const byCountThenName = <T extends { name: string }>(key: (x: T) => number) => (
 
 export async function getContributors(env: Env): Promise<Contributors> {
   const c = await env.DB.prepare(
-    `SELECT n.name, n.verified, n.weekly, EXISTS (SELECT 1 FROM reviewer_phones r WHERE r.phone_id = n.phone_id) AS reviewer FROM (
-       SELECT a.phone_id, COUNT(*) AS verified,
-         SUM(EXISTS (SELECT 1 FROM reviews r WHERE r.decision = 'accept' AND r.undone_at IS NULL AND r.created_at >= datetime('now', '-7 days')
-           AND a.id IN (SELECT value FROM json_each(COALESCE(r.answer_ids, '[]'))))) AS weekly,
-         (SELECT b.contributor_name FROM answers b WHERE b.phone_id = a.phone_id AND TRIM(COALESCE(b.contributor_name, '')) <> '' ORDER BY b.id DESC LIMIT 1) AS name
-       FROM answers a WHERE a.status IN ('accepted', 'also_correct') GROUP BY a.phone_id
-     ) n WHERE n.name IS NOT NULL`,
-  ).all<{ name: string; verified: number; weekly: number; reviewer: number }>();
+    `SELECT * FROM (
+       SELECT t.sentences, t.words, t.sentencesWeek, t.wordsWeek,
+         EXISTS (SELECT 1 FROM reviewer_phones r WHERE r.phone_id = t.phone_id) AS reviewer,
+         COALESCE(
+           (SELECT b.contributor_name FROM answers b WHERE b.phone_id = t.phone_id AND TRIM(COALESCE(b.contributor_name, '')) <> '' ORDER BY b.id DESC LIMIT 1),
+           (SELECT w2.contributor_name FROM word_submissions w2 WHERE w2.phone_id = t.phone_id AND TRIM(COALESCE(w2.contributor_name, '')) <> '' ORDER BY w2.id DESC LIMIT 1)
+         ) AS name
+       FROM (
+         -- an accepted sentence, and an accepted word, count the same way
+         SELECT phone_id, SUM(s_ok) AS sentences, SUM(s_week) AS sentencesWeek, SUM(w_ok) AS words, SUM(w_week) AS wordsWeek FROM (
+           SELECT a.phone_id, 1 AS s_ok,
+             EXISTS (SELECT 1 FROM reviews r WHERE r.decision = 'accept' AND r.undone_at IS NULL AND r.created_at >= datetime('now', '-7 days')
+               AND a.id IN (SELECT value FROM json_each(COALESCE(r.answer_ids, '[]')))) AS s_week,
+             0 AS w_ok, 0 AS w_week
+           FROM answers a WHERE a.status IN ('accepted', 'also_correct')
+           UNION ALL
+           SELECT w.phone_id, 0, 0, 1, COALESCE(w.decided_at >= datetime('now', '-7 days'), 0)
+           FROM word_submissions w WHERE w.status = 'approved'
+         ) GROUP BY phone_id
+       ) t
+     ) WHERE name IS NOT NULL`,
+  ).all<{ name: string; sentences: number; words: number; sentencesWeek: number; wordsWeek: number; reviewer: number }>();
   const counts = await env.DB.prepare("SELECT lower(reviewer_email) AS email, COUNT(*) AS n, SUM(created_at >= datetime('now', '-7 days')) AS w FROM reviews WHERE undone_at IS NULL GROUP BY 1")
     .all<{ email: string; n: number; w: number }>();
   const done = new Map(counts.results.map((r) => [r.email, r]));
-  const contributors = c.results.map((r) => ({ name: r.name, verified: r.verified, weekly: r.weekly, badge: badgeFor(r.verified), reviewer: r.reviewer === 1 })).sort(byCountThenName((x) => x.verified));
+  const contributors = c.results.map((r) => ({
+    name: r.name,
+    sentences: r.sentences ?? 0,
+    words: r.words ?? 0,
+    sentencesWeek: r.sentencesWeek ?? 0,
+    wordsWeek: r.wordsWeek ?? 0,
+    verified: (r.sentences ?? 0) + (r.words ?? 0),
+    weekly: (r.sentencesWeek ?? 0) + (r.wordsWeek ?? 0),
+    badge: badgeFor((r.sentences ?? 0) + (r.words ?? 0)),
+    reviewer: r.reviewer === 1,
+  })).sort(byCountThenName((x) => x.verified));
   const merged = new Map<string, { name: string; decisions: number; weekly: number }>();
   for (const { email, name } of (await activeReviewers(env)).filter((r) => r.listed)) {
     const d = done.get(email.toLowerCase()), m = merged.get(name) ?? { name, decisions: 0, weekly: 0 };
@@ -39,14 +63,15 @@ export async function getContributors(env: Env): Promise<Contributors> {
   }
   const reviewers = [...merged.values()].sort(byCountThenName((x) => x.decisions));
   const rank = (xs: Row[], keepZero = false) => xs.filter((x) => keepZero || x.n > 0).sort(byCountThenName((x) => x.n));
-  const cr = (n: (x: (typeof contributors)[number]) => number) => rank(contributors.map((x) => ({ name: x.name, n: n(x), badge: x.badge, reviewer: x.reviewer })));
+  const cr = (n: (x: (typeof contributors)[number]) => number, w: (x: (typeof contributors)[number]) => number) =>
+    rank(contributors.map((x) => ({ name: x.name, n: n(x), words: w(x), badge: x.badge, reviewer: x.reviewer })));
   const rr = (n: (x: (typeof reviewers)[number]) => number, keepZero = false) => rank(reviewers.map((x) => ({ name: x.name, n: n(x), badge: null })), keepZero);
   return {
     goal: await getGoal(env),
     contributors,
     reviewers,
-    thisWeek: { contributors: cr((x) => x.weekly), reviewers: rr((x) => x.weekly) },
-    allTime: { contributors: cr((x) => x.verified), reviewers: rr((x) => x.decisions, true) },
+    thisWeek: { contributors: cr((x) => x.weekly, (x) => x.wordsWeek), reviewers: rr((x) => x.weekly) },
+    allTime: { contributors: cr((x) => x.verified, (x) => x.words), reviewers: rr((x) => x.decisions, true) },
   };
 }
 
@@ -83,7 +108,8 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
   const pills = (x: Row) => `${x.badge ? `<span class="badge t${x.badge}">${x.badge}+</span>` : ""}${x.reviewer ? '<span class="badge seal" data-s="reviewerBadge">Reviewer</span>' : ""}`;
   const contributors = (xs: Row[], empty: string) => {
     if (!xs.length) return `<p class="empty" data-s="${empty}">${empty === "emptyWeek" ? "No one yet this week. Be the first!" : "No one yet. Be the first!"}</p>`;
-    const cnt = (x: Row) => count(x.n, "sentences", "sentences");
+    // A phone counts once for the sentences a reviewer accepted and once for the words.
+    const cnt = (x: Row) => `${count(x.n, "sentences", "sentences")}${x.words ? count(x.words, "words", "words") : ""}`;
     const podium = xs.slice(0, 3).map((x, i) => `<li class="p p${i + 1}" style="--i:${i}"><span class="ring">${i + 1}</span><span class="nm">${esc(x.name)}</span><span class="bg">${pills(x)}</span>${cnt(x)}</li>`).join("");
     const rest = xs.slice(3).map((x, i) => `<li style="--i:${i + 3}"><span class="rk">${i + 4}</span><span class="nm">${esc(x.name)}<span class="bg">${pills(x)}</span></span>${cnt(x)}</li>`).join("");
     return `<ol class="podium">${podium}</ol>${rest ? `<ol class="rows" start="4">${rest}</ol>` : ""}`;

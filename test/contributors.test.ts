@@ -24,10 +24,10 @@ describe("contributors", () => {
     const text = await r.text();
     expect(JSON.parse(text)).toEqual({
       goal: { verified: 3, goal: 1000 },
-      contributors: [{ name: "Mang & Co", verified: 3, weekly: 0, badge: null, reviewer: true }],
+      contributors: [{ name: "Mang & Co", sentences: 3, words: 0, sentencesWeek: 0, wordsWeek: 0, verified: 3, weekly: 0, badge: null, reviewer: true }],
       reviewers: [{ name: "Rev One", decisions: 1, weekly: 1 }, { name: "Owner", decisions: 0, weekly: 0 }],
       thisWeek: { contributors: [], reviewers: [{ name: "Rev One", n: 1, badge: null }] },
-      allTime: { contributors: [{ name: "Mang & Co", n: 3, badge: null, reviewer: true }], reviewers: [{ name: "Rev One", n: 1, badge: null }, { name: "Owner", n: 0, badge: null }] },
+      allTime: { contributors: [{ name: "Mang & Co", n: 3, words: 0, badge: null, reviewer: true }], reviewers: [{ name: "Rev One", n: 1, badge: null }, { name: "Owner", n: 0, badge: null }] },
     });
     expect(text).not.toMatch(/aaaaaaaa|example\.org/);
     const page = await (await call("/contributors")).text();
@@ -69,9 +69,27 @@ describe("contributors", () => {
     await rv(rows[1], "-8 days", null);
     await rv(rows[2], "-1 days", "2026-01-01");
     const d = await (await call("/api/contributors")).json<any>();
-    expect(d.thisWeek.contributors).toEqual([{ name: "Alpha", n: 1, badge: null, reviewer: false }]);
+    expect(d.thisWeek.contributors).toEqual([{ name: "Alpha", n: 1, words: 0, badge: null, reviewer: false }]);
     expect(d.thisWeek.reviewers).toEqual([{ name: "Rev One", n: 1, badge: null }]);
-    expect(d.allTime.contributors).toEqual([{ name: "Alpha", n: 3, badge: null, reviewer: false }]);
+    expect(d.allTime.contributors).toEqual([{ name: "Alpha", n: 3, words: 0, badge: null, reviewer: false }]);
+  });
+
+  it("counts accepted words, and lists a phone that only added words", async () => {
+    const [s] = await addSentences("One.");
+    await env.DB.prepare("INSERT INTO answers (sentence_id, paite, register, phone_id, contributor_name, status) VALUES (?1, 'Ka dam hi', 'both', ?2, 'Alpha', 'accepted')").bind(s, PHONE_A).run();
+    await env.DB.prepare("INSERT INTO word_submissions (paite, english, phone_id, contributor_name, status, decided_at) VALUES ('Tui', 'Water', ?1, 'Alpha', 'approved', datetime('now'))").bind(PHONE_A).run();
+    await env.DB.prepare("INSERT INTO word_submissions (paite, english, phone_id, contributor_name, status) VALUES ('Zu', 'Drink', ?1, 'Beta', 'approved')").bind(PHONE_B).run();
+    await env.DB.prepare("INSERT INTO word_submissions (paite, english, phone_id, contributor_name, status) VALUES ('Tan', 'Warm', ?1, 'Gamma', 'pending')").bind(PHONE_C).run();
+    const d = await (await call("/api/contributors")).json<any>();
+    // Alpha: one accepted sentence and one accepted word; Beta: words only; Gamma's is pending, so absent
+    expect(d.contributors.map((c: { name: string; sentences: number; words: number }) => [c.name, c.sentences, c.words]))
+      .toEqual([["Alpha", 1, 1], ["Beta", 0, 1]]);
+    expect(d.thisWeek.contributors).toEqual([{ name: "Alpha", n: 1, words: 1, badge: null, reviewer: false }]);
+    expect(JSON.stringify(d)).not.toMatch(/aaaaaaaa|PENDING|Gamma/);
+    // the page carries both counts, and the pending word of nobody
+    const page = await (await call("/contributors")).text();
+    expect(page.match(/data-s="words"/g)?.length).toBe(3);
+    expect(page).not.toMatch(/PENDING/);
   });
 
   it("reviewer badge follows the phone, not the typed name", async () => {
