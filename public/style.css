@@ -105,6 +105,9 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 /* Footer: credit line, coffee button, desktop UPI panel. */
 .foot { display: grid; gap: 12px; justify-items: center; text-align: center; color: var(--muted); font-size: .9rem; }
 .foot p { margin: 0; }
+/* Contact links in the footer need a finger-sized box on a phone. Scoped to .foot p so the
+   coffee button, also an <a> directly under .foot, keeps its own padding. */
+.foot p a { display: inline-block; padding: 6px 2px; }
 .lab { color:#000; font-weight:700; text-decoration:none; }
 .lab:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
 .lab span { color:#DC143C; }

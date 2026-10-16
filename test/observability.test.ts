@@ -54,13 +54,28 @@ describe("errors", () => {
   });
 
   it("serves the HTML 500 page for a page request, and JSON for an API path", async () => {
-    const page = await errorPage(new Request("https://paite.lamkalabs.com/glossary"), fakeDeps() as unknown as Parameters<typeof errorPage>[1]);
+    // The asset layer serves "/500" with the 500 page; a direct "/500.html" answers 307 live.
+    const asked: string[] = [];
+    const envWithAssets = {
+      ASSETS: { fetch: async (req: Request) => { asked.push(new URL(req.url).pathname); return new Response('<p class="label">500</p>Something broke on our side.', { status: 200, headers: { "content-type": "text/html" } }); } },
+    } as unknown as Parameters<typeof errorPage>[1];
+    const page = await errorPage(new Request("https://paite.lamkalabs.com/glossary"), envWithAssets);
     expect(page.status).toBe(500);
     expect(page.headers.get("content-type")).toContain("text/html");
-    expect(await page.text()).toContain("Something broke on our side");
-    const api = await errorPage(new Request("https://paite.lamkalabs.com/api/next"), fakeDeps() as unknown as Parameters<typeof errorPage>[1]);
+    expect(await page.text()).toContain('class="label">500');
+    expect(asked).toEqual(["/500"]);
+
+    const api = await errorPage(new Request("https://paite.lamkalabs.com/api/next"), envWithAssets);
     expect(api.status).toBe(500);
     expect(await api.json()).toEqual({ error: "server_error" });
+    expect(asked).toEqual(["/500"]);
+  });
+
+  it("falls back to inline HTML when the asset layer is gone", async () => {
+    const broken = { ASSETS: { fetch: async () => { throw new Error("no assets"); } } } as unknown as Parameters<typeof errorPage>[1];
+    const r = await errorPage(new Request("https://paite.lamkalabs.com/"), broken);
+    expect(r.status).toBe(500);
+    expect(await r.text()).toContain("khooptong@lamkalabs.com");
   });
 
   it("lists the errors for the owner", async () => {

@@ -54,7 +54,8 @@ export async function errorPage(req: Request, env: Env): Promise<Response> {
     return json({ error: "server_error" }, 500);
   }
   try {
-    const r = await env.ASSETS.fetch(new Request(new URL("/500.html", req.url).toString()));
+    // "/500", not "/500.html": the asset layer answers the first with the page and redirects the second.
+    const r = await env.ASSETS.fetch(new Request(new URL("/500", req.url).toString()));
     if (r.ok) return new Response(r.body, { status: 500, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
   } catch {}
   return new Response(FALLBACK, { status: 500, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
