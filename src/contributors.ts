@@ -1,4 +1,5 @@
 import { activeReviewers } from "./access";
+import { FOOTER } from "./footer";
 import { PUAN } from "./puan";
 import { getGoal } from "./goal";
 import type { Env } from "./types";
@@ -131,6 +132,7 @@ ${view("allTime")}
 <div id="turnstile"></div>
 </form></section>
 </main>
+${FOOTER}
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 <script src="/strings.js"></script>
 <script src="/back.js"></script>

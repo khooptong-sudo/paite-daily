@@ -1,4 +1,5 @@
 import { esc } from "./contributors";
+import { FOOTER } from "./footer";
 import { PUAN } from "./puan";
 import { cap } from "./text";
 import type { Env } from "./types";
@@ -123,6 +124,7 @@ ${body}
 <span class="go" aria-hidden="true">&darr;</span>
 </button>
 </main>
+${FOOTER}
 <script src="/strings.js"></script>
 <script src="/back.js"></script>
 <script src="/pwa.js"></script>

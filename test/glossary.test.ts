@@ -87,6 +87,9 @@ describe("page, hide, export", () => {
     expect(html).toContain('aria-label="Z"');
     expect(html).toContain('aria-label="#"');
     expect(html).not.toMatch(/secret-phone|SecretName/);
+    expect(html).toContain('<footer class="foot">');
+    expect(html).toContain("Buy Us a Coffee");
+    expect(html).toContain('<script src="/footer.js"></script>');
   });
 
   it("hide is reviewer only and removes the entry from page and export", async () => {

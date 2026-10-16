@@ -34,6 +34,9 @@ describe("contributors", () => {
     expect(page).toContain("Mang &amp; Co");
     expect(page).toContain("Owner");
     expect(page).not.toMatch(/aaaaaaaa|example\.org/);
+    expect(page).toContain('<footer class="foot">');
+    expect(page).toContain("Buy Us a Coffee");
+    expect(page).toContain('<script src="/footer.js"></script>');
   });
 
   it("badgeFor boundaries", () => {
