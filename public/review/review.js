@@ -236,7 +236,7 @@
       $("newwords").replaceChildren(...words.map((w) => {
         const li = document.createElement("li"); li.className = "answer";
         const t = document.createElement("p"); t.textContent = w.paite + " = " + w.english;
-        const m = document.createElement("div"); m.className = "meta"; m.textContent = [w.note, w.name && "by " + w.name].filter(Boolean).join(" · ");
+        const m = document.createElement("div"); m.className = "meta"; m.textContent = [w.source === "meaning" ? "meaning of a listed word" : null, w.note, w.name && "by " + w.name].filter(Boolean).join(" · ");
         li.append(t, m, decide(w, li, "approve", "Approve"), decide(w, li, "reject", "Reject"));
         return li;
       }));

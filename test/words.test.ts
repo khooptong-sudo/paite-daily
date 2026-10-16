@@ -14,6 +14,70 @@ const rev = (path: string, body?: unknown, email: string | null = "rev@example.o
 const n = async (t: string) => (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${t}`).first<{ n: number }>())!.n;
 const asReviewer = () => { env.REVIEWERS = JSON.stringify({ "rev@example.org": "Rev" }); };
 
+describe("give the meaning", () => {
+  const withWord = async (paite: string, english: string, hidden = 0) => {
+    const r = await env.DB.prepare("INSERT INTO glossary (paite, english, source, hidden) VALUES (?1, ?2, 'note', ?3) RETURNING id")
+      .bind(paite, english, hidden).first<{ id: number }>();
+    return r!.id;
+  };
+  const next = async (s?: string) => call("/api/word/next", { session: s ?? (await session(PHONE_A)) });
+  const meaning = async (b: Record<string, unknown>, s?: string) =>
+    call("/api/word/meaning", { method: "POST", body: JSON.stringify(b), session: s ?? (await session(PHONE_A)) });
+
+  it("needs a session", async () => {
+    expect((await call("/api/word/next")).status).toBe(401);
+    expect((await call("/api/word/meaning", { method: "POST", body: JSON.stringify({ id: 1, english: "x" }) })).status).toBe(401);
+  });
+
+  it("shows a listed word, never one this phone has answered, and 204 when they run out", async () => {
+    const id = await withWord("Tui", "Water");
+    const r = await next();
+    expect(r.status).toBe(200);
+    expect(await r.json()).toEqual({ id, paite: "Tui" });
+    expect((await meaning({ id, english: "Drinking water" })).status).toBe(200);
+    // the only word is now answered by this phone, so there is nothing left for it
+    expect((await next()).status).toBe(204);
+    // another phone still gets it
+    expect((await next(await session("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"))).status).toBe(200);
+  });
+
+  it("never shows a hidden word", async () => {
+    await withWord("Zu", "Drink", 1);
+    expect((await next()).status).toBe(204);
+  });
+
+  it("stores the meaning as a pending submission that names its source", async () => {
+    const id = await withWord("Tan", "Warmth");
+    expect((await meaning({ id, english: "warmth of a person", note: "as in feeling", name: "Ann" })).status).toBe(200);
+    expect(await env.DB.prepare("SELECT paite, english, note, contributor_name AS name, source, status FROM word_submissions").first())
+      .toEqual({ paite: "Tan", english: "Warmth of a person", note: "as in feeling", name: "Ann", source: "meaning", status: "pending" });
+  });
+
+  it("validates, and 404s on a missing or hidden word", async () => {
+    const id = await withWord("Tui", "Water");
+    const hiddenId = await withWord("Zu", "Drink", 1);
+    expect((await meaning({ id: "x", english: "Water" })).status).toBe(400);
+    expect((await meaning({ id, english: "   " })).status).toBe(400);
+    expect((await meaning({ id, english: "W".repeat(121) })).status).toBe(400);
+    expect((await meaning({ id, english: "Water", note: "n".repeat(201) })).status).toBe(400);
+    expect((await meaning({ id: 99999, english: "Water" })).status).toBe(404);
+    expect((await meaning({ id: hiddenId, english: "Water" })).status).toBe(404);
+  });
+
+  it("does not store a meaning the list already carries", async () => {
+    const id = await withWord("Tui", "Water");
+    expect((await meaning({ id, english: "water" })).status).toBe(200);
+    expect(await n("word_submissions")).toBe(0);
+  });
+
+  it("counts the words a phone gave on /api/me", async () => {
+    const id = await withWord("Tui", "Water");
+    await meaning({ id, english: "Drinking water" });
+    const me = await (await call("/api/me", { session: await session(PHONE_A) })).json<{ words: number }>();
+    expect(me.words).toBe(1);
+  });
+});
+
 describe("POST /api/word", () => {
   it("needs a session", async () => {
     expect((await call("/api/word", { method: "POST", body: JSON.stringify({ paite: "a", english: "b" }) })).status).toBe(401);

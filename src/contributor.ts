@@ -5,7 +5,7 @@ import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, skipSente
 import { readSession, signSession } from "./session";
 import { cleanText, isId, isPhoneId } from "./text";
 import { refillOnDemand } from "./refill";
-import { submitWord } from "./words";
+import { nextWordToTranslate, submitMeaning, submitWord } from "./words";
 import { json, type Deps, type Env } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -49,12 +49,21 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   }
 
   if (pathname === "/api/me" && req.method === "GET") {
-    const r = await env.DB.prepare("SELECT count(*) AS total, COALESCE(SUM(status IN ('accepted', 'also_correct')), 0) AS verified FROM answers WHERE phone_id = ?1")
-      .bind(phoneId).first<{ total: number; verified: number }>();
-    return json({ total: r!.total, verified: r!.verified, badge: badgeFor(r!.verified) });
+    const r = await env.DB.prepare(
+      `SELECT (SELECT count(*) FROM answers WHERE phone_id = ?1) AS total,
+              (SELECT COALESCE(SUM(status IN ('accepted', 'also_correct')), 0) FROM answers WHERE phone_id = ?1) AS verified,
+              (SELECT count(*) FROM word_submissions WHERE phone_id = ?1) AS words`,
+    ).bind(phoneId).first<{ total: number; verified: number; words: number }>();
+    return json({ total: r!.total, verified: r!.verified, words: r!.words, badge: badgeFor(r!.verified) });
   }
 
   if (pathname === "/api/word" && req.method === "POST") return submitWord(env, phoneId, await body(req));
+
+  if (pathname === "/api/word/next" && req.method === "GET") {
+    const w = await nextWordToTranslate(env, phoneId);
+    return w ? json(w) : new Response(null, { status: 204 });
+  }
+  if (pathname === "/api/word/meaning" && req.method === "POST") return submitMeaning(env, phoneId, await body(req));
 
   if (pathname === "/api/skip" && req.method === "POST") {
     const b = await body(req);

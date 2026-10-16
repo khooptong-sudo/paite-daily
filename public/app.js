@@ -138,6 +138,34 @@
     }
   });
 
+  // Give the Meaning: the page shows one word from the list, the contributor writes what it means.
+  let meaningWord = null;
+  const ms = (m, ok = false) => { $("m-status").innerHTML = m; $("m-status").className = "status " + (ok ? "ok" : m ? "err" : ""); };
+  async function nextMeaning() {
+    try {
+      const r = await api("/api/word/next");
+      if (r.status === 204) { meaningWord = null; $("m-word").textContent = t("noWord"); return; }
+      if (!r.ok) { meaningWord = null; $("m-word").textContent = ""; return; }
+      meaningWord = await r.json();
+      $("m-word").textContent = meaningWord.paite;
+    } catch { meaningWord = null; }
+  }
+  $("meaning-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const english = $("m-english").value.trim();
+    if (!meaningWord) return;
+    if (!english) { $("m-english").focus(); return; }
+    $("m-send").disabled = true;
+    try {
+      const r = await api("/api/word/meaning", { method: "POST",
+        body: JSON.stringify({ id: meaningWord.id, english, note: $("m-note").value.trim(), name: store.get("name", "") }) });
+      if (r.ok) { ms(tBoth("wordThanks"), true); $("meaning-form").reset(); refreshMe(); nextMeaning(); }
+      else ms(tBoth(r.status === 429 ? "tooFast" : "offline"));
+    } catch { ms(tBoth("offline")); }
+    $("m-send").disabled = false;
+  });
+  nextMeaning();
+
   $("word-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const w = (id) => $(id).value.trim(), ws = (m, ok = false) => { $("w-status").innerHTML = m; $("w-status").className = "status " + (ok ? "ok" : m ? "err" : ""); };
@@ -185,8 +213,18 @@
     } catch {}
   }
 
-  const shareText = "https://paite.lamkalabs.com";
-  async function shareCard(total) {
+  const cap = (v) => v.charAt(0).toLocaleUpperCase() + v.slice(1);
+  // Paite puts the number after the noun (thuvual 8), English puts it before (8 Sentences).
+  function shareCounts() {
+    const pairs = [];
+    if (total > 0) pairs.push([S.sentences.pai ? `${cap(S.sentences.pai)} ${total} toh` : null, `${total} Sentence${total === 1 ? "" : "s"}`]);
+    if (words > 0) pairs.push([S.words.pai ? `${cap(S.words.pai)} ${words}` : null, `${words} Word${words === 1 ? "" : "s"}`]);
+    return {
+      pai: pairs.map((p) => p[0]).filter(Boolean).join(" ").trim(),
+      en: pairs.map((p) => p[1]).join(" and "),
+    };
+  }
+  async function shareCard() {
     await document.fonts.ready;
     const c = document.createElement("canvas"); c.width = 1080; c.height = 1920;
     const g = c.getContext("2d"), css = getComputedStyle(document.documentElement);
@@ -208,32 +246,38 @@
     };
     let y = wrap(S.shareLine.pai || S.shareLine.en, 520, `72px ${display}`, 90);
     if (S.shareLine.pai) y = wrap(S.shareLine.en, y + 20, `44px ${body}`, 60);
+    const counts = shareCounts();
     g.fillStyle = css.getPropertyValue("--accent") || "#b0102e";
-    y = wrap(`${total} ${S.sentences.pai || S.sentences.en}${S.sentences.pai ? " / " + total + " " + S.sentences.en : ""}`, y + 80, `700 52px ${body}`, 70);
+    if (counts.pai) y = wrap(counts.pai, y + 80, `700 52px ${body}`, 70);
+    if (counts.en) { g.fillStyle = css.getPropertyValue("--fg") || "#1b1616"; y = wrap(counts.en, y + (counts.pai ? 24 : 80), `700 52px ${body}`, 70); }
+    // The invitation to post this as a status, then the address.
+    g.fillStyle = css.getPropertyValue("--fg") || "#1b1616";
+    if (S.share.pai) { y = wrap(S.share.pai, 1560, `700 46px ${body}`, 58); g.fillStyle = css.getPropertyValue("--muted") || "#625755"; }
+    wrap(S.share.en, y + 14, `38px ${body}`, 48);
     g.fillStyle = css.getPropertyValue("--muted") || "#625755";
-    wrap("paite.lamkalabs.com", 1760, `40px ${body}`, 50);
+    wrap("paite.lamkalabs.com", 1810, `34px ${body}`, 44);
     const blob = await new Promise((res) => c.toBlob(res, "image/png"));
     const file = new File([blob], "paite-daily.png", { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], text: shareText }); } catch (e) { if (e.name !== "AbortError") { download(blob); status(tBoth("shareFailed")); } }
+      try { await navigator.share({ files: [file], text: `${S.share.en} https://paite.lamkalabs.com` }); } catch (e) { if (e.name !== "AbortError") { download(blob); status(tBoth("shareFailed")); } }
     } else download(blob);
   }
   function download(blob) {
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "paite-daily.png"; a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
-  let total = 0;
+  let total = 0, words = 0;
   async function refreshMe() {
     try {
       const r = await api("/api/me");
       if (!r.ok) return;
       const me = await r.json();
-      total = me.total;
+      total = me.total; words = me.words || 0;
       $("badge").textContent = me.badge || ""; $("badge").hidden = !me.badge;
-      $("share").hidden = total < 5;
+      $("share").hidden = total + words < 5;
     } catch {}
   }
-  $("share").addEventListener("click", () => shareCard(total).catch(() => status(tBoth("shareError"))));
+  $("share").addEventListener("click", () => shareCard().catch(() => status(tBoth("shareError"))));
 
   async function showGoal() {
     try {
