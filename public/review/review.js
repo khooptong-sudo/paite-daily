@@ -226,7 +226,44 @@
     } catch {}
   }
 
+  // Owner only: how far visitors get, and what broke.
+  async function insights() {
+    const line = (li, text, meta) => {
+      const t = document.createElement("p"); t.textContent = text;
+      const m = document.createElement("div"); m.className = "meta"; m.textContent = meta;
+      li.append(t, m);
+    };
+    try {
+      const a = await fetch("/review/api/analytics?days=7");
+      if (a.ok) {
+        const d = await a.json();
+        $("funnel-card").hidden = false;
+        const rows = d.funnel.map((f) => {
+          const li = document.createElement("li"); li.className = "answer";
+          line(li, `${f.kind}: ${f.people} people (${f.hits} events)`, "");
+          return li;
+        });
+        d.dropOff.forEach((x, i) => { const m = rows[i + 1].querySelector(".meta"); m.textContent = `lost ${x.lost} (${x.percent}%) after ${d.funnel[i].kind}`; });
+        const days = document.createElement("li"); days.className = "meta";
+        days.textContent = d.byDay.map((b) => `${b.day}: ${b.people}`).join(" · ") || "No events yet.";
+        $("funnel").replaceChildren(...rows, days, Object.assign(document.createElement("li"), { className: "meta", textContent: "devices: " + d.devices.map((x) => `${x.device} ${x.people}`).join(", ") }));
+      }
+    } catch {}
+    try {
+      const e = await fetch("/review/api/errors");
+      if (!e.ok) return;
+      const { errors } = await e.json();
+      $("errors-card").hidden = false;
+      if (!errors.length) { const li = document.createElement("li"); li.className = "meta"; li.textContent = "No errors in the last 7 days."; $("errors").replaceChildren(li); return; }
+      $("errors").replaceChildren(...errors.map((x) => {
+        const li = document.createElement("li"); li.className = "answer";
+        line(li, x.message, `${x.route} · ${x.count} time(s) · last ${x.last}`);
+        return li;
+      }));
+    } catch {}
+  }
+
   // Link this browser's contributor phone id to the signed-in reviewer (for the badge on /contributors).
   const linkPhone = () => { try { const id = JSON.parse(localStorage.getItem("pd:phone")); if (id) post("/review/api/link-phone", { phoneId: id }).catch(() => {}); } catch {} };
-  me().then((ok) => { if (ok) { linkPhone(); next().then(() => { if (lastUndo !== null) showUndo(lastUndo); }); words(); newWords(); if (isOwner) { health(); people(); } } });
+  me().then((ok) => { if (ok) { linkPhone(); next().then(() => { if (lastUndo !== null) showUndo(lastUndo); }); words(); newWords(); if (isOwner) { health(); people(); insights(); } } });
 })();
