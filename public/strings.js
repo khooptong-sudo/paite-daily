@@ -12,7 +12,7 @@ window.STRINGS = {
   today: { pai: "Tuni", en: "Today" },
   askName: { pai: "Na min i tuang sak diam contributors list ah?", en: "Want your name on the Paite contributors list?" },
   yourName: { pai: "Na Min", en: "Your Name" },
-  noThanks: { pai: "Ngailou", en: "No Thanks" },
+  noThanks: { pai: "Ngaikei", en: "No Thanks" },
   saveName: { pai: "Awle", en: "Add My Name" },
   licence: { pai: "Mipi muh leh zat theih dia kikoih khia ahi.", en: "Your translations are given to everyone, free (public domain)" },
   loading: { pai: "Aban adi hong ki load lel ahi", en: "Loading the next sentence…" },
