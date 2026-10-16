@@ -2,8 +2,8 @@ import { isOwner, reviewerName } from "./access";
 import { handleOwnerReview } from "./apply";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
-import { getGlossary } from "./glossary";
-import { isId, isIdList, isPhoneId } from "./text";
+import { getGlossaryForReview } from "./glossary";
+import { cap, cleanText, isId, isIdList, isPhoneId } from "./text";
 import { analytics, recentErrors } from "./observability";
 import { handleWords } from "./words";
 import { claimNext, decide, undo, type Decision } from "./reviewdb";
@@ -28,11 +28,29 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     return card ? json(card) : new Response(null, { status: 204 });
   }
   if (pathname === "/review/api/queue" && req.method === "GET") return json({ waiting: (await waitingCounts(env.DB, email, deps.now())).answers });
-  if (pathname === "/review/api/glossary" && req.method === "GET") return json({ entries: await getGlossary(env, 20) });
+  if (pathname === "/review/api/glossary" && req.method === "GET") return json({ entries: await getGlossaryForReview(env) });
   if (pathname === "/review/api/glossary/hide" && req.method === "POST") {
-    if (!isId(b.id)) return json({ error: "bad_request" }, 400);
-    const r = await env.DB.prepare("UPDATE glossary SET hidden = 1 WHERE id = ?1").bind(b.id).run();
-    return r.meta.changes ? json({ ok: true }) : json({ error: "not_found" }, 404);
+    if (!isId(b.id) || (b.hidden !== undefined && typeof b.hidden !== "boolean")) return json({ error: "bad_request" }, 400);
+    const hidden = b.hidden === false ? 0 : 1;
+    const r = await env.DB.prepare("UPDATE glossary SET hidden = ?2 WHERE id = ?1").bind(b.id, hidden).run();
+    return r.meta.changes ? json({ ok: true, hidden: hidden === 1 }) : json({ error: "not_found" }, 404);
+  }
+  // A word that is already in the list can be wrong. A reviewer fixes it here.
+  if (pathname === "/review/api/glossary/edit" && req.method === "POST") {
+    const paite = cleanText(b.paite, 60), english = cleanText(b.english, 120);
+    const blankNote = b.note === undefined || b.note === null || (typeof b.note === "string" && !b.note.trim());
+    const note = blankNote ? null : cleanText(b.note, 200);
+    if (!isId(b.id) || !paite || !english || (!blankNote && !note)) return json({ error: "bad_request" }, 400);
+    try {
+      const r = await env.DB.prepare("UPDATE glossary SET paite = ?2, english = ?3, note = ?4, edited_by = ?5, edited_at = datetime('now') WHERE id = ?1")
+        .bind(b.id, cap(paite), cap(english), note, email).run();
+      return r.meta.changes ? json({ ok: true }) : json({ error: "not_found" }, 404);
+    } catch (e) {
+      // The unique index on (word, meaning) refuses a correction that copies an existing row.
+      // D1 words it "UNIQUE constraint failed: index 'glossary_unique'", so match the short form.
+      if (/UNIQUE constraint failed/i.test(String(e))) return json({ error: "duplicate", message: "That word and meaning are already in the list." }, 409);
+      throw e;
+    }
   }
   if (pathname === "/review/api/decide" && req.method === "POST") {
     if (!isId(b.sentenceId) || !["accept", "reject", "retire", "variant"].includes(b.decision as string) || !isIdList(b.answerIds) || (b.alsoCorrect !== undefined && !isIdList(b.alsoCorrect)) || (b.decision === "accept" && !isId(b.answerId))) return json({ error: "bad_request" }, 400);

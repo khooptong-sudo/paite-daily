@@ -21,6 +21,15 @@
   [hidden] { display: none !important; }
   #help[hidden] { display: none; }
   .row3 { display: flex; gap: 8px; flex-wrap: wrap; }
+  .wgroup { border-top: 1px solid var(--line); }
+  .wgroup > summary { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 0; font-weight: 700; list-style: none; }
+  .wgroup > summary::-webkit-details-marker { display: none; }
+  .wgroup > summary .cnt { color: var(--muted); font-weight: 400; font-size: .85rem; font-variant-numeric: tabular-nums; }
+  .wgroup > summary::after { content: "\FF0B"; margin-left: auto; color: var(--muted); }
+  .wgroup[open] > summary::after { content: "\FF0D"; }
+  .wgroup ul { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 10px; }
+  .edit { display: grid; gap: 8px; }
+  .edit input { width: 100%; }
 </style>
 </head>
 <body>
@@ -49,7 +58,7 @@
 <section class="card" id="errors-card" aria-labelledby="errors-h" hidden><h2 id="errors-h">Errors (7 days)</h2><ul id="errors" style="list-style:none;margin:0;padding:0;display:grid;gap:8px"></ul></section>
 <section class="card" id="revs-card" aria-labelledby="revs-h" hidden><h2 id="revs-h">Reviewers</h2><ul id="revs" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
 <section class="card" aria-labelledby="newwords-h"><h2 id="newwords-h">New words</h2><ul id="newwords" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
-<section class="card" aria-labelledby="words-h"><h2 id="words-h">Word list (newest 20)</h2><ul id="words" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
+<section class="card" aria-labelledby="words-h"><h2 id="words-h">Word list</h2><p class="meta">Every word in the list, by letter. Edit a wrong meaning, or hide a word from the public list.</p><div id="words" style="display:grid;gap:0"></div></section>
 </main>
 <script src="/review/review.js"></script>
 <script src="/back.js"></script>

@@ -74,6 +74,23 @@ export async function getGlossary(env: Env, limit = -1): Promise<Entry[]> {
   return results.map((r) => ({ id: r.id, paite: cap(r.paite), english: cap(r.english), note: r.note, source: r.source, by: r.by, example: r.ex_paite && r.ex_english ? { paite: r.ex_paite, english: r.ex_english } : null }));
 }
 
+export type ReviewEntry = Entry & { hidden: number; edited_by: string | null; edited_at: string | null };
+
+/** The whole list for the reviewer page: hidden rows included, ordered by the word. */
+export async function getGlossaryForReview(env: Env, limit = 500): Promise<ReviewEntry[]> {
+  const { results } = await env.DB.prepare(
+    `SELECT g.id, g.paite, g.english, g.note, g.hidden, g.source, g.contributor_name AS by, g.edited_by, g.edited_at,
+            a.paite AS ex_paite, s.english AS ex_english
+     FROM glossary g LEFT JOIN answers a ON a.id = g.answer_id LEFT JOIN sentences s ON s.id = g.sentence_id
+     ORDER BY lower(g.paite) LIMIT ?1`,
+  ).bind(limit).all<{ id: number; paite: string; english: string; note: string | null; hidden: number; source: string; by: string | null; edited_by: string | null; edited_at: string | null; ex_paite: string | null; ex_english: string | null }>();
+  return results.map((r) => ({
+    id: r.id, paite: cap(r.paite), english: cap(r.english), note: r.note, source: r.source, by: r.by,
+    hidden: r.hidden, edited_by: r.edited_by, edited_at: r.edited_at,
+    example: r.ex_paite && r.ex_english ? { paite: r.ex_paite, english: r.ex_english } : null,
+  }));
+}
+
 export const glossaryJson = (xs: Entry[]) =>
   JSON.stringify({ entries: [...xs].sort((a, b) => a.paite.localeCompare(b.paite)).map(({ id, by, ...e }) => e) }, null, 2) + "\n";
 

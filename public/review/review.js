@@ -147,21 +147,74 @@
     } catch {}
   }
 
-  // Word list: newest 20 entries, each with a Hide button.
+  // Word list: every entry, grouped by letter. A reviewer can correct a wrong meaning or hide a word.
   async function words() {
     try {
       const r = await fetch("/review/api/glossary");
       if (!r.ok) return;
       const { entries } = await r.json();
-      $("words").replaceChildren(...entries.map((e) => {
+      const groups = new Map();
+      for (const e of entries) {
+        const l = (e.paite || "#").charAt(0).toUpperCase();
+        const k = /\p{L}/u.test(l) ? l : "#";
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k).push(e);
+      }
+      const row = (e) => {
         const li = document.createElement("li"); li.className = "answer";
         const t = document.createElement("p"); t.textContent = e.paite + " = " + e.english;
-        const m = document.createElement("div"); m.className = "meta"; m.textContent = (e.note ? e.note + " · " : "") + (e.example ? e.example.paite + " / " + e.example.english : "Contributed");
-        const h = document.createElement("button"); h.type = "button"; h.textContent = "Hide"; h.setAttribute("aria-label", "Hide word: " + e.paite);
-        h.addEventListener("click", async () => { h.disabled = true; const x = await post("/review/api/glossary/hide", { id: e.id }); if (x.ok) li.remove(); else h.disabled = false; });
-        li.append(t, m, h);
+        const m = document.createElement("div"); m.className = "meta";
+        m.textContent = [e.note, e.example ? e.example.paite + " / " + e.example.english : null, e.by ? "by " + e.by : "from a note",
+          e.edited_at ? "edited by " + (e.edited_by || "a reviewer") + " on " + e.edited_at : null, e.hidden ? "hidden from the public list" : null].filter(Boolean).join(" · ");
+        const form = document.createElement("div"); form.className = "edit"; form.hidden = true;
+        const field = (label, value, max) => {
+          const wrap = document.createElement("label"); wrap.textContent = label;
+          const input = document.createElement("input"); input.value = value ?? ""; input.maxLength = max;
+          wrap.append(input); return [wrap, input];
+        };
+        const [lp, ip] = field("Paite", e.paite, 60);
+        const [le, ie] = field("English meaning", e.english, 120);
+        const [ln, inote] = field("Note (optional)", e.note ?? "", 200);
+        const save = document.createElement("button"); save.type = "button"; save.className = "primary"; save.textContent = "Save correction";
+        const cancel = document.createElement("button"); cancel.type = "button"; cancel.textContent = "Cancel";
+        const row3 = document.createElement("div"); row3.className = "row3"; row3.append(save, cancel);
+        form.append(lp, le, ln, row3);
+        const edit = document.createElement("button"); edit.type = "button"; edit.textContent = "Edit"; edit.setAttribute("aria-label", "Edit word: " + e.paite);
+        edit.addEventListener("click", () => { form.hidden = !form.hidden; if (!form.hidden) ip.focus(); });
+        cancel.addEventListener("click", () => { form.hidden = true; ip.value = e.paite; ie.value = e.english; inote.value = e.note ?? ""; });
+        save.addEventListener("click", async () => {
+          save.disabled = true;
+          const x = await post("/review/api/glossary/edit", { id: e.id, paite: ip.value, english: ie.value, note: inote.value });
+          save.disabled = false;
+          if (x.ok) { status("Correction saved.", true); words(); }
+          else if (x.status === 409) status("That word and meaning are already in the list.");
+          else if (x.status === 400) status("A word and an English meaning are both needed.");
+          else status("Could not save the correction.");
+        });
+        const vis = document.createElement("button"); vis.type = "button"; vis.textContent = e.hidden ? "Show" : "Hide";
+        vis.setAttribute("aria-label", (e.hidden ? "Show word: " : "Hide word: ") + e.paite);
+        vis.addEventListener("click", async () => {
+          vis.disabled = true;
+          const x = await post("/review/api/glossary/hide", { id: e.id, hidden: !e.hidden });
+          vis.disabled = false;
+          if (x.ok) { status(e.hidden ? "Word is back in the list." : "Word hidden.", true); words(); }
+          else status("Could not change that word.");
+        });
+        const row3b = document.createElement("div"); row3b.className = "row3"; row3b.append(edit, vis);
+        li.append(t, m, row3b, form);
         return li;
-      }));
+      };
+      const blocks = [...groups].map(([k, es]) => {
+        const d = document.createElement("details"); d.className = "wgroup";
+        const s = document.createElement("summary");
+        const ltr = document.createElement("span"); ltr.textContent = k;
+        const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = es.length + (es.length === 1 ? " word" : " words");
+        s.append(ltr, cnt);
+        const ul = document.createElement("ul"); ul.append(...es.map(row));
+        d.append(s, ul);
+        return d;
+      });
+      $("words").replaceChildren(...blocks);
     } catch {}
   }
 
