@@ -27,7 +27,7 @@ describe("contributors", () => {
       contributors: [{ name: "Mang & Co", sentences: 3, words: 0, sentencesWeek: 0, wordsWeek: 0, verified: 3, weekly: 0, badge: null, reviewer: true }],
       reviewers: [{ name: "Rev One", decisions: 1, weekly: 1 }, { name: "Owner", decisions: 0, weekly: 0 }],
       thisWeek: { contributors: [], reviewers: [{ name: "Rev One", n: 1, badge: null }] },
-      allTime: { contributors: [{ name: "Mang & Co", n: 3, words: 0, badge: null, reviewer: true }], reviewers: [{ name: "Rev One", n: 1, badge: null }, { name: "Owner", n: 0, badge: null }] },
+      allTime: { contributors: [{ name: "Mang & Co", n: 3, sentences: 3, words: 0, badge: null, reviewer: true }], reviewers: [{ name: "Rev One", n: 1, badge: null }, { name: "Owner", n: 0, badge: null }] },
     });
     expect(text).not.toMatch(/aaaaaaaa|example\.org/);
     const page = await (await call("/contributors")).text();
@@ -69,9 +69,9 @@ describe("contributors", () => {
     await rv(rows[1], "-8 days", null);
     await rv(rows[2], "-1 days", "2026-01-01");
     const d = await (await call("/api/contributors")).json<any>();
-    expect(d.thisWeek.contributors).toEqual([{ name: "Alpha", n: 1, words: 0, badge: null, reviewer: false }]);
+    expect(d.thisWeek.contributors).toEqual([{ name: "Alpha", n: 1, sentences: 1, words: 0, badge: null, reviewer: false }]);
     expect(d.thisWeek.reviewers).toEqual([{ name: "Rev One", n: 1, badge: null }]);
-    expect(d.allTime.contributors).toEqual([{ name: "Alpha", n: 3, words: 0, badge: null, reviewer: false }]);
+    expect(d.allTime.contributors).toEqual([{ name: "Alpha", n: 3, sentences: 3, words: 0, badge: null, reviewer: false }]);
   });
 
   it("counts accepted words, and lists a phone that only added words", async () => {
@@ -84,7 +84,7 @@ describe("contributors", () => {
     // Alpha: one accepted sentence and one accepted word; Beta: words only; Gamma's is pending, so absent
     expect(d.contributors.map((c: { name: string; sentences: number; words: number }) => [c.name, c.sentences, c.words]))
       .toEqual([["Alpha", 1, 1], ["Beta", 0, 1]]);
-    expect(d.thisWeek.contributors).toEqual([{ name: "Alpha", n: 1, words: 1, badge: null, reviewer: false }]);
+    expect(d.thisWeek.contributors).toEqual([{ name: "Alpha", n: 1, sentences: 0, words: 1, badge: null, reviewer: false }]);
     expect(JSON.stringify(d)).not.toMatch(/aaaaaaaa|PENDING|Gamma/);
     // the page carries both counts, and the pending word of nobody
     const page = await (await call("/contributors")).text();

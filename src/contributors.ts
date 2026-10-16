@@ -4,7 +4,7 @@ import { PUAN } from "./puan";
 import { getGoal } from "./goal";
 import type { Env } from "./types";
 
-type Row = { name: string; n: number; words?: number; badge: Badge; reviewer?: boolean };
+type Row = { name: string; n: number; sentences?: number; words?: number; badge: Badge; reviewer?: boolean };
 export type Badge = null | 10 | 50 | 100 | 500;
 export type Contributors = {
   goal: { verified: number; goal: number };
@@ -63,15 +63,19 @@ export async function getContributors(env: Env): Promise<Contributors> {
   }
   const reviewers = [...merged.values()].sort(byCountThenName((x) => x.decisions));
   const rank = (xs: Row[], keepZero = false) => xs.filter((x) => keepZero || x.n > 0).sort(byCountThenName((x) => x.n));
-  const cr = (n: (x: (typeof contributors)[number]) => number, w: (x: (typeof contributors)[number]) => number) =>
-    rank(contributors.map((x) => ({ name: x.name, n: n(x), words: w(x), badge: x.badge, reviewer: x.reviewer })));
+  // n ranks the phone (sentences plus words); the row shows the two counts apart.
+  const cr = (
+    n: (x: (typeof contributors)[number]) => number,
+    s: (x: (typeof contributors)[number]) => number,
+    w: (x: (typeof contributors)[number]) => number,
+  ) => rank(contributors.map((x) => ({ name: x.name, n: n(x), sentences: s(x), words: w(x), badge: x.badge, reviewer: x.reviewer })));
   const rr = (n: (x: (typeof reviewers)[number]) => number, keepZero = false) => rank(reviewers.map((x) => ({ name: x.name, n: n(x), badge: null })), keepZero);
   return {
     goal: await getGoal(env),
     contributors,
     reviewers,
-    thisWeek: { contributors: cr((x) => x.weekly, (x) => x.wordsWeek), reviewers: rr((x) => x.weekly) },
-    allTime: { contributors: cr((x) => x.verified, (x) => x.words), reviewers: rr((x) => x.decisions, true) },
+    thisWeek: { contributors: cr((x) => x.weekly, (x) => x.sentencesWeek, (x) => x.wordsWeek), reviewers: rr((x) => x.weekly) },
+    allTime: { contributors: cr((x) => x.verified, (x) => x.sentences, (x) => x.words), reviewers: rr((x) => x.decisions, true) },
   };
 }
 
@@ -109,7 +113,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
   const contributors = (xs: Row[], empty: string) => {
     if (!xs.length) return `<p class="empty" data-s="${empty}">${empty === "emptyWeek" ? "No one yet this week. Be the first!" : "No one yet. Be the first!"}</p>`;
     // A phone counts once for the sentences a reviewer accepted and once for the words.
-    const cnt = (x: Row) => `${count(x.n, "sentences", "sentences")}${x.words ? count(x.words, "words", "words") : ""}`;
+    const cnt = (x: Row) => `${x.sentences ? count(x.sentences, "sentences", "sentences") : ""}${x.words ? count(x.words, "words", "words") : ""}`;
     const podium = xs.slice(0, 3).map((x, i) => `<li class="p p${i + 1}" style="--i:${i}"><span class="ring">${i + 1}</span><span class="nm">${esc(x.name)}</span><span class="bg">${pills(x)}</span>${cnt(x)}</li>`).join("");
     const rest = xs.slice(3).map((x, i) => `<li style="--i:${i + 3}"><span class="rk">${i + 4}</span><span class="nm">${esc(x.name)}<span class="bg">${pills(x)}</span></span>${cnt(x)}</li>`).join("");
     return `<ol class="podium">${podium}</ol>${rest ? `<ol class="rows" start="4">${rest}</ol>` : ""}`;
