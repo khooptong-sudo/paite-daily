@@ -76,7 +76,7 @@ if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&"IntersectionObserve
 
 const INVITE_EN = "Help write Paite into the future. One sentence a day:";
 const goalBar = (g: { verified: number; goal: number }) =>
-  `<div class="goal"><div class="goal-t"><b>${g.verified}</b> / ${g.goal} <span data-s="goalLine">verified sentences</span></div><div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${g.goal}" aria-valuenow="${g.verified}"><i style="width:${Math.min(100, Math.round((g.verified / g.goal) * 100))}%"></i></div></div>`;
+  `<div class="goal"><div class="goal-t"><b>${g.verified}</b> / ${g.goal} <span data-s="goalLine">Verified Sentences</span></div><div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${g.goal}" aria-valuenow="${g.verified}"><i style="width:${Math.min(100, Math.round((g.verified / g.goal) * 100))}%"></i></div></div>`;
 
 export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="/contributors.css">', siteKey = ""): string {
   const count = (n: number, key: string, en: string) => `<span class="c"><b data-n="${n}">${n}</b><span class="u" data-s="${key}">${en}</span></span>`;
@@ -126,11 +126,11 @@ ${css}</head>
 <header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="contributorsTitle">Contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
 ${goalBar(d.goal)}
 <main data-start="${start}">
-<div class="seg" role="group" aria-label="Period"><button type="button" data-v="thisWeek" aria-pressed="false" data-s="thisWeek">This week</button><button type="button" data-v="allTime" aria-pressed="false" data-s="allTime">All time</button></div>
+<div class="seg" role="group" aria-label="Period"><button type="button" data-v="thisWeek" aria-pressed="false" data-s="thisWeek">This Week</button><button type="button" data-v="allTime" aria-pressed="false" data-s="allTime">All Time</button></div>
 ${view("thisWeek")}
 ${view("allTime")}
-<a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
-<a class="cta glass-btn" href="/glossary"><span data-s="glossaryTitle">Paite word list</span><span class="go" aria-hidden="true">&rarr;</span></a>
+<a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a Sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
+<a class="cta glass-btn" href="/glossary"><span data-s="glossaryTitle">Paite Word List</span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="cta glass-btn" id="invite" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(INVITE_EN + " https://paite.lamkalabs.com")}"><span data-s="invite">Send to a friend</span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="pan" href="/paite-daily.apk" download>
 <span><b data-s="getApp">Get the Android app</b><small data-s="getAppNote">Download the APK file.</small></span>

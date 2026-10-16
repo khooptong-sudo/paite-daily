@@ -151,7 +151,7 @@ export function renderGlossary(xs: Entry[]): string {
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
 ${body}
-<a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
+<a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a Sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="pan" href="/paite-daily.apk" download>
 <span><b data-s="getApp">Get the Android app</b><small data-s="getAppNote">Download the APK file.</small></span>
 <span class="go" aria-hidden="true">&darr;</span>
