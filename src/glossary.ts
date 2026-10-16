@@ -81,8 +81,10 @@ const JS = `(function(){var S=window.STRINGS||{};
 document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
 var q=document.getElementById("q"),sr=S.search;if(sr&&sr.pai){q.placeholder=q.ariaLabel=sr.pai+" / "+sr.en;q.setAttribute("aria-label",q.placeholder)}q.addEventListener("input",function(){var t=q.value.trim().toLowerCase();
 document.querySelectorAll(".gl li").forEach(function(li){li.hidden=!!t&&li.dataset.q.indexOf(t)<0});
-document.querySelectorAll(".gl section").forEach(function(s){s.hidden=!s.querySelector("li:not([hidden])")})});
-function openHash(){var l=document.getElementById(location.hash.slice(1)),d=l&&l.querySelector("details");if(d){d.open=true;l.scrollIntoView()}}
+document.querySelectorAll(".gl details.rows").forEach(function(g){var has=!!g.querySelector("li:not([hidden])");
+g.hidden=!has;g.open=t?has:false})});
+function openHash(){var l=document.getElementById(location.hash.slice(1));if(!l)return;var d=l.querySelector("details");if(d)d.open=true;
+var g=l.closest("details.rows");if(g)g.open=true;l.scrollIntoView()}
 openHash();addEventListener("hashchange",openHash);
 })();`;
 
@@ -95,25 +97,25 @@ export function renderGlossary(xs: Entry[]): string {
   }
   const li = (e: Entry) => `<li id="w-${e.id}" data-q="${esc([e.paite, e.english, e.note, e.example?.paite, e.example?.english].filter(Boolean).join(" ").toLowerCase())}"><details><summary><b class="w">${esc(e.paite)}</b> <small class="m">${esc(e.english)}</small></summary><p class="m">${esc(e.english)}</p>${e.note ? `<span class="n">${esc(e.note)}</span>` : ""}${e.example ? `<span class="ex">${esc(e.example.paite)}<br>${esc(e.example.english)}</span>` : ""}${e.source === "contributed" && e.by ? `<span class="n">Added by ${esc(e.by)}</span>` : `<span class="n" data-s="${e.source === "contributed" ? "srcContributed" : "srcNote"}">${e.source === "contributed" ? "Added by a contributor" : "From a contributor's note"}</span>`}</details></li>`;
   const body = groups.size
-    ? [...groups].map(([k, es]) => `<section class="rows" aria-label="${esc(k)}"><h2>${esc(k)}</h2><ul>${es.map(li).join("")}</ul></section>`).join("")
+    ? [...groups].map(([k, es]) => `<details class="rows" aria-label="${esc(k)}" data-letter="${esc(k)}"><summary><span class="ltr">${esc(k)}</span><span class="cnt">${es.length}</span></summary><ul>${es.map(li).join("")}</ul></details>`).join("")
     : '<p class="empty"><span data-s="glossaryEmpty">No words yet. Add the first one on the front page.</span> <a href="/">Paite Daily</a></p>';
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Paite word list</title>
+<title>Paite Word List</title>
 <meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://paite.lamkalabs.com/glossary">
 <meta property="og:site_name" content="Paite Daily">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_IN">
 <meta property="og:url" content="https://paite.lamkalabs.com/glossary">
-<meta property="og:title" content="Paite word list">
-<meta property="og:description" content="The Paite word list from our contributors: Paite words, English meanings and examples.">
+<meta property="og:title" content="Paite Word List">
+<meta property="og:description" content="The Paite Word List from our contributors: Paite words, English meanings and examples.">
 <meta property="og:image" content="https://paite.lamkalabs.com/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Paite Daily: translate one sentence a day. Free and open data for the Paite language.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Paite word list">
+<meta name="twitter:title" content="Paite Word List">
 <meta name="twitter:description" content="The Paite word list from our contributors: Paite words, English meanings and examples.">
 <meta name="twitter:image" content="https://paite.lamkalabs.com/og.png">
 <meta name="twitter:image:alt" content="Paite Daily: translate one sentence a day.">
@@ -128,7 +130,7 @@ export function renderGlossary(xs: Entry[]): string {
 <link rel="stylesheet" href="/contributors.css">
 </head>
 <body class="cp">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="glossaryTitle">Paite word list</h1><p data-s="glossaryLine">Words from the notes of our contributors.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="glossaryTitle">Paite Word List</h1><p data-s="glossaryLine">Words from the notes of our contributors.</p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
 ${body}

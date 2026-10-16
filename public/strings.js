@@ -47,7 +47,7 @@ window.STRINGS = {
   gotIt: { pai: "Awle, theisiam", en: "Got it" },
   invite: { pai: "", en: "Send to a friend" },
   inviteText: { pai: "", en: "Help write Paite into the future. One sentence a day:" },
-  glossaryTitle: { pai: "", en: "Paite word list" },
+  glossaryTitle: { pai: "", en: "Paite Word List" },
   getApp: { pai: "", en: "Get the Android app" },
   getAppNote: { pai: "", en: "Download the APK file." },
   installApp: { pai: "", en: "Install on this device" },

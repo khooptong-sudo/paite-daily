@@ -86,6 +86,11 @@ describe("page, hide, export", () => {
     expect(html).toContain('aria-label="A"');
     expect(html).toContain('aria-label="Z"');
     expect(html).toContain('aria-label="#"');
+    expect(html).toContain("<title>Paite Word List</title>");
+    expect(html).toContain('<details class="rows" aria-label="A" data-letter="A">');
+    expect(html).toContain('<summary><span class="ltr">A</span><span class="cnt">');
+    // every letter is shut until the visitor opens it
+    expect(html).not.toMatch(/<details class="rows"[^>]*\sopen/);
     expect(html).not.toMatch(/secret-phone|SecretName/);
     expect(html).toContain('<footer class="foot">');
     expect(html).toContain("Click Here to Buy Us Coffee");

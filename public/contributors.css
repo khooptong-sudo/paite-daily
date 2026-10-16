@@ -124,9 +124,15 @@
 
 /* Word list */
 .gl input[type=search] { width: 100%; padding: 12px 14px; background: var(--surface); color: #000; border: 1px solid rgba(0, 0, 0, .45); border-radius: 14px; font: inherit; }
-.gl section { padding: 12px 16px; }
-.gl section[hidden], .gl li[hidden] { display: none; }
-.gl h2 { margin: 0 0 8px; font-family: var(--head, inherit); }
+.gl details.rows { padding: 12px 16px; border-top: 1px solid var(--line); }
+.gl details.rows[hidden], .gl li[hidden] { display: none; }
+.gl details.rows > summary { display: flex; align-items: center; gap: 10px; cursor: pointer; list-style: none; }
+.gl details.rows > summary::-webkit-details-marker { display: none; }
+.gl details.rows > summary .ltr { font: 400 1.35rem var(--head, inherit); }
+.gl details.rows > summary .cnt { color: var(--muted); font-size: .8rem; font-variant-numeric: tabular-nums; }
+.gl details.rows > summary::after { content: "\FF0B"; margin-left: auto; color: var(--muted); font-size: 1.1rem; }
+.gl details.rows[open] > summary::after { content: "\FF0D"; }
+.gl details.rows > ul { padding-top: 8px; }
 .gl ul { list-style: none; margin: 0; padding: 0; }
 .gl .rows li { display: block; padding: 12px 0; }
 .gl .rows li:last-child { padding-bottom: 0; }
