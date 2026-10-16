@@ -35,7 +35,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
   }
   if (pathname === "/review/api/decide" && req.method === "POST") {
     const ints = (x: unknown) => Array.isArray(x) && x.every(Number.isInteger);
-    if (!Number.isInteger(b.sentenceId) || !["accept", "reject", "retire"].includes(b.decision as string) || !ints(b.answerIds) || (b.alsoCorrect !== undefined && !ints(b.alsoCorrect))) return json({ error: "bad_request" }, 400);
+    if (!Number.isInteger(b.sentenceId) || !["accept", "reject", "retire", "variant"].includes(b.decision as string) || !ints(b.answerIds) || (b.alsoCorrect !== undefined && !ints(b.alsoCorrect))) return json({ error: "bad_request" }, 400);
     const result = await decide(env.DB, email, deps.now(), b as unknown as Decision);
     if (result === "no_lock") return json({ error: "lock_lost" }, 409);
     if (result === "bad_answer") return json({ error: "bad_answer" }, 400);

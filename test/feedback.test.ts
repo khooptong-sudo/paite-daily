@@ -42,6 +42,12 @@ describe("feedback", () => {
     expect((await items(PHONE_A))[0]).toMatchObject({ result: "retry", corrected: null });
   });
 
+  it("variant keeps the answer as correct and passes the note", async () => {
+    await reviewed("I am well.", { decision: "variant", note: "Both mean the same here." });
+    expect((await items(PHONE_A))[0]).toMatchObject({ english: "I am well.", yours: "A one", result: "correct", corrected: null, note: "Both mean the same here." });
+    expect((await items(PHONE_B))[0]).toMatchObject({ yours: "B one", result: "correct", corrected: null });
+  });
+
   it("retired sentences are excluded", async () => {
     await reviewed("Bad english here.", { decision: "retire" });
     expect(await items(PHONE_A)).toEqual([]);

@@ -124,6 +124,21 @@ describe("review flow", () => {
     expect((await st()).results.map((s) => s.status)).toEqual(["new", "new"]);
   });
 
+  it("save keeps every answer as a variant, leaves the sentence open, and undoes", async () => {
+    const id = await fullSentence();
+    const card = await (await rev("/review/api/next")).json<{ answers: { id: number }[] }>();
+    const r = await rev("/review/api/decide", { sentenceId: id, decision: "variant", answerIds: card.answers.map((a) => a.id), note: "Both mean the same here." });
+    expect(r.status).toBe(200);
+    const st = () => env.DB.prepare("SELECT status FROM answers WHERE sentence_id = ?1 ORDER BY id").bind(id).all<{ status: string }>();
+    expect((await st()).results.map((s) => s.status)).toEqual(["also_correct", "also_correct"]);
+    expect(await env.DB.prepare("SELECT status, answer_count FROM sentences WHERE id = ?1").bind(id).first()).toEqual({ status: "open", answer_count: 0 });
+    expect(await env.DB.prepare("SELECT decision, note FROM reviews WHERE sentence_id = ?1").bind(id).first()).toEqual({ decision: "variant", note: "Both mean the same here." });
+    // nothing is left in the new pool, so the card is not offered again
+    expect((await rev("/review/api/next")).status).toBe(204);
+    expect((await rev("/review/api/undo", { reviewId: (await r.json<{ reviewId: number }>()).reviewId })).status).toBe(200);
+    expect((await st()).results.map((s) => s.status)).toEqual(["new", "new"]);
+  });
+
   it("deciding without holding the lock is refused", async () => {
     const id = await fullSentence();
     expect((await rev("/review/api/decide", { sentenceId: id, decision: "reject", answerIds: [1] })).status).toBe(409);
@@ -200,6 +215,7 @@ describe("review flow", () => {
   it("malformed input is a 400", async () => {
     const id = await fullSentence();
     expect((await rev("/review/api/decide", { sentenceId: id, decision: "reject", answerIds: "x" })).status).toBe(400);
+    expect((await rev("/review/api/decide", { sentenceId: id, decision: "save", answerIds: [1] })).status).toBe(400);
     expect((await rev("/review/api/undo", { reviewId: "x" }, "owner@example.org")).status).toBe(400);
   });
 });

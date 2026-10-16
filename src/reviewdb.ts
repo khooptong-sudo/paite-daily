@@ -9,7 +9,7 @@ export type ReviewCard = {
 
 export type Decision = {
   sentenceId: number;
-  decision: "accept" | "reject" | "retire";
+  decision: "accept" | "reject" | "retire" | "variant";
   answerIds: number[];
   answerId?: number;
   finalPaite?: string;
@@ -89,15 +89,20 @@ export async function decide(db: D1Database, email: string, now: number, d: Deci
       db.prepare(`UPDATE sentences SET status = 'verified' WHERE id = ?1 AND ${G}`).bind(d.sentenceId, email, now),
     );
   } else {
+    // reject and variant both leave the sentence open; variant keeps the answers as variants instead
+    // of throwing them away. retire closes the sentence.
     stmts.push(
       db.prepare(`INSERT INTO reviews (sentence_id, reviewer_email, decision, note, answer_ids) SELECT ?1, ?2, ?4, ?5, ?6 WHERE ${G}`)
         .bind(d.sentenceId, email, now, d.decision, note, ids),
-      db.prepare(`UPDATE answers SET status = 'rejected' WHERE sentence_id = ?1 AND status = 'new' AND id IN (SELECT value FROM json_each(?4)) AND ${G}`)
-        .bind(d.sentenceId, email, now, ids),
-      d.decision === "reject"
-        ? db.prepare(`UPDATE sentences SET answer_count = (SELECT min(count(*), 2) FROM answers WHERE sentence_id = ?1 AND status = 'new'),
-            status = CASE WHEN (SELECT count(*) FROM answers WHERE sentence_id = ?1 AND status = 'new') >= 2 THEN 'full' ELSE 'open' END WHERE id = ?1 AND ${G}`).bind(d.sentenceId, email, now)
-        : db.prepare(`UPDATE sentences SET status = 'retired' WHERE id = ?1 AND ${G}`).bind(d.sentenceId, email, now),
+      d.decision === "variant"
+        ? db.prepare(`UPDATE answers SET status = 'also_correct' WHERE sentence_id = ?1 AND status = 'new' AND id IN (SELECT value FROM json_each(?4)) AND ${G}`)
+            .bind(d.sentenceId, email, now, ids)
+        : db.prepare(`UPDATE answers SET status = 'rejected' WHERE sentence_id = ?1 AND status = 'new' AND id IN (SELECT value FROM json_each(?4)) AND ${G}`)
+            .bind(d.sentenceId, email, now, ids),
+      d.decision === "retire"
+        ? db.prepare(`UPDATE sentences SET status = 'retired' WHERE id = ?1 AND ${G}`).bind(d.sentenceId, email, now)
+        : db.prepare(`UPDATE sentences SET answer_count = (SELECT min(count(*), 2) FROM answers WHERE sentence_id = ?1 AND status = 'new'),
+            status = CASE WHEN (SELECT count(*) FROM answers WHERE sentence_id = ?1 AND status = 'new') >= 2 THEN 'full' ELSE 'open' END WHERE id = ?1 AND ${G}`).bind(d.sentenceId, email, now),
     );
   }
   stmts.push(db.prepare("DELETE FROM locks WHERE sentence_id = ?1 AND reviewer_email = ?2").bind(d.sentenceId, email));

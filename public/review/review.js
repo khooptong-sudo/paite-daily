@@ -28,7 +28,7 @@
     $("register").parentElement.hidden = rev;
     const multi = card.answers.length > 1;
     const hint = document.createElement("p"); hint.className = "meta"; hint.hidden = !multi;
-    hint.textContent = "Press Accept this on the best answer. Tick any other correct answers to keep them as variants. Reject removes one answer only; Reject all closes the whole sentence.";
+    hint.textContent = "Press Accept this on the best answer. Tick any other correct answers to keep them as variants. Save keeps every answer as a variant when none is the exact answer. Reject removes one answer only; Reject all closes the whole sentence.";
     $("answers").replaceChildren(hint, ...card.answers.map((a) => {
       const box = document.createElement("div");
       box.className = "answer";
@@ -73,6 +73,7 @@
     const k = e.key.toLowerCase();
     if (k === "?") $("help").hidden = !$("help").hidden;
     else if (k === "a") { const box = (e.target.closest && e.target.closest(".answer")) || document.querySelector(".answer"); if (box) box.querySelector("button.primary").click(); }
+    else if (k === "s") $("save").click();
     else if (k === "r") $("reject").click();
     else if (k === "u") { if (!$("undo").hidden) $("undo").click(); }
     else return;
@@ -128,6 +129,7 @@
     } catch { status(EXPIRED); }
     finally { busy = false; }
   });
+  $("save").addEventListener("click", () => send({ decision: "variant" }, "Saved as variants. The sentence stays open."));
   $("reject").addEventListener("click", () => send({ decision: "reject" }, "All answers rejected."));
   $("retire").addEventListener("click", () => send({ decision: "retire" }, "Sentence retired."));
 

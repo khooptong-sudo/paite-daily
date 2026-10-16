@@ -37,11 +37,12 @@
     </label>
     <label>Note (optional)<input id="note" maxlength="300"></label>
     <div class="row3">
+      <button type="button" id="save" aria-keyshortcuts="S">Save<span class="kbd" aria-hidden="true">S</span></button>
       <button type="button" id="reject" aria-keyshortcuts="R">✕ Reject all<span class="kbd" aria-hidden="true">R</span></button>
       <button type="button" id="retire">Retire sentence</button>
     </div>
     <p class="status" id="status" role="status" aria-live="polite"></p><button type="button" id="undo" hidden aria-keyshortcuts="U">↶ Undo last<span class="kbd" aria-hidden="true">U</span></button>
-    <p class="meta" id="help" hidden>Shortcuts: A accept the focused answer (or the first), R reject all, U undo your last decision, ? show or hide this help. Each answer also has its own Reject button, which leaves the other answers open.</p>
+    <p class="meta" id="help" hidden>Shortcuts: A accept the focused answer (or the first), S save every answer as a variant, R reject all, U undo your last decision, ? show or hide this help. Each answer also has its own Reject button, which leaves the other answers open.</p>
   </section>
 <section class="card" id="apps-card" aria-labelledby="apps-h" hidden><h2 id="apps-h">Applications</h2><ul id="apps" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
 <section class="card" id="revs-card" aria-labelledby="revs-h" hidden><h2 id="revs-h">Reviewers</h2><ul id="revs" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
