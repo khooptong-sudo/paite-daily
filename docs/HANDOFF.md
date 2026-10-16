@@ -1,5 +1,52 @@
 Newest first. Each session prepends one section directly under this line.
 
+## ✅ 16102026 EoS — hardening, error tracking, backups, social cards, contact
+
+### Shipped
+
+- **Auth audit**: four public routes (`/api/session`, `/api/apply`, `/api/contributors`, `/api/goal`); every
+  other `/api/*` needs a signed HMAC session; every `/review/api/*` needs an Access identity plus a
+  reviewer row; owner paths check `OWNER_EMAIL`. No route trusted the UI.
+- **Input checks**: `isId()` and `isIdList()` in `src/text.ts` now guard every client id and id list (cap 50);
+  the session call caps the turnstile token at 4096 bytes; `/api/event` drops more than 60 events a minute
+  from one tab id.
+- **Errors never leak**: `src/index.ts` wraps every request. A throw writes a row into the new `errors`
+  table, mails the owner once per failure per six hours, and answers HTML (`/500`) for a page or JSON for
+  an API path. Unit tests cover both branches plus the no-assets fallback.
+- **404 and 500 pages**: `public/404.html`, `public/500.html`, and `not_found_handling: "404-page"` in
+  `wrangler.jsonc`. Live: `/noseuchpage` answers 404 with the page; `/500` answers 200 with the page.
+- **Analytics**: `public/track.js` → `POST /api/event` → `events`. Page, card, answer, blocked, install,
+  share. No cookie, no third party, no personal data, one tab id, Do Not Track honoured. Owner cards on
+  `/review`: funnel, drop-off, days, devices. Live rows were recorded during the verification run.
+- **Social and contact**: Open Graph and Twitter cards with `public/og.png` (1200x630, rendered from an
+  HTML card) on all three public pages; the owner's two addresses and the WhatsApp number in the footer
+  and on both error pages.
+- **Speed and the cheap phone**: the 91 KB UPI image no longer loads until the panel opens; the word list
+  and contributors pages preconnect to the font host; `app.js` no longer needs `crypto.randomUUID` or
+  `??=`; footer contact links are finger-sized. Measured on the live site at 1.6 Mbps and 4x CPU
+  slowdown, cold cache: `/` 2683 ms (was 3114 ms), `/glossary` 566 ms, `/contributors` 763 ms. At 360x640
+  with an Android 8.1 user agent no page scrolls sideways and no control is under 24 px.
+- **Backups**: `scripts/backup-d1.ps1` exports the remote D1 to `F:\Backups\paite-daily`, restores the dump
+  into the local D1 and compares every table's row count. Verified: 718 KB, all 14 tables matched. Windows
+  scheduled task "Paite Daily D1 backup" runs it daily at 03:20 (interactive only, because wrangler needs
+  the owner's Cloudflare credentials).
+
+Migrations: `0014_review_variant.sql` (the Save decision), `0015_observability.sql` (`errors`, `events`).
+
+### What needs updating
+
+- The funnel counts only the browser. A contributor who answers from the Android package is counted in the
+  same way, but nothing yet separates the package from the browser.
+- `events` keeps 30 days only. Longer trends need a summary table.
+- Error mail goes to `OWNER_EMAIL` through the existing `ALERT_EMAIL` binding. If that quota is spent, the
+  row is still stored and the cards still show it.
+- The backup task runs only while the owner is logged on, and it says nothing when it fails beyond the log
+  file. A failure alert would need a second check.
+- No physical cheap Android phone was used. The evidence is a throttled desktop browser with a mobile
+  viewport and an Android 8.1 user agent.
+- The 91 KB QR image is still 91 KB; it is only lazy now. A re-encode needs a QR decoder to prove the
+  payment code still scans.
+
 ## ✅ 15102026 EoS — Starter video, PWA, Android package, and a lighter button set
 
 ### Shipped today
