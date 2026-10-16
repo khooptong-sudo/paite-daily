@@ -110,9 +110,9 @@
     }
   }
 
-  // The name ask appears in the card the contributor is using, and it comes back for the next
-  // contribution until they give a name or turn it down. Asking before they submit lets the name
-  // travel with the contribution itself.
+  // The name ask appears in the card the contributor is using, right after their first entry
+  // there, and comes back for the next one until they give a name or turn it down. Saving it
+  // stamps the entry that brought the ask up as well, through /api/name.
   const named = () => store.get("name", "") || store.get("noName", false);
   function askName(from) {
     if (named()) return;
@@ -191,8 +191,6 @@
     $("w-send").disabled = false;
   });
 
-  for (const id of ["paite", "w-paite", "m-english"]) $(id).addEventListener("focus", (e) => askName(e.target));
-
   $("skip").addEventListener("click", async () => {
     if (current) { try { await api("/api/skip", { method: "POST", body: JSON.stringify({ sentenceId: current.id }) }); } catch {} }
     $("explanation").value = "";
@@ -200,10 +198,12 @@
     next();
   });
 
-  $("save-name").addEventListener("click", () => {
+  $("save-name").addEventListener("click", async () => {
     const v = $("name").value.trim().slice(0, 60);
-    if (v) store.set("name", v); else store.set("noName", true);
+    if (!v) { store.set("noName", true); $("ask-name").hidden = true; return; }
+    store.set("name", v);
     $("ask-name").hidden = true;
+    try { await api("/api/name", { method: "POST", body: JSON.stringify({ name: v }) }); } catch {}
   });
   $("no-name").addEventListener("click", () => { store.set("noName", true); $("ask-name").hidden = true; });
 

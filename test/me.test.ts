@@ -20,3 +20,34 @@ describe("/api/me", () => {
     expect(await r.json()).toEqual({ total: 3, verified: 2, words: 0, badge: null });
   });
 });
+
+describe("POST /api/name", () => {
+  it("needs a session and a name", async () => {
+    expect((await call("/api/name", { method: "POST", body: JSON.stringify({ name: "Ann" }) })).status).toBe(401);
+    const s = await session(PHONE_A);
+    for (const name of ["", "   ", "n".repeat(61), 7]) {
+      expect((await call("/api/name", { method: "POST", body: JSON.stringify({ name }), session: s })).status).toBe(400);
+    }
+  });
+
+  it("names the rows this phone left unnamed, and only its own", async () => {
+    const ids = await addSentences("One.", "Two.");
+    await call("/api/answer", { method: "POST", session: await session(PHONE_A),
+      body: JSON.stringify({ sentenceId: ids[0], paite: "Ka dam hi" }) });
+    await call("/api/answer", { method: "POST", session: await session(PHONE_A),
+      body: JSON.stringify({ sentenceId: ids[1], paite: "Ka dam hi", name: "Tete" }) });
+    await call("/api/answer", { method: "POST", session: await session(PHONE_B),
+      body: JSON.stringify({ sentenceId: ids[0], paite: "A hoi hi" }) });
+    await call("/api/word", { method: "POST", session: await session(PHONE_A),
+      body: JSON.stringify({ paite: "Tui", english: "Water" }) });
+
+    const r = await call("/api/name", { method: "POST", session: await session(PHONE_A), body: JSON.stringify({ name: "Ann" }) });
+    expect(r.status).toBe(200);
+    expect(await r.json()).toEqual({ ok: true, stamped: 2 });
+    expect(await env.DB.prepare("SELECT contributor_name AS n FROM answers WHERE phone_id = ?1 AND sentence_id = ?2").bind(PHONE_A, ids[0]).first()).toEqual({ n: "Ann" });
+    expect(await env.DB.prepare("SELECT contributor_name AS n FROM word_submissions").first()).toEqual({ n: "Ann" });
+    // the other phone stays anonymous, and a name already given is left alone
+    expect(await env.DB.prepare("SELECT count(*) AS n FROM answers WHERE contributor_name = 'Tete'").first()).toEqual({ n: 1 });
+    expect(await env.DB.prepare("SELECT count(*) AS n FROM answers WHERE contributor_name IS NULL").first()).toEqual({ n: 1 });
+  });
+});

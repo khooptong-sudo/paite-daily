@@ -19,6 +19,20 @@ async function body(req: Request): Promise<Record<string, unknown>> {
   }
 }
 
+/** The contributor gave their name after their first entry: name the rows this phone left unnamed. */
+async function setName(env: Env, phoneId: string, b: Record<string, unknown>): Promise<Response> {
+  const name = cleanText(b.name, 60);
+  if (!name) return json({ error: "bad_request" }, 400);
+  let stamped = 0;
+  for (const table of ["answers", "word_submissions"]) {
+    const r = await env.DB.prepare(
+      `UPDATE ${table} SET contributor_name = ?1 WHERE phone_id = ?2 AND (contributor_name IS NULL OR contributor_name = '')`,
+    ).bind(name, phoneId).run();
+    stamped += r.meta.changes ?? 0;
+  }
+  return json({ ok: true, stamped });
+}
+
 export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?: ExecutionContext): Promise<Response> {
   const { pathname } = new URL(req.url);
 
@@ -58,6 +72,8 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   }
 
   if (pathname === "/api/word" && req.method === "POST") return submitWord(env, phoneId, await body(req));
+
+  if (pathname === "/api/name" && req.method === "POST") return setName(env, phoneId, await body(req));
 
   if (pathname === "/api/word/next" && req.method === "GET") {
     const w = await nextWordToTranslate(env, phoneId);
