@@ -68,6 +68,7 @@ window.STRINGS = {
   srcContributed: { pai: "", en: "Added by a contributor" },
   search: { pai: "", en: "Search" },
   goalLine: { pai: "", en: "Verified Sentences" },
+  moreContributors: { pai: "", en: "More Contributors" },
   applyTitle: { pai: "", en: "Become a Reviewer" },
   applyNote: { pai: "", en: "Reviewers check translations. Tell us who you are." },
   applyName: { pai: "", en: "Your Name" },

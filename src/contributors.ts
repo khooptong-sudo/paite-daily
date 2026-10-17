@@ -104,6 +104,10 @@ if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&"IntersectionObserve
 })();`;
 
 const INVITE_EN = "Help write Paite into the future. One sentence a day:";
+// Flip to true to show the "Become a reviewer" invitation again.
+const APPLY_OPEN = false;
+// The ranking shows this many places; everyone below folds into one compact box.
+const TOP = 10;
 const goalBar = (g: { verified: number; goal: number }) =>
   `<div class="goal"><div class="goal-t"><b>${g.verified}</b> / ${g.goal} <span data-s="goalLine">Verified Sentences</span></div><div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${g.goal}" aria-valuenow="${g.verified}"><i style="width:${Math.min(100, Math.round((g.verified / g.goal) * 100))}%"></i></div></div>`;
 
@@ -115,14 +119,29 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
     // A phone counts once for the sentences a reviewer accepted and once for the words.
     const cnt = (x: Row) => `${x.sentences ? count(x.sentences, "sentences", "sentences") : ""}${x.words ? count(x.words, "words", "words") : ""}`;
     const podium = xs.slice(0, 3).map((x, i) => `<li class="p p${i + 1}" style="--i:${i}"><span class="ring">${i + 1}</span><span class="nm">${esc(x.name)}</span><span class="bg">${pills(x)}</span>${cnt(x)}</li>`).join("");
-    const rest = xs.slice(3).map((x, i) => `<li style="--i:${i + 3}"><span class="rk">${i + 4}</span><span class="nm">${esc(x.name)}<span class="bg">${pills(x)}</span></span>${cnt(x)}</li>`).join("");
-    return `<ol class="podium">${podium}</ol>${rest ? `<ol class="rows" start="4">${rest}</ol>` : ""}`;
+    const rest = xs.slice(3, TOP).map((x, i) => `<li style="--i:${i + 3}"><span class="rk">${i + 4}</span><span class="nm">${esc(x.name)}<span class="bg">${pills(x)}</span></span>${cnt(x)}</li>`).join("");
+    // Past the top ten: one box, names and scores only, folded until asked for.
+    const more = xs.slice(TOP);
+    const folded = more.length
+      ? `<details class="more"><summary><span data-s="moreContributors">More contributors</span><span class="cnt">${more.length}</span></summary><ol class="pack">${more.map((x, i) => `<li><span class="rk">${i + TOP + 1}</span><span class="nm">${esc(x.name)}</span><span class="sc">${x.n}</span></li>`).join("")}</ol></details>`
+      : "";
+    return `<ol class="podium">${podium}</ol>${rest ? `<ol class="rows" start="4">${rest}</ol>` : ""}${folded}`;
   };
   const reviewers = (xs: Row[]) => xs.length
     ? `<h3 data-s="reviewers">Reviewers</h3><ol class="rows">${xs.map((x, i) => `<li style="--i:${i}">${SEAL}<span class="nm">${esc(x.name)}</span>${count(x.n, "reviewed", "reviewed")}</li>`).join("")}</ol>`
     : "";
   const view = (k: "thisWeek" | "allTime") => `<section class="view" data-view="${k}" aria-labelledby="h-${k}"><h2 id="h-${k}" data-s="${k}">${k === "thisWeek" ? "This week" : "All time"}</h2>${contributors(d[k].contributors, k === "thisWeek" ? "emptyWeek" : "emptyAll")}${reviewers(d[k].reviewers)}</section>`;
   const start = d.thisWeek.contributors.length + d.thisWeek.reviewers.length ? "thisWeek" : "allTime";
+  // Kept whole so the invitation can come back with one flag, but not shown for now.
+  const applyCard = `<section class="card apply" aria-labelledby="h-apply"><h2 id="h-apply" data-s="applyTitle">Become a reviewer</h2><p data-s="applyNote">Reviewers check translations. Tell us who you are.</p>
+<form id="apply" novalidate>
+<label><span data-s="applyName">Your name</span><input name="name" required maxlength="80" autocomplete="name"></label>
+<label><span data-s="applyEmail">Your email</span><input name="email" type="email" required maxlength="120" autocomplete="email"></label>
+<label><span data-s="applyNoteLabel">Note (optional)</span><textarea name="note" maxlength="300" rows="3"></textarea></label>
+<button type="submit" class="cta" data-s="applySend">Send request</button>
+<p id="apply-status" role="status" aria-live="polite"></p>
+<div id="turnstile"></div>
+</form></section>`;
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Panlate - Contributors</title>
@@ -170,18 +189,10 @@ ${view("allTime")}
 <span><b data-s="installApp">Install on this device</b><small data-s="installAppNote">Add Paite Daily to your home screen. No download.</small></span>
 <span class="go" aria-hidden="true">&darr;</span>
 </button>
-<section class="card apply" aria-labelledby="h-apply"><h2 id="h-apply" data-s="applyTitle">Become a reviewer</h2><p data-s="applyNote">Reviewers check translations. Tell us who you are.</p>
-<form id="apply" novalidate>
-<label><span data-s="applyName">Your name</span><input name="name" required maxlength="80" autocomplete="name"></label>
-<label><span data-s="applyEmail">Your email</span><input name="email" type="email" required maxlength="120" autocomplete="email"></label>
-<label><span data-s="applyNoteLabel">Note (optional)</span><textarea name="note" maxlength="300" rows="3"></textarea></label>
-<button type="submit" class="cta" data-s="applySend">Send request</button>
-<p id="apply-status" role="status" aria-live="polite"></p>
-<div id="turnstile"></div>
-</form></section>
+${APPLY_OPEN ? applyCard : ""}
 ${FOOTER}
 </main>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
+${APPLY_OPEN ? `<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>` : ""}
 <script src="/strings.js"></script>
 <script src="/back.js"></script>
 <script src="/pwa.js"></script>

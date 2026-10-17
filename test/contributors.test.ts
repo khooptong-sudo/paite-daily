@@ -1,6 +1,6 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { badgeFor } from "../src/contributors";
+import { badgeFor, renderPage } from "../src/contributors";
 import { exportVerified } from "../src/export";
 import { addSentences, call, fakeDeps, PHONE_A, PHONE_B, PHONE_C } from "./helpers";
 
@@ -54,6 +54,26 @@ describe("contributors", () => {
 
   it("badgeFor boundaries", () => {
     expect([0, 9, 10, 49, 50, 99, 100, 499, 500, 1000].map(badgeFor)).toEqual([null, null, 10, 10, 50, 50, 100, 100, 500, 500]);
+  });
+
+  it("keeps the top ten visible and folds the rest into one box; the apply form is not invited", () => {
+    const row = (i: number) => ({ name: `C${i + 1}`, n: 20 - i, sentences: 20 - i, words: 0, badge: null, reviewer: false });
+    const page = renderPage({
+      goal: { verified: 0, goal: 1000 },
+      contributors: [], reviewers: [],
+      thisWeek: { contributors: [], reviewers: [] },
+      allTime: { contributors: Array.from({ length: 13 }, (_, i) => row(i)), reviewers: [] },
+    });
+    const [podium, rows, folded] = [page.split('<ol class="podium">')[1], page.split('<ol class="rows" start="4">')[1], page.split('<details class="more">')[1]];
+    const pack = folded.split("</details>")[0];
+    const names = [...pack.matchAll(/<span class="nm">(C\d+)<\/span><span class="sc">(\d+)<\/span>/g)].map((m) => `${m[1]}:${m[2]}`);
+    expect(podium).toContain("C3</span>");
+    expect(rows.split("</ol>")[0]).toContain('<span class="rk">10</span><span class="nm">C10');
+    // ranks 11 to 13 only, each with its score
+    expect(names).toEqual(["C11:10", "C12:9", "C13:8"]);
+    expect(page).not.toContain("Become a reviewer");
+    expect(page).not.toContain('id="apply"');
+    expect(page).not.toContain("challenges.cloudflare.com/turnstile");
   });
 
   it("thisWeek counts only live accepts from the last 7 days; allTime ranks with badge", async () => {

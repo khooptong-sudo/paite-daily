@@ -137,9 +137,10 @@ describe("/api/apply", () => {
     }
     expect(await (await apply({ email: "secret-person@x.org" })).text()).not.toContain("secret");
   });
-  it("contributors page has the form and the Turnstile site key attribute", async () => {
+  it("contributors page hides the invitation while the endpoint and site key stay ready", async () => {
     const t = await (await call("/contributors")).text();
-    expect(t).toContain("id=\"apply\"");
+    expect(t).not.toContain("id=\"apply\"");
+    expect(t).not.toContain("Become a reviewer");
     expect(t).toContain("data-sitekey=\"");
   });
 });
