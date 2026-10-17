@@ -224,11 +224,11 @@
       const r = await fetch("/review/api/words/pending");
       if (!r.ok) return;
       const { words } = await r.json();
-      const decide = (w, li, decision, label) => {
+      const decide = (w, li, decision, label, extra) => {
         const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.setAttribute("aria-label", label + " word: " + w.paite);
         b.addEventListener("click", async () => {
           const bs = li.querySelectorAll("button"); bs.forEach((x) => (x.disabled = true));
-          const x = await post("/review/api/words/decide", { id: w.id, decision });
+          const x = await post("/review/api/words/decide", { id: w.id, decision, ...(extra ? extra() : {}) });
           if (x.ok || x.status === 409) li.remove(); else bs.forEach((y) => (y.disabled = false));
         });
         return b;
@@ -237,7 +237,14 @@
         const li = document.createElement("li"); li.className = "answer";
         const t = document.createElement("p"); t.textContent = w.paite + " = " + w.english;
         const m = document.createElement("div"); m.className = "meta"; m.textContent = [w.source === "meaning" ? "meaning of a listed word" : null, w.note, w.name && "by " + w.name].filter(Boolean).join(" · ");
-        li.append(t, m, decide(w, li, "approve", "Approve"), decide(w, li, "reject", "Reject"));
+        const ip = document.createElement("input"); ip.maxLength = 60; ip.value = w.paite; ip.placeholder = "Paite";
+        const ie = document.createElement("input"); ie.maxLength = 120; ie.value = w.english; ie.placeholder = "English meaning";
+        const inn = document.createElement("input"); inn.maxLength = 200; inn.value = w.note ?? ""; inn.placeholder = "Note (optional)";
+        const row = document.createElement("div"); row.className = "row3"; row.append(ip, ie, inn);
+        const bar = document.createElement("div"); bar.className = "row3";
+        bar.append(decide(w, li, "approve", "Approve", () => ({ paite: ip.value, english: ie.value, note: inn.value || undefined })),
+          decide(w, li, "reject", "Reject"));
+        li.append(t, m, row, bar);
         return li;
       }));
     } catch {}

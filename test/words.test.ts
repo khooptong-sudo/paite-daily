@@ -138,6 +138,26 @@ describe("review word endpoints", () => {
     expect(await n("word_submissions WHERE status = 'pending'")).toBe(0);
     expect((await env.DB.prepare("SELECT decided_by FROM word_submissions WHERE id = ?1").bind(words[0].id).first<any>()).decided_by).toBe("rev@example.org");
   });
+  it("stores a reviewer's correction when a word is approved, and ignores a half-filled one", async () => {
+    asReviewer();
+    await word({ paite: "dam", english: "well", name: "Ann" });
+    const ids = (await env.DB.prepare("SELECT id FROM word_submissions ORDER BY id").all<{ id: number }>()).results;
+    // only one field given: not a correction, the submission is stored as it came
+    expect((await rev("/review/api/words/decide", { id: ids[0].id, decision: "approve", english: "well enough" })).status).toBe(200);
+    expect(await env.DB.prepare("SELECT paite, english, note FROM glossary").all().then((r) => r.results))
+      .toEqual([{ paite: "Dam", english: "Well", note: null }]);
+  });
+  it("approves with the reviewer's corrected text, note included", async () => {
+    asReviewer();
+    await word({ paite: "dam", english: "well", name: "Ann" });
+    const id = (await env.DB.prepare("SELECT id FROM word_submissions").first<{ id: number }>())!.id;
+    const r = await rev("/review/api/words/decide", { id, decision: "approve", paite: "dam hi", english: "i am well", note: "greeting" });
+    expect(r.status).toBe(200);
+    const row = await env.DB.prepare("SELECT paite, english, note, source, contributor_name FROM glossary").first();
+    expect(row).toEqual({ paite: "Dam hi", english: "I am well", note: "greeting", source: "contributed", contributor_name: "Ann" });
+    expect((await env.DB.prepare("SELECT paite, english FROM word_submissions WHERE id = ?1").bind(id).first()))
+      .toEqual({ paite: "Dam", english: "Well" });
+  });
   it("marks approved even when the glossary already has the word", async () => {
     asReviewer();
     await word({ paite: "dam", english: "well" });

@@ -47,6 +47,17 @@ export async function submitMeaning(env: Env, phoneId: string, b: Record<string,
   return json({ ok: true });
 }
 
+// A reviewer may correct a submission before approving it: both fields must be
+// given together, and the corrected text is what enters the glossary.
+const corrections = (b: Record<string, unknown>): { paite: string; english: string; note: string | null } | null => {
+  if (b.paite === undefined && b.english === undefined && b.note === undefined) return null;
+  const paite = cleanText(b.paite, 60), english = cleanText(b.english, 120);
+  const blankNote = b.note === undefined || b.note === null || (typeof b.note === "string" && !b.note.trim());
+  const note = blankNote ? null : cleanText(b.note, 200);
+  if (!paite || !english || (!blankNote && !note)) return null;
+  return { paite, english, note };
+};
+
 // Reviewer routes. Returns null when the path is not a word route.
 export async function handleWords(pathname: string, method: string, b: Record<string, unknown>, env: Env, email: string): Promise<Response | null> {
   if (pathname === "/review/api/words/pending" && method === "GET") {
@@ -55,13 +66,19 @@ export async function handleWords(pathname: string, method: string, b: Record<st
   }
   if (pathname === "/review/api/words/decide" && method === "POST") {
     if (!isId(b.id) || !["approve", "reject"].includes(b.decision as string)) return json({ error: "bad_request" }, 400);
+    const fix = corrections(b);
     const approve = b.decision === "approve";
     // Only the request that flips pending -> decided may insert, so a second decision cannot double-insert.
     const r = await env.DB.prepare("UPDATE word_submissions SET status = ?1, decided_at = datetime('now'), decided_by = ?2 WHERE id = ?3 AND status = 'pending'")
       .bind(approve ? "approved" : "rejected", email, b.id).run();
     if (!r.meta.changes) return json({ error: "already_decided" }, 409);
     if (approve) {
-      await env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, source, contributor_name) SELECT paite, english, note, 'contributed', contributor_name FROM word_submissions WHERE id = ?1").bind(b.id).run();
+      if (fix) {
+        await env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, source, contributor_name) SELECT ?1, ?2, ?3, 'contributed', contributor_name FROM word_submissions WHERE id = ?4")
+          .bind(cap(fix.paite), cap(fix.english), fix.note, b.id).run();
+      } else {
+        await env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, source, contributor_name) SELECT paite, english, note, 'contributed', contributor_name FROM word_submissions WHERE id = ?1").bind(b.id).run();
+      }
     }
     return json({ ok: true });
   }
