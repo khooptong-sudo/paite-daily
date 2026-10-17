@@ -1,10 +1,11 @@
 import { activeReviewers } from "./access";
 import type { Env } from "./types";
 
-// Same rule as claimNext, ignoring locks: new answers on open or full sentences.
-// With (email, now), sentences locked by another reviewer are left out, as in claimNext.
+// Same rule as claimNext, ignoring locks and skips: new answers on open or full sentences.
+// With (email, now), sentences locked by another reviewer or skipped by this one are left out, as in claimNext.
 export async function waitingCounts(db: D1Database, email?: string, now?: number): Promise<{ answers: number; sentences: number }> {
-  const lock = email === undefined ? "" : " AND NOT EXISTS (SELECT 1 FROM locks l WHERE l.sentence_id = s.id AND l.expires_at > ?1 AND l.reviewer_email <> ?2)";
+  const lock = email === undefined ? "" : " AND NOT EXISTS (SELECT 1 FROM locks l WHERE l.sentence_id = s.id AND l.expires_at > ?1 AND l.reviewer_email <> ?2)"
+    + " AND NOT EXISTS (SELECT 1 FROM skips k WHERE k.sentence_id = s.id AND k.reviewer_email = ?2 AND k.until > ?1)";
   const q = db.prepare(
     `SELECT COUNT(*) AS answers, COUNT(DISTINCT a.sentence_id) AS sentences FROM answers a
      JOIN sentences s ON s.id = a.sentence_id WHERE a.status = 'new' AND s.status IN ('open', 'full')${lock}`,

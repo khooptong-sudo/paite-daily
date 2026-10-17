@@ -1,6 +1,9 @@
 import { cleanText } from "./text";
 
 const LOCK_MS = 10 * 60_000;
+// Long enough that a skipped sentence does not come back in the same sitting,
+// short enough that a lone reviewer sees it again on the next visit.
+const SKIP_MS = 2 * 60 * 60_000;
 
 export type ReviewCard = {
   sentence: { id: number; english: string; direction: string; paite_prompt: string | null };
@@ -25,6 +28,7 @@ export async function claimNext(db: D1Database, email: string, now: number): Pro
        WHERE s.status IN ('open', 'full')
          AND EXISTS (SELECT 1 FROM answers a WHERE a.sentence_id = s.id AND a.status = 'new')
          AND NOT EXISTS (SELECT 1 FROM locks l WHERE l.sentence_id = s.id AND l.expires_at > ?1 AND l.reviewer_email <> ?2)
+         AND NOT EXISTS (SELECT 1 FROM skips k WHERE k.sentence_id = s.id AND k.reviewer_email = ?2 AND k.until > ?1)
        ORDER BY CASE
            WHEN EXISTS (SELECT 1 FROM answers a WHERE a.sentence_id = s.id AND a.status = 'new' AND a.ai_flag IN ('junk', 'english')) THEN 2
            WHEN s.ai_agree = 1 THEN 0 ELSE 1 END,
@@ -50,6 +54,21 @@ export async function claimNext(db: D1Database, email: string, now: number): Pro
     return { sentence: s, answers: answers.results };
   }
   return null;
+}
+
+// Pass on a sentence: it stays pending, the lock is handed back at once so
+// another reviewer can take it, and this reviewer is not offered it again
+// until the skip runs out.
+export async function skipCard(db: D1Database, email: string, sentenceId: number, now: number): Promise<boolean> {
+  const s = await db.prepare("SELECT 1 AS ok FROM sentences WHERE id = ?1 AND status IN ('open', 'full')").bind(sentenceId).first();
+  if (!s) return false;
+  await db.prepare(
+    `INSERT INTO skips (sentence_id, reviewer_email, until) VALUES (?1, ?2, ?3)
+     ON CONFLICT (sentence_id, reviewer_email) DO UPDATE SET until = excluded.until`,
+  )
+    .bind(sentenceId, email, now + SKIP_MS).run();
+  await db.prepare("DELETE FROM locks WHERE sentence_id = ?1 AND reviewer_email = ?2").bind(sentenceId, email).run();
+  return true;
 }
 
 async function holdsLock(db: D1Database, sentenceId: number, email: string, now: number): Promise<boolean> {

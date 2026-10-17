@@ -6,7 +6,7 @@ import { getGlossaryForReview } from "./glossary";
 import { cap, cleanText, isId, isIdList, isPhoneId } from "./text";
 import { analytics, recentErrors } from "./observability";
 import { handleWords } from "./words";
-import { claimNext, decide, undo, type Decision } from "./reviewdb";
+import { claimNext, decide, skipCard, undo, type Decision } from "./reviewdb";
 import { json, type Deps, type Env } from "./types";
 
 export async function handleReview(req: Request, env: Env, deps: Deps): Promise<Response> {
@@ -28,6 +28,12 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     return card ? json(card) : new Response(null, { status: 204 });
   }
   if (pathname === "/review/api/queue" && req.method === "GET") return json({ waiting: (await waitingCounts(env.DB, email, deps.now())).answers });
+  // Pass on this sentence without deciding it: it stays in the queue for others.
+  if (pathname === "/review/api/skip" && req.method === "POST") {
+    if (!isId(b.sentenceId)) return json({ error: "bad_request" }, 400);
+    const skipped = await skipCard(env.DB, email, b.sentenceId as number, deps.now());
+    return skipped ? json({ ok: true }) : json({ error: "not_found" }, 404);
+  }
   if (pathname === "/review/api/glossary" && req.method === "GET") return json({ entries: await getGlossaryForReview(env) });
   if (pathname === "/review/api/glossary/hide" && req.method === "POST") {
     if (!isId(b.id) || (b.hidden !== undefined && typeof b.hidden !== "boolean")) return json({ error: "bad_request" }, 400);

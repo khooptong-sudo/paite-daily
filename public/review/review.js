@@ -74,6 +74,7 @@
     if (k === "?") $("help").hidden = !$("help").hidden;
     else if (k === "a") { const box = (e.target.closest && e.target.closest(".answer")) || document.querySelector(".answer"); if (box) box.querySelector("button.primary").click(); }
     else if (k === "s") $("save").click();
+    else if (k === "n") $("skip").click();
     else if (k === "r") $("reject").click();
     else if (k === "u") { if (!$("undo").hidden) $("undo").click(); }
     else return;
@@ -130,6 +131,20 @@
     finally { busy = false; }
   });
   $("save").addEventListener("click", () => send({ decision: "variant" }, "Saved as variants. The sentence stays open."));
+  // Pass on this sentence: it stays in the queue for someone else, and this
+  // reviewer is not offered it again for a couple of hours.
+  $("skip").addEventListener("click", async () => {
+    if (!card || busy) return;
+    busy = true;
+    try {
+      const r = await post("/review/api/skip", { sentenceId: card.sentence.id });
+      if (expired(r)) { status(EXPIRED); return; }
+      if (!r.ok && r.status !== 404) { status("Could not skip. Try again."); return; }
+      status("Skipped. It waits for another reviewer.", true);
+      await next(true);
+    } catch { status(EXPIRED); }
+    finally { busy = false; }
+  });
   $("reject").addEventListener("click", () => send({ decision: "reject" }, "All answers rejected."));
   $("retire").addEventListener("click", () => send({ decision: "retire" }, "Sentence retired."));
 

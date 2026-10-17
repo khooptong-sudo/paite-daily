@@ -67,6 +67,25 @@ describe("review flow", () => {
     expect((await rev("/review/api/next", undefined, "owner@example.org")).status).toBe(204);
   });
 
+  it("skip hands the sentence on without deciding it, hides it for two hours, then offers it again", async () => {
+    const id = await fullSentence();
+    expect((await rev("/review/api/skip", { sentenceId: "x" })).status).toBe(400);
+    expect((await rev("/review/api/skip", { sentenceId: 99999 })).status).toBe(404);
+    expect((await rev("/review/api/skip", {} as unknown)).status).toBe(400);
+    expect((await rev("/review/api/skip", { sentenceId: id })).status).toBe(200);
+    // nothing was decided, and this reviewer is left with an empty queue
+    expect((await env.DB.prepare("SELECT COUNT(*) AS n FROM answers WHERE sentence_id = ?1 AND status = 'new'").bind(id).first<{ n: number }>())!.n).toBe(2);
+    expect((await rev("/review/api/next")).status).toBe(204);
+    expect(await (await rev("/review/api/queue")).json()).toEqual({ waiting: 0 });
+    // the lock came back, so the next reviewer gets it straight away
+    const other = await (await rev("/review/api/next", undefined, "owner@example.org")).json<{ sentence: { id: number } }>();
+    expect(other.sentence.id).toBe(id);
+    // two hours on, it is offered to the first reviewer again
+    expect((await rev("/review/api/next", undefined, "rev@example.org", NOW + 2 * 60 * 60_000 - 60_000)).status).toBe(204);
+    const later = await (await rev("/review/api/next", undefined, "rev@example.org", NOW + 2 * 60 * 60_000 + 60_000)).json<{ sentence: { id: number } }>();
+    expect(later.sentence.id).toBe(id);
+  });
+
   it("returns the contributor's explanation with each answer", async () => {
     const [id] = await addSentences("I am well.");
     for (const [ph, ex] of [[PHONE_A, "dam = well"], [PHONE_B, undefined]] as const) {
