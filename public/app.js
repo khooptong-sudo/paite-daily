@@ -247,12 +247,11 @@
     const c = document.createElement("canvas"); c.width = 1080; c.height = 1920;
     const g = c.getContext("2d"), css = getComputedStyle(document.documentElement);
     g.fillStyle = css.getPropertyValue("--bg") || "#f7f4ef"; g.fillRect(0, 0, 1080, 1920);
-    // The header band is an inline SVG: serialise it and draw it as an image.
-    const svg = document.querySelector("svg.puan").cloneNode(true);
-    svg.setAttribute("xmlns", "http://www.w3.org/2000/svg"); svg.setAttribute("width", 1080); svg.setAttribute("height", 118);
+    // The header band is the shawl artwork: draw the picture straight into the card.
+    const band = document.querySelector("img.puan");
     const img = new Image();
-    img.src = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], { type: "image/svg+xml" }));
-    await img.decode(); g.drawImage(img, 0, 0, 1080, 118); URL.revokeObjectURL(img.src);
+    img.src = band.currentSrc || band.src;
+    await img.decode(); g.drawImage(img, 0, 0, 1080, 231);
     const display = css.getPropertyValue("--display"), body = css.getPropertyValue("--body");
     g.textAlign = "center"; g.fillStyle = css.getPropertyValue("--fg") || "#1b1616";
     const wrap = (text, y, font, lh) => {
