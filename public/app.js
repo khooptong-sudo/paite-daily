@@ -247,6 +247,8 @@
         else if (it.result === "retry") { const d = div("", null); d.innerHTML = tBoth("retry"); li.append(d); }
         else { const m = document.createElement("mark"); m.textContent = it.corrected; li.append(div("", it.result === "fixed" ? "corrected" : "other", m)); }
         if (it.note) li.append(div("", "note", it.note));
+        // Sign the review: the contributor sees who read their sentence.
+        if (it.reviewer) { const d = div("", "by"); const s = document.createElement("span"); s.textContent = "— " + it.reviewer; d.append(s); li.append(d); }
         $("fb-list").append(li);
       }
       $("fb-ok").onclick = () => { store.set("fbSeen", Math.max(...items.map((i) => i.reviewId))); $("feedback").hidden = true; };

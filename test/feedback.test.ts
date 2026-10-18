@@ -37,6 +37,12 @@ describe("feedback", () => {
     expect((await items(PHONE_B))[0]).toMatchObject({ yours: "B one", result: "other", corrected: "A fixed" });
   });
 
+  it("names the reviewer who looked at the sentence", async () => {
+    await env.DB.prepare("INSERT INTO reviewers (email, name, added_by) VALUES ('rev@example.org', 'Lianpu', 'owner')").run();
+    await reviewed("I am well.", (ids) => ({ decision: "accept", answerId: ids[0], note: "Good." }));
+    expect((await items(PHONE_A))[0]).toMatchObject({ note: "Good.", reviewer: "Lianpu" });
+  });
+
   it("retry on reject", async () => {
     await reviewed("I am well.", { decision: "reject" });
     expect((await items(PHONE_A))[0]).toMatchObject({ result: "retry", corrected: null });
@@ -69,7 +75,7 @@ describe("feedback", () => {
     expect(await items(PHONE_A, it.reviewId)).toEqual([]);
     expect(await items(PHONE_A, it.reviewId - 1)).toHaveLength(1);
     const text = await (await fb(PHONE_A)).text();
-    expect(Object.keys(it).sort()).toEqual(["corrected", "english", "note", "result", "reviewId", "yours"]);
+    expect(Object.keys(it).sort()).toEqual(["corrected", "english", "note", "result", "reviewId", "reviewer", "yours"]);
     expect(text).not.toMatch(/rev@example|phone|aaaaaaaa|bbbbbbbb/);
   });
 

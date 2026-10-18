@@ -86,26 +86,27 @@ export async function recordAnswer(
   return "ok";
 }
 
-export type FeedbackItem = { reviewId: number; english: string; yours: string; result: "correct" | "fixed" | "other" | "retry"; corrected: string | null; note: string | null; direction?: "pai2en" };
+export type FeedbackItem = { reviewId: number; english: string; yours: string; result: "correct" | "fixed" | "other" | "retry"; corrected: string | null; note: string | null; reviewer: string | null; direction?: "pai2en" };
 
 // Latest not-undone review per sentence that covered one of this phone's answers; retired sentences are left out.
 export async function feedbackFor(db: D1Database, phoneId: string, after: number): Promise<FeedbackItem[]> {
   const rows = await db
     .prepare(
-      `SELECT r.id AS reviewId, CASE WHEN s.direction = 'pai2en' THEN s.paite_prompt ELSE s.english END AS english, s.direction, a.paite AS yours, r.decision, r.accepted_answer_id AS acc, r.final_paite AS fin, a.id AS aid, a.status, r.note
+      `SELECT r.id AS reviewId, CASE WHEN s.direction = 'pai2en' THEN s.paite_prompt ELSE s.english END AS english, s.direction, a.paite AS yours, r.decision, r.accepted_answer_id AS acc, r.final_paite AS fin, a.id AS aid, a.status, r.note, rv.name AS reviewer
        FROM reviews r
        JOIN sentences s ON s.id = r.sentence_id AND s.status <> 'retired'
        JOIN answers a ON a.sentence_id = r.sentence_id AND a.phone_id = ?1
          AND a.id IN (SELECT value FROM json_each(COALESCE(r.answer_ids, '[]')))
+       LEFT JOIN reviewers rv ON lower(rv.email) = lower(r.reviewer_email)
        WHERE r.id > ?2 AND r.undone_at IS NULL AND r.decision <> 'retire'
          AND r.id = (SELECT MAX(id) FROM reviews WHERE sentence_id = r.sentence_id AND undone_at IS NULL)
        ORDER BY r.id DESC, a.id LIMIT 20`,
     )
     .bind(phoneId, after)
-    .all<{ reviewId: number; english: string; direction: string; yours: string; decision: string; acc: number | null; fin: string | null; aid: number; status: string; note: string | null }>();
+    .all<{ reviewId: number; english: string; direction: string; yours: string; decision: string; acc: number | null; fin: string | null; aid: number; status: string; note: string | null; reviewer: string | null }>();
   return rows.results.map((x) => {
     const mine = x.decision === "accept" && x.acc === x.aid;
     const result = x.decision === "reject" ? "retry" : mine ? (x.fin === x.yours ? "correct" : "fixed") : x.status === "also_correct" ? "correct" : "other";
-    return { reviewId: x.reviewId, english: x.english, yours: x.yours, result, corrected: result === "fixed" || result === "other" ? x.fin : null, note: x.note, ...(x.direction === "pai2en" && { direction: "pai2en" as const }) };
+    return { reviewId: x.reviewId, english: x.english, yours: x.yours, result, corrected: result === "fixed" || result === "other" ? x.fin : null, note: x.note, reviewer: x.reviewer, ...(x.direction === "pai2en" && { direction: "pai2en" as const }) };
   });
 }

@@ -68,11 +68,14 @@ export async function handleWords(pathname: string, method: string, b: Record<st
       .bind(approve ? "approved" : "rejected", email, b.id).run();
     if (!r.meta.changes) return json({ error: "already_decided" }, 409);
     if (approve) {
+      // Credit the reviewer by name, the same way a saying is credited.
+      const rv = await env.DB.prepare("SELECT name FROM reviewers WHERE lower(email) = lower(?1) LIMIT 1").bind(email).first<{ name: string }>();
+      const by = rv?.name ?? email;
       if (fix) {
-        await env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, source, contributor_name) SELECT ?1, ?2, ?3, 'contributed', contributor_name FROM word_submissions WHERE id = ?4")
-          .bind(cap(fix.paite), cap(fix.english), fix.note, b.id).run();
+        await env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, source, contributor_name, reviewed_by) SELECT ?1, ?2, ?3, 'contributed', contributor_name, ?5 FROM word_submissions WHERE id = ?4")
+          .bind(cap(fix.paite), cap(fix.english), fix.note, b.id, by).run();
       } else {
-        await env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, source, contributor_name) SELECT paite, english, note, 'contributed', contributor_name FROM word_submissions WHERE id = ?1").bind(b.id).run();
+        await env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, source, contributor_name, reviewed_by) SELECT paite, english, note, 'contributed', contributor_name, ?2 FROM word_submissions WHERE id = ?1").bind(b.id, by).run();
       }
     }
     return json({ ok: true });

@@ -137,6 +137,23 @@ describe("review word endpoints", () => {
     expect(await n("word_submissions WHERE status = 'pending'")).toBe(0);
     expect((await env.DB.prepare("SELECT decided_by FROM word_submissions WHERE id = ?1").bind(words[0].id).first<any>()).decided_by).toBe("rev@example.org");
   });
+  it("credits the approving reviewer by name on the word list", async () => {
+    asReviewer();
+    await env.DB.prepare("INSERT INTO reviewers (email, name, added_by) VALUES ('rev@example.org', 'Lianpu', 'owner')").run();
+    await word({ paite: "Laimal", english: "Letter", name: "Thangboi" });
+    const id = (await env.DB.prepare("SELECT id FROM word_submissions").first<{ id: number }>())!.id;
+    expect((await rev("/review/api/words/decide", { id, decision: "approve" })).status).toBe(200);
+    expect((await env.DB.prepare("SELECT reviewed_by FROM glossary").first<any>()).reviewed_by).toBe("Lianpu");
+    expect(renderGlossary(await getGlossary(env))).toContain("Added by Thangboi · Reviewed by Lianpu");
+  });
+
+  it("falls back to the reviewer's email when no name is on file", async () => {
+    asReviewer();
+    await word({ paite: "Tui", english: "Water" });
+    const id = (await env.DB.prepare("SELECT id FROM word_submissions").first<{ id: number }>())!.id;
+    await rev("/review/api/words/decide", { id, decision: "approve" });
+    expect((await env.DB.prepare("SELECT reviewed_by FROM glossary").first<any>()).reviewed_by).toBe("rev@example.org");
+  });
   it("stores a reviewer's correction when a word is approved, and ignores a half-filled one", async () => {
     asReviewer();
     await word({ paite: "dam", english: "well", name: "Ann" });
