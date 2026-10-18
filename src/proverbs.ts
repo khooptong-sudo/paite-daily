@@ -80,6 +80,31 @@ export async function submitProverbAnswer(env: Env, phoneId: string, b: Record<s
   return json({ ok: true });
 }
 
+/**
+ * POST /api/proverb/submit, after the contributor session check: a whole saying
+ * pair from the front page, in either direction. It waits for a reviewer.
+ */
+export async function submitProverbPair(env: Env, phoneId: string, b: Record<string, unknown>): Promise<Response> {
+  const paite = cleanText(b.paite, 300), english = cleanText(b.english, 300);
+  const explainer = opt(b.explainer, 600), explainer_en = opt(b.explainer_en, 600), name = opt(b.name, 60);
+  const kind = b.kind === "idiom" ? "idiom" : "proverb";
+  const direction = b.direction === "pai2en" ? "pai2en" : "en2pai";
+  if (!paite || !english) return json({ error: "bad_request" }, 400);
+  if ((b.explainer && !explainer) || (b.explainer_en && !explainer_en) || (b.name && !name)) return json({ error: "bad_request" }, 400);
+  const n = await env.DB.prepare("SELECT count(*) AS n FROM proverbs WHERE submitted_by = ?1 AND created_at > datetime('now', '-1 day')").bind(phoneId).first<{ n: number }>();
+  if ((n?.n ?? 0) >= DAILY_LIMIT) return json({ error: "slow_down" }, 429);
+  // Either line already known means the saying is already here: answer ok, insert nothing.
+  const dup = await env.DB.prepare("SELECT 1 FROM proverbs WHERE lower(paite) = lower(?1) OR lower(english) = lower(?2)").bind(paite, english).first();
+  if (!dup)
+    await env.DB.prepare(
+      `INSERT INTO proverbs (kind, paite, english, explainer, explainer_en, entered_from, status, source, submitted_by, contributor_name)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'pending', 'contributed', ?7, ?8)`,
+    )
+      .bind(kind, cap(paite), cap(english), explainer, explainer_en, direction, phoneId, name)
+      .run();
+  return json({ ok: true });
+}
+
 const JS = `(function(){var S=window.STRINGS||{};
 function t(k,f){var s=S[k];return s&&s.pai?s.pai:(s&&s.en)||f}
 document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});

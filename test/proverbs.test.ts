@@ -160,3 +160,48 @@ describe("POST /api/proverb/answer", () => {
     expect((await post({ id, paite: "one more" }, PHONE_B)).status).toBe(200);
   });
 });
+
+describe("POST /api/proverb/submit", () => {
+  const submit = async (b: unknown, phone?: string) =>
+    call("/api/proverb/submit", { method: "POST", body: JSON.stringify(b), ...(phone ? { session: await session(phone) } : {}) });
+
+  it("needs a session", async () => {
+    expect((await submit({ paite: "x", english: "y" })).status).toBe(401);
+  });
+
+  it("stores the pair as a pending contribution and keeps it off the page", async () => {
+    const res = await submit({ direction: "pai2en", kind: "proverb", paite: "Lampam sik khiallou kuamah omlou", english: "Nobody walks the path without fault", explainer: "Mihingte kuamah hoih bukim omlou." }, PHONE_A);
+    expect(res.status).toBe(200);
+    const row = await env.DB.prepare("SELECT kind, paite, english, explainer, entered_from, status, source, submitted_by FROM proverbs").first<any>();
+    expect(row).toMatchObject({ kind: "proverb", entered_from: "pai2en", status: "pending", source: "contributed", submitted_by: PHONE_A });
+    expect(row.paite).toContain("Lampam");
+    const html = await (await call("/proverbs")).text();
+    expect(html).not.toContain("Lampam sik khiallou kuamah omlou");
+  });
+
+  it("records which side it came from", async () => {
+    await submit({ direction: "en2pai", kind: "idiom", paite: "Kawt khat", english: "Break the ice" }, PHONE_A);
+    const row = await env.DB.prepare("SELECT entered_from, kind FROM proverbs").first<any>();
+    expect(row).toEqual({ entered_from: "en2pai", kind: "idiom" });
+  });
+
+  it("refuses a pair with a line missing", async () => {
+    expect((await submit({ paite: "", english: "y" }, PHONE_A)).status).toBe(400);
+    expect((await submit({ paite: "x", english: "  " }, PHONE_A)).status).toBe(400);
+  });
+
+  it("answers ok without doubling a saying it already has", async () => {
+    await add({ paite: PAI, english: "Nobody walks the path without fault", explainer: PAI_WHY, entered_from: "pai2en" });
+    const res = await submit({ direction: "pai2en", paite: "lampam SIK khiallou kuamah omlou", english: "Another line" }, PHONE_A);
+    expect(res.status).toBe(200);
+    const n = await env.DB.prepare("SELECT count(*) AS n FROM proverbs").first<{ n: number }>();
+    expect(n!.n).toBe(1);
+  });
+
+  it("caps a phone at twenty a day", async () => {
+    for (let i = 0; i < 20; i++)
+      await env.DB.prepare("INSERT INTO proverbs (paite, english, entered_from, status, submitted_by) VALUES (?1, ?2, 'pai2en', 'pending', ?3)").bind(`p ${i}`, `e ${i}`, PHONE_A).run();
+    expect((await submit({ paite: "new p", english: "new e" }, PHONE_A)).status).toBe(429);
+    expect((await submit({ paite: "new p", english: "new e" }, PHONE_B)).status).toBe(200);
+  });
+});

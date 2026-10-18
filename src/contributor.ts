@@ -6,7 +6,7 @@ import { readSession, signSession } from "./session";
 import { cleanText, isId, isPhoneId } from "./text";
 import { refillOnDemand } from "./refill";
 import { nextWordToTranslate, submitMeaning, submitWord } from "./words";
-import { submitProverbAnswer } from "./proverbs";
+import { submitProverbAnswer, submitProverbPair } from "./proverbs";
 import { json, type Deps, type Env } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -75,6 +75,8 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   if (pathname === "/api/word" && req.method === "POST") return submitWord(env, phoneId, await body(req));
 
   if (pathname === "/api/proverb/answer" && req.method === "POST") return submitProverbAnswer(env, phoneId, await body(req));
+
+  if (pathname === "/api/proverb/submit" && req.method === "POST") return submitProverbPair(env, phoneId, await body(req));
 
   if (pathname === "/api/name" && req.method === "POST") return setName(env, phoneId, await body(req));
 

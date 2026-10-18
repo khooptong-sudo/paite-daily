@@ -191,6 +191,29 @@
     $("w-send").disabled = false;
   });
 
+  // Proverbs and idioms: a whole saying pair, entered from either side. It waits for a reviewer.
+  document.querySelectorAll("form.saying").forEach((form) => {
+    const st = form.querySelector(".status"), btn = form.querySelector("button[type=submit]");
+    const say = (m, ok = false) => { st.innerHTML = m; st.className = "status " + (ok ? "ok" : m ? "err" : ""); };
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const f = Object.fromEntries(new FormData(form).entries());
+      const text = (k) => String(f[k] ?? "").trim();
+      if (!text("paite")) { form.querySelector('[name="paite"]').focus(); return; }
+      if (!text("english")) { form.querySelector('[name="english"]').focus(); return; }
+      btn.disabled = true;
+      try {
+        const r = await api("/api/proverb/submit", { method: "POST", body: JSON.stringify({
+          direction: form.dataset.dir, kind: f.kind, paite: text("paite"), english: text("english"),
+          explainer: text("explainer"), name: store.get("name", ""),
+        }) });
+        if (r.ok) { say(tBoth("sayingThanks"), true); form.reset(); refreshMe(); askName(btn); }
+        else say(tBoth(r.status === 429 ? "tooFast" : "offline"));
+      } catch { say(tBoth("offline")); }
+      btn.disabled = false;
+    });
+  });
+
   $("skip").addEventListener("click", async () => {
     if (current) { try { await api("/api/skip", { method: "POST", body: JSON.stringify({ sentenceId: current.id }) }); } catch {} }
     $("explanation").value = "";

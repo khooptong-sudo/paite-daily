@@ -133,3 +133,12 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .foot .contact a img { display: block; width: 22px; height: 22px; }
 .foot .contact a:hover { background: rgba(0, 0, 0, .06); color: var(--fg); }
 .foot .contact a:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
+/* Proverbs and idioms card: the two directions sit side by side when there is room. */
+.card .dirs { display: grid; gap: 20px; }
+.card .dirs .dir { margin: 0; font-weight: 700; font-size: .95rem; }
+.card .saying { display: grid; gap: 6px; }
+.card .saying .actions { margin-top: 4px; }
+@media (min-width: 720px) {
+  .card .dirs { grid-template-columns: 1fr 1fr; gap: 26px; }
+  .card .saying + .saying { border-left: 1px solid var(--line); padding-left: 26px; }
+}

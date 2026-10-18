@@ -75,6 +75,38 @@
       </div>
     </div>
   </section>
+  <section class="card" aria-labelledby="saying-h">
+    <h2 id="saying-h" data-s="sayingsTitle">Paunakte leh Pau Upa</h2>
+    <p class="licence" data-s="sayingsNote">Proverbs and idioms, either direction. A reviewer checks each one.</p>
+    <div class="dirs">
+      <form class="saying" id="saying-en" data-dir="en2pai" novalidate>
+        <p class="dir" data-s="dirEnPai">English → Paite</p>
+        <label for="se-en" data-s="englishSaying">English idiom or proverb</label>
+        <input id="se-en" name="english" required maxlength="300" autocomplete="off" placeholder="Break the ice">
+        <label for="se-paite" data-s="paiteVersion">Paite version</label>
+        <input id="se-paite" name="paite" required maxlength="300" autocomplete="off">
+        <label for="se-x" data-s="explainerLabel">Explainer (optional)</label>
+        <input id="se-x" name="explainer" maxlength="600" autocomplete="off">
+        <label class="kind" for="se-kind" data-s="kindLabel">Proverb or idiom</label>
+        <select id="se-kind" name="kind"><option value="proverb" data-s="kindProverb">Proverb</option><option value="idiom" data-s="kindIdiom">Idiom</option></select>
+        <div class="actions"><button type="submit" class="primary" data-s="send">Send</button></div>
+        <p class="status" role="status"></p>
+      </form>
+      <form class="saying" id="saying-paite" data-dir="pai2en" novalidate>
+        <p class="dir" data-s="dirPaiEn">Paite → English</p>
+        <label for="sp-paite" data-s="paiteSaying">Paite idiom or proverb</label>
+        <input id="sp-paite" name="paite" required maxlength="300" autocomplete="off" placeholder="Lampam sik khiallou kuamah omlou">
+        <label for="sp-en" data-s="englishVersion">English version</label>
+        <input id="sp-en" name="english" required maxlength="300" autocomplete="off">
+        <label for="sp-x" data-s="explainerLabel">Explainer (optional)</label>
+        <input id="sp-x" name="explainer" maxlength="600" autocomplete="off">
+        <label class="kind" for="sp-kind" data-s="kindLabel">Proverb or idiom</label>
+        <select id="sp-kind" name="kind"><option value="proverb" data-s="kindProverb">Proverb</option><option value="idiom" data-s="kindIdiom">Idiom</option></select>
+        <div class="actions"><button type="submit" class="primary" data-s="send">Send</button></div>
+        <p class="status" role="status"></p>
+      </form>
+    </div>
+  </section>
   <section class="card" aria-labelledby="meaning-h">
     <h2 id="meaning-h" data-s="giveMeaning">Give the Meaning</h2>
     <p class="licence" data-s="giveMeaningNote"></p>
