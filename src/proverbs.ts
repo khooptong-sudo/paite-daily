@@ -1,8 +1,8 @@
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
 import { PUAN } from "./puan";
-import { cap } from "./text";
-import type { Env } from "./types";
+import { cap, cleanText, isId } from "./text";
+import { json, type Env } from "./types";
 
 export type Kind = "proverb" | "idiom";
 export type Direction = "pai2en" | "en2pai";
@@ -17,7 +17,11 @@ export type Proverb = {
   explainer_en: string | null;
   entered_from: Direction;
   status: Status;
+  answers: number;
 };
+
+const DAILY_LIMIT = 20;
+const opt = (v: unknown, max: number) => (v === undefined || v === null || v === "" ? null : cleanText(v, max));
 
 /** The line a saying is filed and grouped under: Paite where we have it. */
 const lead = (p: Proverb) => p.paite ?? p.english ?? "";
@@ -28,8 +32,9 @@ const lead = (p: Proverb) => p.paite ?? p.english ?? "";
  */
 export async function getProverbs(env: Env, limit = -1): Promise<Proverb[]> {
   const { results } = await env.DB.prepare(
-    `SELECT id, kind, paite, english, explainer, explainer_en, entered_from, status
-       FROM proverbs WHERE status IN ('live', 'open') ORDER BY id LIMIT ?1`,
+    `SELECT p.id, p.kind, p.paite, p.english, p.explainer, p.explainer_en, p.entered_from, p.status,
+            (SELECT count(*) FROM proverb_answers a WHERE a.proverb_id = p.id AND a.status <> 'rejected') AS answers
+       FROM proverbs p WHERE p.status IN ('live', 'open') ORDER BY p.id LIMIT ?1`,
   )
     .bind(limit)
     .all<Proverb>();
@@ -45,26 +50,77 @@ export const proverbsJson = (xs: Proverb[]) =>
     {
       entries: [...xs]
         .sort((a, b) => lead(a).localeCompare(lead(b)))
-        .map(({ id, ...e }) => e),
+        .map(({ id, answers, ...e }) => e),
     },
     null,
     2,
   ) + "\n";
 
+/**
+ * POST /api/proverb/answer, after the contributor session check: a Paite version
+ * of an English idiom. Stored for a reviewer, never published straight away.
+ */
+export async function submitProverbAnswer(env: Env, phoneId: string, b: Record<string, unknown>): Promise<Response> {
+  const paite = cleanText(b.paite, 300), explainer = opt(b.explainer, 600), explainer_en = opt(b.explainer_en, 600), name = opt(b.name, 60);
+  if (!isId(b.id) || !paite) return json({ error: "bad_request" }, 400);
+  if ((b.explainer && !explainer) || (b.explainer_en && !explainer_en) || (b.name && !name)) return json({ error: "bad_request" }, 400);
+  const p = await env.DB.prepare("SELECT status FROM proverbs WHERE id = ?1").bind(b.id).first<{ status: string }>();
+  if (!p) return json({ error: "not_found" }, 404);
+  // Only a saying still waiting for its Paite line takes renderings.
+  if (p.status !== "open" && p.status !== "pending") return json({ error: "closed" }, 409);
+  const n = await env.DB.prepare("SELECT count(*) AS n FROM proverb_answers WHERE phone_id = ?1 AND created_at > datetime('now', '-1 day')").bind(phoneId).first<{ n: number }>();
+  if ((n?.n ?? 0) >= DAILY_LIMIT) return json({ error: "slow_down" }, 429);
+  const dup = await env.DB.prepare("SELECT 1 FROM proverb_answers WHERE proverb_id = ?1 AND phone_id = ?2 AND lower(paite) = lower(?3)").bind(b.id, phoneId, paite).first();
+  if (!dup)
+    await env.DB.prepare(
+      "INSERT INTO proverb_answers (proverb_id, paite, explainer, explainer_en, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+    )
+      .bind(b.id, cap(paite), explainer, explainer_en, phoneId, name)
+      .run();
+  return json({ ok: true });
+}
+
 const JS = `(function(){var S=window.STRINGS||{};
+function t(k,f){var s=S[k];return s&&s.pai?s.pai:(s&&s.en)||f}
 document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
 var q=document.getElementById("q"),sr=S.search;if(sr&&sr.pai){q.placeholder=q.ariaLabel=sr.pai+" / "+sr.en;q.setAttribute("aria-label",q.placeholder)}
 var dir="all";
-function apply(){var t=q.value.trim().toLowerCase();
-document.querySelectorAll(".gl li").forEach(function(li){li.hidden=!(dir==="all"||li.dataset.dir===dir)||(!!t&&li.dataset.q.indexOf(t)<0)});
+function apply(){var v=q.value.trim().toLowerCase();
+document.querySelectorAll(".gl li").forEach(function(li){li.hidden=!(dir==="all"||li.dataset.dir===dir)||(!!v&&li.dataset.q.indexOf(v)<0)});
 document.querySelectorAll(".gl details.rows").forEach(function(g){var live=g.querySelectorAll("li:not([hidden])");g.hidden=!live.length;
-var c=g.querySelector(".cnt");if(c)c.textContent=live.length;if(t||dir!=="all")g.open=!!live.length})}
+var c=g.querySelector(".cnt");if(c)c.textContent=live.length;if(v||dir!=="all")g.open=!!live.length})}
 document.querySelectorAll(".filters button").forEach(function(b){b.addEventListener("click",function(){dir=b.dataset.dir;
 document.querySelectorAll(".filters button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});apply()})});
 q.addEventListener("input",apply);
 function openHash(){var l=document.getElementById(location.hash.slice(1));if(!l)return;var d=l.querySelector("details");if(d)d.open=true;
 var g=l.closest("details.rows");if(g)g.open=true;l.scrollIntoView()}
 openHash();addEventListener("hashchange",openHash);
+
+var KEY="pd:phone",tsId=null,waiter=null;
+function phone(){var v=null;try{v=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+if(!v){v=(window.crypto&&window.crypto.randomUUID)?window.crypto.randomUUID():String(Date.now())+Math.random().toString(36).slice(2);try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}
+return v}
+var tsReady=new Promise(function(res){if(window.turnstile)return res();window.onTurnstileLoad=res;
+var i=setInterval(function(){if(window.turnstile){clearInterval(i);res()}},50)});
+function token(){return new Promise(function(resolve,reject){
+var timer=setTimeout(function(){if(waiter===me)waiter=null;reject(new Error("turnstile timeout"))},15000);
+var me=waiter={resolve:function(v){clearTimeout(timer);resolve(v)},reject:function(e){clearTimeout(timer);reject(e)}};
+tsReady.then(function(){
+if(tsId===null){tsId=window.turnstile.render("#turnstile",{sitekey:document.documentElement.dataset.sitekey,appearance:"interaction-only",callback:function(v){waiter&&waiter.resolve(v)},"error-callback":function(){waiter&&waiter.reject(new Error("turnstile"))}})}
+else{window.turnstile.reset(tsId)}
+}).catch(function(e){waiter&&waiter.reject(e)})})}
+document.querySelectorAll("form[data-id]").forEach(function(f){
+f.addEventListener("submit",function(ev){ev.preventDefault();
+var st=f.querySelector(".st"),btn=f.querySelector("button"),ta=f.querySelector("textarea[name=paite]"),ex=f.querySelector("textarea[name=explainer]");
+var paite=ta.value.trim();if(!paite){ta.focus();return}
+btn.disabled=true;st.className="st";st.textContent=t("sending","Sending\u2026");
+token().then(function(tk){return fetch("/api/session",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({phoneId:phone(),turnstileToken:tk})})})
+.then(function(r){if(!r.ok)throw new Error("session");return r.json()})
+.then(function(j){return fetch("/api/proverb/answer",{method:"POST",headers:{"content-type":"application/json","X-Session":j.session},body:JSON.stringify({id:Number(f.dataset.id),paite:paite,explainer:ex?ex.value.trim():""})})})
+.then(function(r){if(r.status===429)throw new Error("slow");if(!r.ok)throw new Error("bad");
+st.className="st ok";st.textContent=t("proverbThanks","Thanks! A reviewer will check it.");ta.value="";if(ex)ex.value="";btn.disabled=false})
+.catch(function(e){btn.disabled=false;st.className="st err";
+st.textContent=e.message==="slow"?t("tooFast","Slow down a little, then try again."):t("offline","Could not send. Check your internet and try again.")})})});
 })();`;
 
 const tag = (k: Kind) =>
@@ -72,29 +128,42 @@ const tag = (k: Kind) =>
     ? '<span class="tag" data-s="kindIdiom">Idiom</span>'
     : '<span class="tag" data-s="kindProverb">Proverb</span>';
 
+function form(p: Proverb): string {
+  return `<details class="tr"><summary data-s="translateIt">Translate into Paite</summary><form data-id="${p.id}">
+<label class="lbl" for="p-${p.id}" data-s="yourVersion">Your Paite version</label>
+<textarea id="p-${p.id}" name="paite" rows="2" maxlength="300" required></textarea>
+<label class="lbl" for="e-${p.id}" data-s="explainerOptional">Explain what it means (optional)</label>
+<textarea id="e-${p.id}" name="explainer" rows="2" maxlength="600"></textarea>
+<button type="submit" class="send" data-s="send">Send</button>
+<p class="st" role="status"></p></form></details>`;
+}
+
 function item(p: Proverb): string {
   // Read in the direction it was entered: a Paite proverb leads with Paite, an
   // English idiom leads with English until a contributor supplies the Paite line.
   const first = p.entered_from === "en2pai" ? p.english : p.paite;
   const second = p.entered_from === "en2pai" ? p.paite : p.english;
+  const waiting = !p.paite;
   const q = [p.paite, p.english, p.explainer, p.explainer_en].filter(Boolean).join(" ").toLowerCase();
   const other = second
     ? `<small class="m">${esc(second)}</small>`
-    : p.entered_from === "en2pai"
+    : waiting
       ? '<small class="m" data-s="needsPaite">Needs a Paite version</small>'
       : "";
+  const count = p.answers > 0 ? `<span class="n">${p.answers} ${p.answers === 1 ? "translation" : "translations"} so far</span>` : "";
   return `<li id="p-${p.id}" data-dir="${p.entered_from}" data-q="${esc(q)}"><details open><summary><b class="w">${esc(first ?? "")}</b> ${other}${tag(p.kind)}</summary>${
     p.explainer ? `<p class="n">${esc(p.explainer)}</p>` : ""
-  }${p.explainer_en ? `<p class="n en">${esc(p.explainer_en)}</p>` : ""}</details></li>`;
+  }${p.explainer_en ? `<p class="n en">${esc(p.explainer_en)}</p>` : ""}${count}${waiting ? form(p) : ""}</details></li>`;
 }
 
-export function renderProverbs(xs: Proverb[]): string {
+export function renderProverbs(xs: Proverb[], siteKey = ""): string {
   const groups = new Map<string, Proverb[]>();
   for (const p of [...xs].sort((a, b) => lead(a).localeCompare(lead(b)))) {
     const l = lead(p).charAt(0).toUpperCase();
     const k = /\p{L}/u.test(l) ? l : "#";
     groups.set(k, [...(groups.get(k) ?? []), p]);
   }
+  const waiting = xs.filter((p) => !p.paite).length;
   const body = groups.size
     ? [...groups]
         .map(
@@ -107,7 +176,7 @@ export function renderProverbs(xs: Proverb[]): string {
     : '<p class="empty"><span data-s="proverbsEmpty">No sayings yet. Add the first one.</span> <a href="/">Paite Daily</a></p>';
 
   return `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<html lang="en" data-sitekey="${esc(siteKey)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Paite Proverbs &amp; Idioms</title>
 <meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://paite.lamkalabs.com/proverbs">
@@ -116,7 +185,7 @@ export function renderProverbs(xs: Proverb[]): string {
 <meta property="og:locale" content="en_IN">
 <meta property="og:url" content="https://paite.lamkalabs.com/proverbs">
 <meta property="og:title" content="Paite Proverbs &amp; Idioms">
-<meta property="og:description" content="Paite proverbs and idioms with an explainer saying what each one means, and English idioms waiting for their Paite version.">
+<meta property="og:description" content="Paite proverbs and idioms with an explainer saying what each one means, and English sayings waiting for their Paite version.">
 <meta property="og:image" content="https://paite.lamkalabs.com/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -135,16 +204,19 @@ export function renderProverbs(xs: Proverb[]): string {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 <link rel="stylesheet" href="/contributors.css">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 </head>
 <body class="cp">
 <header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="proverbsTitle">Proverbs &amp; Idioms</h1><p data-s="proverbsLine">The sayings our elders use, and what each one means.</p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
 <p class="filters"><button type="button" data-dir="all" aria-pressed="true" data-s="filterAll">All</button><button type="button" data-dir="pai2en" aria-pressed="false" data-s="filterPai2En">Paite &rarr; English</button><button type="button" data-dir="en2pai" aria-pressed="false" data-s="filterEn2Pai">English &rarr; Paite</button></p>
+${waiting ? `<p class="note"><span data-s="waitingNote">English idioms and proverbs are here for translation into Paite.</span> ${waiting} waiting.</p>` : ""}
 ${body}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a Sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
 ${FOOTER}
 </main>
+<div id="turnstile"></div>
 <script src="/strings.js"></script>
 <script src="/back.js"></script>
 <script src="/pwa.js"></script>

@@ -191,3 +191,15 @@
 .gl li > details > summary { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .gl .tag { margin-left: auto; color: var(--muted); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
 .gl .n.en { font-style: italic; }
+/* The translate form on an English saying that is waiting for its Paite line. */
+.gl .note { margin: 12px 0 0; color: var(--muted); font-size: .9rem; }
+.gl details.tr { margin-top: 10px; padding: 0; border-top: 1px solid var(--line); }
+.gl details.tr > summary { font-size: .9rem; font-weight: 700; padding: 10px 0 0; list-style: none; }
+.gl details.tr > summary::-webkit-details-marker { display: none; }
+.gl .lbl { display: block; margin: 10px 0 4px; font-size: .82rem; color: var(--muted); }
+.gl textarea { width: 100%; padding: 10px 12px; font: inherit; font-size: .95rem; color: #000; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; resize: vertical; }
+.gl .send { font: inherit; font-weight: 700; margin-top: 10px; padding: 9px 16px; border-radius: 999px; border: 1px solid var(--fg); background: var(--fg); color: var(--accent-fg); cursor: pointer; }
+.gl .send[disabled] { opacity: .5; cursor: default; }
+.gl .st { margin: 8px 0 0; font-size: .88rem; min-height: 1.2em; }
+.gl .st.ok { font-weight: 700; }
+.gl .st.err { text-decoration: underline; text-underline-offset: 3px; }
