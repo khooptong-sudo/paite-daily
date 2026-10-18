@@ -67,7 +67,7 @@ window.STRINGS = {
   srcNote: { pai: "", en: "From a contributor's note" },
   srcContributed: { pai: "", en: "Added by a contributor" },
   search: { pai: "", en: "Search" },
-  proverbsTitle: { pai: "", en: "Proverbs & Idioms" },
+  proverbsTitle: { pai: "Paunakte leh Pau Upa", en: "Proverbs & Idioms" },
   proverbsLine: { pai: "", en: "The sayings our elders use, and what each one means." },
   proverbsEmpty: { pai: "", en: "No sayings yet." },
   kindProverb: { pai: "", en: "Proverb" },
