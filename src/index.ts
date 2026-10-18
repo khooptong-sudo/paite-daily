@@ -5,6 +5,7 @@ import { lockedRefill } from "./refill";
 import { handleContributor } from "./contributor";
 import { getContributors, renderPage } from "./contributors";
 import { getGlossary, renderGlossary } from "./glossary";
+import { getProverbs, proverbsJson, renderProverbs } from "./proverbs";
 import { errorPage, handleEvent, recordError } from "./observability";
 import { handleReview } from "./review";
 import { verifyTurnstile } from "./turnstile";
@@ -16,6 +17,8 @@ export function createApp(deps: Deps) {
     try {
       if (pathname === "/api/event" && req.method === "POST") return await handleEvent(req, env);
       if (pathname === "/glossary") return new Response(renderGlossary(await getGlossary(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+      if (pathname === "/proverbs") return new Response(renderProverbs(await getProverbs(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+      if (pathname === "/proverbs.json") return new Response(proverbsJson(await getProverbs(env)), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300" } });
       if (pathname === "/contributors") return new Response(renderPage(await getContributors(env), undefined, env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname.startsWith("/api/")) return await handleContributor(req, env, deps, ctx);
       if (pathname.startsWith("/review/api/")) return await handleReview(req, env, deps);

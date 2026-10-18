@@ -184,3 +184,10 @@
 .gl summary .m { color: var(--muted); font-size: .85rem; }
 .gl details > .m { margin: 8px 0 0; }
 .gl .empty a { color: var(--fg); }
+/* Proverbs & idioms: direction chips above the list, and the kind tag on each entry. */
+.gl .filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 0; }
+.gl .filters button { font: inherit; font-size: .85rem; padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+.gl .filters button[aria-pressed="true"] { background: var(--fg); color: var(--accent-fg); border-color: var(--fg); }
+.gl li > details > summary { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.gl .tag { margin-left: auto; color: var(--muted); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
+.gl .n.en { font-style: italic; }
