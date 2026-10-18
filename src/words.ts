@@ -1,15 +1,12 @@
 import { cap, cleanText, isId } from "./text";
 import { json, type Env } from "./types";
 
-const DAILY_LIMIT = 20;
 const opt = (v: unknown, max: number) => (v === undefined || v === null || v === "" ? null : cleanText(v, max));
 
 // POST /api/word, after the contributor session check. Duplicates answer 200 without inserting.
 export async function submitWord(env: Env, phoneId: string, b: Record<string, unknown>): Promise<Response> {
   const paite = cleanText(b.paite, 60), english = cleanText(b.english, 120), note = opt(b.note, 200), name = opt(b.name, 60);
   if (!paite || !english || (b.note && !note) || (b.name && !name)) return json({ error: "bad_request" }, 400);
-  const n = await env.DB.prepare("SELECT count(*) AS n FROM word_submissions WHERE phone_id = ?1 AND created_at > datetime('now', '-1 day')").bind(phoneId).first<{ n: number }>();
-  if ((n?.n ?? 0) >= DAILY_LIMIT) return json({ error: "slow_down" }, 429);
   const dup = await env.DB.prepare(
     `SELECT 1 FROM glossary WHERE lower(paite) = lower(?1) AND lower(english) = lower(?2)
      UNION ALL SELECT 1 FROM word_submissions WHERE status IN ('pending', 'rejected') AND lower(paite) = lower(?1) AND lower(english) = lower(?2)`,
@@ -35,8 +32,6 @@ export async function submitMeaning(env: Env, phoneId: string, b: Record<string,
   if (!isId(b.id) || !english || (b.note && !note) || (b.name && !name)) return json({ error: "bad_request" }, 400);
   const word = await env.DB.prepare("SELECT paite FROM glossary WHERE id = ?1 AND hidden = 0").bind(b.id).first<{ paite: string }>();
   if (!word) return json({ error: "not_found" }, 404);
-  const n = await env.DB.prepare("SELECT count(*) AS n FROM word_submissions WHERE phone_id = ?1 AND created_at > datetime('now', '-1 day')").bind(phoneId).first<{ n: number }>();
-  if ((n?.n ?? 0) >= DAILY_LIMIT) return json({ error: "slow_down" }, 429);
   const paite = cap(word.paite);
   const dup = await env.DB.prepare(
     `SELECT 1 FROM glossary WHERE lower(paite) = lower(?1) AND lower(english) = lower(?2)

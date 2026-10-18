@@ -18,9 +18,10 @@ export type Proverb = {
   entered_from: Direction;
   status: Status;
   answers: number;
+  by: string | null;
+  reviewed_by: string | null;
 };
 
-const DAILY_LIMIT = 20;
 const opt = (v: unknown, max: number) => (v === undefined || v === null || v === "" ? null : cleanText(v, max));
 
 /** The line a saying is filed and grouped under: Paite where we have it. */
@@ -33,6 +34,7 @@ const lead = (p: Proverb) => p.paite ?? p.english ?? "";
 export async function getProverbs(env: Env, limit = -1): Promise<Proverb[]> {
   const { results } = await env.DB.prepare(
     `SELECT p.id, p.kind, p.paite, p.english, p.explainer, p.explainer_en, p.entered_from, p.status,
+            p.contributor_name AS by, p.reviewed_by,
             (SELECT count(*) FROM proverb_answers a WHERE a.proverb_id = p.id AND a.status <> 'rejected') AS answers
        FROM proverbs p WHERE p.status IN ('live', 'open') ORDER BY p.id LIMIT ?1`,
   )
@@ -68,8 +70,6 @@ export async function submitProverbAnswer(env: Env, phoneId: string, b: Record<s
   if (!p) return json({ error: "not_found" }, 404);
   // Only a saying still waiting for its Paite line takes renderings.
   if (p.status !== "open" && p.status !== "pending") return json({ error: "closed" }, 409);
-  const n = await env.DB.prepare("SELECT count(*) AS n FROM proverb_answers WHERE phone_id = ?1 AND created_at > datetime('now', '-1 day')").bind(phoneId).first<{ n: number }>();
-  if ((n?.n ?? 0) >= DAILY_LIMIT) return json({ error: "slow_down" }, 429);
   const dup = await env.DB.prepare("SELECT 1 FROM proverb_answers WHERE proverb_id = ?1 AND phone_id = ?2 AND lower(paite) = lower(?3)").bind(b.id, phoneId, paite).first();
   if (!dup)
     await env.DB.prepare(
@@ -91,8 +91,6 @@ export async function submitProverbPair(env: Env, phoneId: string, b: Record<str
   const direction = b.direction === "pai2en" ? "pai2en" : "en2pai";
   if (!paite || !english) return json({ error: "bad_request" }, 400);
   if ((b.explainer && !explainer) || (b.explainer_en && !explainer_en) || (b.name && !name)) return json({ error: "bad_request" }, 400);
-  const n = await env.DB.prepare("SELECT count(*) AS n FROM proverbs WHERE submitted_by = ?1 AND created_at > datetime('now', '-1 day')").bind(phoneId).first<{ n: number }>();
-  if ((n?.n ?? 0) >= DAILY_LIMIT) return json({ error: "slow_down" }, 429);
   // Either line already known means the saying is already here: answer ok, insert nothing.
   const dup = await env.DB.prepare("SELECT 1 FROM proverbs WHERE lower(paite) = lower(?1) OR lower(english) = lower(?2)").bind(paite, english).first();
   if (!dup)
@@ -176,9 +174,12 @@ function item(p: Proverb): string {
       ? '<small class="m" data-s="needsPaite">Needs a Paite version</small>'
       : "";
   const count = p.answers > 0 ? `<span class="n">${p.answers} ${p.answers === 1 ? "translation" : "translations"} so far</span>` : "";
+  // Credit both sides of a reviewed entry: who contributed it, and who cleared it.
+  const credit = [p.by ? `Added by ${esc(p.by)}` : "", p.reviewed_by ? `Reviewed by ${esc(p.reviewed_by)}` : ""].filter(Boolean).join(" · ");
+  const creditLine = credit ? `<p class="n by">${credit}</p>` : "";
   return `<li id="p-${p.id}" data-dir="${p.entered_from}" data-q="${esc(q)}"><details open><summary><b class="w">${esc(first ?? "")}</b> ${other}${tag(p.kind)}</summary>${
     p.explainer ? `<p class="n">${esc(p.explainer)}</p>` : ""
-  }${p.explainer_en ? `<p class="n en">${esc(p.explainer_en)}</p>` : ""}${count}${waiting ? form(p) : ""}</details></li>`;
+  }${p.explainer_en ? `<p class="n en">${esc(p.explainer_en)}</p>` : ""}${count}${creditLine}${waiting ? form(p) : ""}</details></li>`;
 }
 
 export function renderProverbs(xs: Proverb[], siteKey = ""): string {

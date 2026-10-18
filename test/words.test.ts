@@ -105,11 +105,10 @@ describe("POST /api/word", () => {
     expect((await word({ paite: "Dam", english: "WELL" })).status).toBe(200);
     expect(await n("word_submissions")).toBe(0);
   });
-  it("limits 20 words per phone per day", async () => {
-    for (let i = 0; i < 20; i++) expect((await word({ paite: "w" + i, english: "e" })).status).toBe(200);
-    expect((await word({ paite: "extra", english: "e" })).status).toBe(429);
-    expect((await word({ paite: "w1", english: "e" })).status).toBe(429);
-    expect(await n("word_submissions")).toBe(20);
+  it("keeps no daily cap on words for now", async () => {
+    for (let i = 0; i < 25; i++) expect((await word({ paite: "w" + i, english: "e" })).status).toBe(200);
+    expect((await word({ paite: "extra", english: "e" })).status).toBe(200);
+    expect(await n("word_submissions")).toBe(26);
   });
 });
 

@@ -152,11 +152,11 @@ describe("POST /api/proverb/answer", () => {
     expect(m!.n).toBe(2);
   });
 
-  it("stops a phone after twenty translations in a day", async () => {
+  it("keeps no daily cap on translations for now", async () => {
     const id = await open();
     for (let i = 0; i < 20; i++)
       await env.DB.prepare("INSERT INTO proverb_answers (proverb_id, paite, phone_id) VALUES (?1, ?2, ?3)").bind(id, `line ${i}`, PHONE_A).run();
-    expect((await post({ id, paite: "one more" }, PHONE_A)).status).toBe(429);
+    expect((await post({ id, paite: "one more" }, PHONE_A)).status).toBe(200);
     expect((await post({ id, paite: "one more" }, PHONE_B)).status).toBe(200);
   });
 });
@@ -198,10 +198,19 @@ describe("POST /api/proverb/submit", () => {
     expect(n!.n).toBe(1);
   });
 
-  it("caps a phone at twenty a day", async () => {
+  it("keeps no daily cap on submissions for now", async () => {
     for (let i = 0; i < 20; i++)
       await env.DB.prepare("INSERT INTO proverbs (paite, english, entered_from, status, submitted_by) VALUES (?1, ?2, 'pai2en', 'pending', ?3)").bind(`p ${i}`, `e ${i}`, PHONE_A).run();
-    expect((await submit({ paite: "new p", english: "new e" }, PHONE_A)).status).toBe(429);
+    expect((await submit({ paite: "new p", english: "new e" }, PHONE_A)).status).toBe(200);
     expect((await submit({ paite: "new p", english: "new e" }, PHONE_B)).status).toBe(200);
+  });
+
+  it("credits the contributor and the reviewer on a reviewed saying", async () => {
+    const id = await add({ paite: PAI, english: "Nobody walks the path without fault", explainer: PAI_WHY, entered_from: "pai2en" });
+    await env.DB.prepare("UPDATE proverbs SET contributor_name = ?1, reviewed_by = ?2 WHERE id = ?3").bind("Thangboi", "Lianpu", id).run();
+    const html = await (await call("/proverbs")).text();
+    expect(html).toContain("Added by Thangboi · Reviewed by Lianpu");
+    const body = (await (await call("/proverbs.json")).json()) as any;
+    expect(body.entries[0]).toMatchObject({ by: "Thangboi", reviewed_by: "Lianpu" });
   });
 });
