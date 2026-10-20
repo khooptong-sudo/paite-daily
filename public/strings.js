@@ -119,4 +119,5 @@ window.STRINGS = {
   chatHide: { pai: "", en: "Hide sample conversations" },
   chatFromCorpus: { pai: "", en: "from the reviewed corpus" },
   chatPlaceholder: { pai: "", en: "Type an English line…" },
+  paiteThin: { pai: "", en: "Paite sayings are still being gathered. The English list is open for translating." },
 };

@@ -205,6 +205,14 @@ describe("POST /api/proverb/submit", () => {
     expect((await submit({ paite: "new p", english: "new e" }, PHONE_B)).status).toBe(200);
   });
 
+  it("opens on Paite → English by default", async () => {
+    await add({ paite: PAI, english: "Nobody walks the path without fault", explainer: PAI_WHY, entered_from: "pai2en" });
+    const html = await (await call("/proverbs")).text();
+    expect(html).toMatch(/data-dir="pai2en" aria-pressed="true"/);
+    expect(html).toMatch(/data-dir="all" aria-pressed="false"/);
+    expect(html).toContain('var dir="pai2en"');
+  });
+
   it("credits the contributor and the reviewer on a reviewed saying", async () => {
     const id = await add({ paite: PAI, english: "Nobody walks the path without fault", explainer: PAI_WHY, entered_from: "pai2en" });
     await env.DB.prepare("UPDATE proverbs SET contributor_name = ?1, reviewed_by = ?2 WHERE id = ?3").bind("Thangboi", "Lianpu", id).run();

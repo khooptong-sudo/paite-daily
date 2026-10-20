@@ -1,0 +1,862 @@
+[
+  {
+    "kind": "idiom",
+    "english": "A dime a dozen",
+    "explainer_en": "(US) Anything that is common, inexpensive, and easy to get or available anywhere"
+  },
+  {
+    "kind": "idiom",
+    "english": "A few sandwiches short of a picnic",
+    "explainer_en": "Lacking intelligence"
+  },
+  {
+    "kind": "idiom",
+    "english": "A hard pill to swallow",
+    "explainer_en": "A situation or information that is unpleasant but must be accepted"
+  },
+  {
+    "kind": "idiom",
+    "english": "A hot potato",
+    "explainer_en": "A controversial issue or situation that is awkward or unpleasant to deal with"
+  },
+  {
+    "kind": "idiom",
+    "english": "Ace in the hole",
+    "explainer_en": "A hidden or secret strength; an unrevealed advantage"
+  },
+  {
+    "kind": "idiom",
+    "english": "Achilles' heel",
+    "explainer_en": "A small but fatal weakness in spite of overall strength"
+  },
+  {
+    "kind": "idiom",
+    "english": "All ears",
+    "explainer_en": "Listening intently; fully focused or awaiting an explanation"
+  },
+  {
+    "kind": "idiom",
+    "english": "All thumbs",
+    "explainer_en": "Clumsy, awkward"
+  },
+  {
+    "kind": "idiom",
+    "english": "Apple of discord",
+    "explainer_en": "Anything causing trouble, discord, or jealousy"
+  },
+  {
+    "kind": "idiom",
+    "english": "Around the clock",
+    "explainer_en": "When something is done all day and all night without stopping"
+  },
+  {
+    "kind": "idiom",
+    "english": "At the drop of a hat",
+    "explainer_en": "Without any hesitation; instantly"
+  },
+  {
+    "kind": "idiom",
+    "english": "Back to the drawing board",
+    "explainer_en": "Revising something (such as a plan) from the beginning, typically after it has failed"
+  },
+  {
+    "kind": "idiom",
+    "english": "Back to the grindstone",
+    "explainer_en": "To return to a hard and/or tedious task"
+  },
+  {
+    "kind": "idiom",
+    "english": "Ball is in his/her/your court",
+    "explainer_en": "It is up to him/her/you to make the next decision or step."
+  },
+  {
+    "kind": "idiom",
+    "english": "Balls to the wall",
+    "explainer_en": "Full throttle; at maximum speed"
+  },
+  {
+    "kind": "idiom",
+    "english": "Barking up the wrong tree",
+    "explainer_en": "Looking in the wrong place"
+  },
+  {
+    "kind": "idiom",
+    "english": "Basket case",
+    "explainer_en": "One made powerless or ineffective, as by nerves, panic, or stress"
+  },
+  {
+    "kind": "idiom",
+    "english": "Beating a dead horse",
+    "explainer_en": "To uselessly dwell on a subject far beyond its point of resolution"
+  },
+  {
+    "kind": "idiom",
+    "english": "Bed of roses",
+    "explainer_en": "A situation or activity that is comfortable or easy"
+  },
+  {
+    "kind": "idiom",
+    "english": "Best of both worlds",
+    "explainer_en": "A combination of two seemingly contradictory benefits"
+  },
+  {
+    "kind": "idiom",
+    "english": "Bird brain",
+    "explainer_en": "A person who is not too smart; a person who acts stupid"
+  },
+  {
+    "kind": "idiom",
+    "english": "Bite off more than one can chew",
+    "explainer_en": "To take on more responsibility than one can manage"
+  },
+  {
+    "kind": "idiom",
+    "english": "Bite the dust",
+    "explainer_en": "A euphemism for dying or death"
+  },
+  {
+    "kind": "idiom",
+    "english": "Bought the farm",
+    "explainer_en": "A euphemism for dying or death, especially in an aviation or military context"
+  },
+  {
+    "kind": "idiom",
+    "english": "Break a leg",
+    "explainer_en": "A wish of good luck to theatre performers before going on stage, due to the belief amongst those in theatre that being wished \"good luck\" is a curse"
+  },
+  {
+    "kind": "idiom",
+    "english": "Bust one's chops",
+    "explainer_en": "To exert oneself"
+  },
+  {
+    "kind": "idiom",
+    "english": "By the seat of one's pants",
+    "explainer_en": "To achieve through instinct or to do something without advance preparation"
+  },
+  {
+    "kind": "idiom",
+    "english": "By the skin of one's teeth",
+    "explainer_en": "Narrowly; barely. Usually used in regard to a narrow escape from a disaster."
+  },
+  {
+    "kind": "idiom",
+    "english": "Call a spade a spade",
+    "explainer_en": "To speak the truth, even to the point of being blunt and rude"
+  },
+  {
+    "kind": "idiom",
+    "english": "Champ at the bit or chomp at the bit",
+    "explainer_en": "To show impatience or frustration when delayed"
+  },
+  {
+    "kind": "idiom",
+    "english": "Cheap as chips",
+    "explainer_en": "Inexpensive; a good bargain"
+  },
+  {
+    "kind": "idiom",
+    "english": "Chew the cud",
+    "explainer_en": "To meditate or ponder before answering; to be deep in thought; to ruminate"
+  },
+  {
+    "kind": "idiom",
+    "english": "Chew the fat",
+    "explainer_en": "To chat idly or generally waste time talking"
+  },
+  {
+    "kind": "idiom",
+    "english": "Chink in one's armor",
+    "explainer_en": "An area of vulnerability"
+  },
+  {
+    "kind": "idiom",
+    "english": "Clam up",
+    "explainer_en": "To become silent; to stop talking"
+  },
+  {
+    "kind": "idiom",
+    "english": "Cold shoulder",
+    "explainer_en": "To display aloofness and disdain"
+  },
+  {
+    "kind": "idiom",
+    "english": "Couch potato",
+    "explainer_en": "A lazy person"
+  },
+  {
+    "kind": "idiom",
+    "english": "Cut a rug",
+    "explainer_en": "To dance"
+  },
+  {
+    "kind": "idiom",
+    "english": "Cut off your nose to spite your face",
+    "explainer_en": "To pursue revenge in a way that would damage oneself more than the object of one's anger"
+  },
+  {
+    "kind": "idiom",
+    "english": "Cut the cheese (US)",
+    "explainer_en": "To pass gas"
+  },
+  {
+    "kind": "idiom",
+    "english": "Dicking around",
+    "explainer_en": "Messing about, not making any progress"
+  },
+  {
+    "kind": "idiom",
+    "english": "Dig one's heels in",
+    "explainer_en": "Refuse to change one's plans or ideas, especially when counseled otherwise"
+  },
+  {
+    "kind": "idiom",
+    "english": "Dodge a bullet",
+    "explainer_en": "Avoid something bad, harmful, or unpleasant"
+  },
+  {
+    "kind": "idiom",
+    "english": "Dollars to donuts",
+    "explainer_en": "Assert certainty that something is either true or likely to occur, often expressed as a wager of something expensive (dollars) against something cheap (donuts)"
+  },
+  {
+    "kind": "idiom",
+    "english": "Don't bite the hand that feeds you",
+    "explainer_en": "Don't be ungrateful to individuals who aid you"
+  },
+  {
+    "kind": "idiom",
+    "english": "Don't cry over spilled milk",
+    "explainer_en": "Don't become upset over something that has already happened and you cannot change"
+  },
+  {
+    "kind": "idiom",
+    "english": "Don't have a cow",
+    "explainer_en": "Don't overreact"
+  },
+  {
+    "kind": "idiom",
+    "english": "Drop a dime (US)",
+    "explainer_en": "To make a telephone call; to be an informant; (basketball) an assist"
+  },
+  {
+    "kind": "idiom",
+    "english": "Elephant in the room",
+    "explainer_en": "An obvious, pressing issue left unaddressed due to its sensitive nature"
+  },
+  {
+    "kind": "idiom",
+    "english": "Eleventh hour",
+    "explainer_en": "At the last minute; the latest possible time before it is too late"
+  },
+  {
+    "kind": "idiom",
+    "english": "Fall off the turnip truck",
+    "explainer_en": "To be naïve, inexperienced, or unsophisticated. Sometimes used in a rural sense."
+  },
+  {
+    "kind": "idiom",
+    "english": "Fish out of water",
+    "explainer_en": "refers to a person who is in unfamiliar, and often uncomfortable surroundings"
+  },
+  {
+    "kind": "idiom",
+    "english": "Fit as a fiddle",
+    "explainer_en": "In good physical health"
+  },
+  {
+    "kind": "idiom",
+    "english": "Fly in the ointment",
+    "explainer_en": "A minor drawback or imperfection, especially one that was not at first apparent, that detracts from something positive, spoils something valuable, or is a source of annoyance"
+  },
+  {
+    "kind": "idiom",
+    "english": "Fly on the wall",
+    "explainer_en": "To join an otherwise private interaction, unnoticed to watch and/or listen to something"
+  },
+  {
+    "kind": "idiom",
+    "english": "For a song",
+    "explainer_en": "Almost free; very cheap"
+  },
+  {
+    "kind": "idiom",
+    "english": "From A to Z",
+    "explainer_en": "Covering a complete range; comprehensively"
+  },
+  {
+    "kind": "idiom",
+    "english": "From scratch / make from scratch",
+    "explainer_en": "To make from original ingredients; to start from the beginning with no prior preparation"
+  },
+  {
+    "kind": "idiom",
+    "english": "Get a wriggle on",
+    "explainer_en": "To move quickly or hurry"
+  },
+  {
+    "kind": "idiom",
+    "english": "Get bent out of shape",
+    "explainer_en": "To take offense; to get worked up, aggravated, or annoyed"
+  },
+  {
+    "kind": "idiom",
+    "english": "Get one's ducks in a row",
+    "explainer_en": "to become well prepared for a desired outcome"
+  },
+  {
+    "kind": "idiom",
+    "english": "Get one's knickers in a twist",
+    "explainer_en": "(UK) To become overwrought or unnecessarily upset over a trivial matter"
+  },
+  {
+    "kind": "idiom",
+    "english": "Get one's panties in a wad",
+    "explainer_en": "To become overwrought or unnecessarily upset over a trivial matter"
+  },
+  {
+    "kind": "idiom",
+    "english": "Get your goat",
+    "explainer_en": "To irritate someone"
+  },
+  {
+    "kind": "idiom",
+    "english": "Gone south",
+    "explainer_en": "having an unforeseen or chaotic result"
+  },
+  {
+    "kind": "idiom",
+    "english": "Grasp the nettle",
+    "explainer_en": "To tackle a problem in a bold manner, despite the difficulty or complexity of doing so; to solve a problem despite short-term adverse consequences."
+  },
+  {
+    "kind": "idiom",
+    "english": "Have a blast",
+    "explainer_en": "To have a good time; to enjoy oneself."
+  },
+  {
+    "kind": "idiom",
+    "english": "Have eyes bigger than one's stomach",
+    "explainer_en": "To have asked for or taken more of something (especially food) than one is actually capable of handling (or eating)"
+  },
+  {
+    "kind": "idiom",
+    "english": "Have eyes in the back of one's head",
+    "explainer_en": "To be able to perceive things and events that are outside of one's field of vision"
+  },
+  {
+    "kind": "idiom",
+    "english": "Head over heels",
+    "explainer_en": "Be smitten, infatuated"
+  },
+  {
+    "kind": "idiom",
+    "english": "Heard it through the grapevine",
+    "explainer_en": "To have learned something through gossip, hearsay, or a rumor"
+  },
+  {
+    "kind": "idiom",
+    "english": "Hit the ceiling/roof",
+    "explainer_en": "To become enraged, possibly in an overreaction"
+  },
+  {
+    "kind": "idiom",
+    "english": "Hit the road",
+    "explainer_en": "To leave; start a journey"
+  },
+  {
+    "kind": "idiom",
+    "english": "Hit the sack/sheets/hay",
+    "explainer_en": "To go to bed; to go to sleep."
+  },
+  {
+    "kind": "idiom",
+    "english": "Hit the spot",
+    "explainer_en": "To be particularly pleasing or appropriate; to be just right."
+  },
+  {
+    "kind": "idiom",
+    "english": "Hold all the cards",
+    "explainer_en": "To control a situation; to be the one making the decisions."
+  },
+  {
+    "kind": "idiom",
+    "english": "Hold your horses",
+    "explainer_en": "Wait. Slow down. Be stable."
+  },
+  {
+    "kind": "idiom",
+    "english": "Hook, line and sinker",
+    "explainer_en": "To be completely fooled by a deception"
+  },
+  {
+    "kind": "idiom",
+    "english": "In over one's head",
+    "explainer_en": "Overwhelmed or exasperated, usually by excessive responsibilities"
+  },
+  {
+    "kind": "idiom",
+    "english": "It is what it is",
+    "explainer_en": "This challenging circumstance is simply a fact, to be accepted or dealt with."
+  },
+  {
+    "kind": "idiom",
+    "english": "Jump ship",
+    "explainer_en": "To leave a job, organization, or activity suddenly"
+  },
+  {
+    "kind": "idiom",
+    "english": "Jumping the shark",
+    "explainer_en": "A creative work, an idea or entity reaching a point in which it has exhausted its core intent and is introducing new ideas that are discordant with its original purpose"
+  },
+  {
+    "kind": "idiom",
+    "english": "Kick the bucket",
+    "explainer_en": "A euphemism for dying or death"
+  },
+  {
+    "kind": "idiom",
+    "english": "Kick the habit",
+    "explainer_en": "To stop engaging in a habitual practice"
+  },
+  {
+    "kind": "idiom",
+    "english": "Kill two birds with one stone",
+    "explainer_en": "To accomplish two different tasks at the same time and/or with a single action"
+  },
+  {
+    "kind": "idiom",
+    "english": "King's ransom",
+    "explainer_en": "A large sum of money"
+  },
+  {
+    "kind": "idiom",
+    "english": "Like pulling teeth",
+    "explainer_en": "Having difficulty in getting a person or item to act in a desired fashion; reference to a difficult task."
+  },
+  {
+    "kind": "idiom",
+    "english": "Look a gift horse in the mouth",
+    "explainer_en": "To find fault with something that has been received as a gift or favor"
+  },
+  {
+    "kind": "idiom",
+    "english": "Loose cannon",
+    "explainer_en": "A person who is uncontrollable and unpredictable but likely to cause damage to the group of which they are a member"
+  },
+  {
+    "kind": "idiom",
+    "english": "Method to (one's) madness",
+    "explainer_en": "Despite one's seemingly random approach, there is actually orderly structure or logic to it."
+  },
+  {
+    "kind": "idiom",
+    "english": "Mum's the word",
+    "explainer_en": "To keep silent or quiet."
+  },
+  {
+    "kind": "idiom",
+    "english": "My two cents",
+    "explainer_en": "(Canada and US) One's opinion on the subject"
+  },
+  {
+    "kind": "idiom",
+    "english": "Nip (something) in the bud",
+    "explainer_en": "To stop something at an early stage, before it can develop into something of more significance (especially an obstacle or frustration)"
+  },
+  {
+    "kind": "idiom",
+    "english": "No horse in this race or no dog in this fight",
+    "explainer_en": "No vested interest in the outcome of a particular conflict, contest or debate"
+  },
+  {
+    "kind": "idiom",
+    "english": "Off one's trolley or off one's rocker",
+    "explainer_en": "Crazy, demented, out of one's mind, in a confused or befuddled state of mind, senile"
+  },
+  {
+    "kind": "idiom",
+    "english": "Off the hook",
+    "explainer_en": "To escape a situation of responsibility or obligation, or, less frequently, danger"
+  },
+  {
+    "kind": "idiom",
+    "english": "Own goal",
+    "explainer_en": "To do something accidentally negative against yourself or your own team"
+  },
+  {
+    "kind": "idiom",
+    "english": "Part and parcel",
+    "explainer_en": "The attribute of being an integral or essential component of another object"
+  },
+  {
+    "kind": "idiom",
+    "english": "Pop one's clogs",
+    "explainer_en": "(UK) A euphemism for dying or death"
+  },
+  {
+    "kind": "idiom",
+    "english": "Preaching to the choir",
+    "explainer_en": "To present a side of a discussion or argument to someone who already agrees with it; essentially, wasting your time."
+  },
+  {
+    "kind": "idiom",
+    "english": "Pull somebody's leg",
+    "explainer_en": "To tease or joke by telling a lie"
+  },
+  {
+    "kind": "idiom",
+    "english": "Push the envelope",
+    "explainer_en": "To approach, extend, or go beyond the limits of what is possible; to pioneer."
+  },
+  {
+    "kind": "idiom",
+    "english": "Pushing up daisies",
+    "explainer_en": "A euphemism for dying or death"
+  },
+  {
+    "kind": "idiom",
+    "english": "Put the cat among the pigeons",
+    "explainer_en": "To create a disturbance and cause trouble"
+  },
+  {
+    "kind": "idiom",
+    "english": "Raining cats and dogs",
+    "explainer_en": "Raining very hard or strongly"
+  },
+  {
+    "kind": "idiom",
+    "english": "Right as rain",
+    "explainer_en": "Needed, appropriate, essential, or hoped-for; also has come to mean perfect, well, or absolutely right."
+  },
+  {
+    "kind": "idiom",
+    "english": "Rock the boat",
+    "explainer_en": "To do or say something that will upset people or cause problems"
+  },
+  {
+    "kind": "idiom",
+    "english": "Screw the pooch",
+    "explainer_en": "To screw up; to fail in dramatic and ignominious fashion."
+  },
+  {
+    "kind": "idiom",
+    "english": "See a man about a dog",
+    "explainer_en": "A euphemistic way to announce one's departure while concealing the true purpose."
+  },
+  {
+    "kind": "idiom",
+    "english": "Shoot the breeze",
+    "explainer_en": "To chat idly or casually, without any serious topic of conversation"
+  },
+  {
+    "kind": "idiom",
+    "english": "Shooting fish in a barrel",
+    "explainer_en": "Frivolously performing a simple task"
+  },
+  {
+    "kind": "idiom",
+    "english": "Sleep with the fishes",
+    "explainer_en": "To be murdered and thrown into a body of water"
+  },
+  {
+    "kind": "idiom",
+    "english": "Snake in the grass",
+    "explainer_en": "An unrecognizable danger or hidden enemy"
+  },
+  {
+    "kind": "idiom",
+    "english": "Spin one's wheels",
+    "explainer_en": "To expel much effort for little or no gain"
+  },
+  {
+    "kind": "idiom",
+    "english": "Step up to the plate",
+    "explainer_en": "To deliver beyond expectations"
+  },
+  {
+    "kind": "idiom",
+    "english": "Stick out like a sore thumb",
+    "explainer_en": "Something that is clearly out of place"
+  },
+  {
+    "kind": "idiom",
+    "english": "Straw that broke the camel's back",
+    "explainer_en": "The last in a line of unacceptable occurrences; the final tipping point in a sensitive situation."
+  },
+  {
+    "kind": "idiom",
+    "english": "Take (or grab) the bull by the horns",
+    "explainer_en": "To deal bravely and decisively with a difficult, dangerous, or unpleasant situation; to deal with a matter in a direct manner, especially to confront a difficulty rather than avoid it."
+  },
+  {
+    "kind": "idiom",
+    "english": "Take a shine",
+    "explainer_en": "To develop a liking or fondness for someone or something"
+  },
+  {
+    "kind": "idiom",
+    "english": "Take the biscuit",
+    "explainer_en": "(UK) To be particularly bad, objectionable, or egregious"
+  },
+  {
+    "kind": "idiom",
+    "english": "Take the cake",
+    "explainer_en": "(US) To be especially good or outstanding. Alternatively (US) To be particularly bad, objectionable, or egregious."
+  },
+  {
+    "kind": "idiom",
+    "english": "Take the piss",
+    "explainer_en": "(UK) To tease, ridicule, or mock someone"
+  },
+  {
+    "kind": "idiom",
+    "english": "Take with a grain of salt",
+    "explainer_en": "To not take what someone says too seriously; to treat someone's words with a degree of skepticism."
+  },
+  {
+    "kind": "idiom",
+    "english": "The bee's knees",
+    "explainer_en": "Something or someone outstandingly good, excellent, or wonderful"
+  },
+  {
+    "kind": "idiom",
+    "english": "The oldest trick in the book",
+    "explainer_en": "An effective way of tricking someone even though it is a very popular method"
+  },
+  {
+    "kind": "idiom",
+    "english": "The pot calling the kettle black",
+    "explainer_en": "Used when someone making an accusation is equally as guilty as those being accused"
+  },
+  {
+    "kind": "idiom",
+    "english": "The whole nine yards",
+    "explainer_en": "Everything; all the way"
+  },
+  {
+    "kind": "idiom",
+    "english": "Through thick and thin",
+    "explainer_en": "through all obstacles in a path; in good times and bad times"
+  },
+  {
+    "kind": "idiom",
+    "english": "Throw stones in glass houses",
+    "explainer_en": "One who is vulnerable to criticism regarding a certain issue should not criticize others about the same issue."
+  },
+  {
+    "kind": "idiom",
+    "english": "Throw the baby out with the bathwater",
+    "explainer_en": "To discard, especially inadvertently, something valuable while in the process of removing or rejecting something unwanted"
+  },
+  {
+    "kind": "idiom",
+    "english": "Throw under the bus",
+    "explainer_en": "To betray or sacrifice someone for selfish reasons"
+  },
+  {
+    "kind": "idiom",
+    "english": "Thumb one's nose",
+    "explainer_en": "To express scorn or disregard"
+  },
+  {
+    "kind": "idiom",
+    "english": "Tie one on",
+    "explainer_en": "To get drunk"
+  },
+  {
+    "kind": "idiom",
+    "english": "To and fro or toing and froing",
+    "explainer_en": "To move from one place to another; going back and forth; here and there."
+  },
+  {
+    "kind": "idiom",
+    "english": "To steal someone's thunder",
+    "explainer_en": "To preempt someone and rob them of gravitas or attention. To take credit for something someone else did."
+  },
+  {
+    "kind": "idiom",
+    "english": "Trip the light fantastic",
+    "explainer_en": "To dance"
+  },
+  {
+    "kind": "idiom",
+    "english": "Two a penny",
+    "explainer_en": "Cheap or common"
+  },
+  {
+    "kind": "idiom",
+    "english": "Under one's thumb",
+    "explainer_en": "Under one's control"
+  },
+  {
+    "kind": "idiom",
+    "english": "Wikt:cut the mustard",
+    "explainer_en": "To perform well; to meet expectations"
+  },
+  {
+    "kind": "idiom",
+    "english": "Wild goose chase",
+    "explainer_en": "A frustrating or lengthy undertaking that accomplishes little"
+  },
+  {
+    "kind": "idiom",
+    "english": "Willy-nilly",
+    "explainer_en": "An activity, situation, decision or event that happens in a disorganized manner; or it is done haphazardly, chaotically and randomly, without any sort of planning or direction."
+  },
+  {
+    "kind": "idiom",
+    "english": "You can say that again",
+    "explainer_en": "That is very true; an expression of wholehearted agreement."
+  },
+  {
+    "kind": "proverb",
+    "english": "A bird in the hand is worth two in the bush",
+    "explainer_en": "What you already hold is worth more than a bigger thing you might not get."
+  },
+  {
+    "kind": "proverb",
+    "english": "A chain is only as strong as its weakest link",
+    "explainer_en": "A group fails at its weakest point, however strong the rest."
+  },
+  {
+    "kind": "proverb",
+    "english": "A fool and his money are soon parted",
+    "explainer_en": "Money slips away from someone who does not think about how they spend it."
+  },
+  {
+    "kind": "proverb",
+    "english": "A journey of a thousand miles begins with a single step",
+    "explainer_en": "The longest task starts with one small move."
+  },
+  {
+    "kind": "proverb",
+    "english": "A leopard cannot change its spots",
+    "explainer_en": "A person's deep habits do not change."
+  },
+  {
+    "kind": "proverb",
+    "english": "A penny saved is a penny earned",
+    "explainer_en": "Money kept is as good as money earned."
+  },
+  {
+    "kind": "proverb",
+    "english": "A picture is worth a thousand words",
+    "explainer_en": "One image can say what a long description struggles to."
+  },
+  {
+    "kind": "proverb",
+    "english": "All good things must come to an end",
+    "explainer_en": "Every good thing eventually finishes."
+  },
+  {
+    "kind": "proverb",
+    "english": "All roads lead to Rome",
+    "explainer_en": "Many different ways can reach the same result."
+  },
+  {
+    "kind": "proverb",
+    "english": "An apple a day keeps the doctor away",
+    "explainer_en": "Small daily care keeps you well."
+  },
+  {
+    "kind": "proverb",
+    "english": "An ounce of prevention is worth a pound of cure",
+    "explainer_en": "Stopping trouble early costs less than repairing it later."
+  },
+  {
+    "kind": "proverb",
+    "english": "As you sow so shall you reap",
+    "explainer_en": "Your results come from what you put in."
+  },
+  {
+    "kind": "proverb",
+    "english": "Beggars cannot be choosers",
+    "explainer_en": "When you are in need, you take what you are given."
+  },
+  {
+    "kind": "proverb",
+    "english": "Blood is thicker than water",
+    "explainer_en": "Family ties hold stronger than other ties."
+  },
+  {
+    "kind": "proverb",
+    "english": "Charity begins at home",
+    "explainer_en": "Care for your own family and community first."
+  },
+  {
+    "kind": "proverb",
+    "english": "Cleanliness is next to godliness",
+    "explainer_en": "Being clean sits close to being good."
+  },
+  {
+    "kind": "proverb",
+    "english": "Curiosity killed the cat",
+    "explainer_en": "Asking too much can bring trouble."
+  },
+  {
+    "kind": "proverb",
+    "english": "Do not put all your eggs in one basket",
+    "explainer_en": "Do not risk everything on one chance."
+  },
+  {
+    "kind": "proverb",
+    "english": "Familiarity breeds contempt",
+    "explainer_en": "Knowing someone too closely can breed disrespect."
+  },
+  {
+    "kind": "proverb",
+    "english": "Give a man a fish and you feed him for a day. Teach a man to fish and you feed him for a lifetime",
+    "explainer_en": "Help once and it lasts a day; teach the skill and it lasts a lifetime."
+  },
+  {
+    "kind": "proverb",
+    "english": "Good things come to those who wait",
+    "explainer_en": "Patience is rewarded."
+  },
+  {
+    "kind": "proverb",
+    "english": "Ignorance is bliss",
+    "explainer_en": "Not knowing something can spare you worry."
+  },
+  {
+    "kind": "proverb",
+    "english": "It takes two to tango",
+    "explainer_en": "A quarrel or a deal needs both sides to take part."
+  },
+  {
+    "kind": "proverb",
+    "english": "Many hands make light work",
+    "explainer_en": "A task is easy when many people share it."
+  },
+  {
+    "kind": "proverb",
+    "english": "No man is an island",
+    "explainer_en": "Nobody manages entirely alone."
+  },
+  {
+    "kind": "proverb",
+    "english": "One man's trash is another man's treasure",
+    "explainer_en": "What one person throws away, another values."
+  },
+  {
+    "kind": "proverb",
+    "english": "Silence is golden",
+    "explainer_en": "Saying nothing is often the wisest choice."
+  },
+  {
+    "kind": "proverb",
+    "english": "The squeaky wheel gets the grease",
+    "explainer_en": "The one who speaks up gets attention."
+  },
+  {
+    "kind": "proverb",
+    "english": "Where there is a will there is a way",
+    "explainer_en": "If you truly want it, you will find a way."
+  },
+  {
+    "kind": "proverb",
+    "english": "You cannot have your cake and eat it too",
+    "explainer_en": "You cannot keep a thing and use it up as well."
+  }
+]

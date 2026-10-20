@@ -107,14 +107,17 @@ const JS = `(function(){var S=window.STRINGS||{};
 function t(k,f){var s=S[k];return s&&s.pai?s.pai:(s&&s.en)||f}
 document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
 var q=document.getElementById("q"),sr=S.search;if(sr&&sr.pai){q.placeholder=q.ariaLabel=sr.pai+" / "+sr.en;q.setAttribute("aria-label",q.placeholder)}
-var dir="all";
+var dir="pai2en";
 function apply(){var v=q.value.trim().toLowerCase();
+var pn=document.getElementById("paite-thin");if(pn)pn.hidden=dir!=="pai2en";
+var wn=document.getElementById("waiting");if(wn){var jb=wn.querySelector(".jump");if(jb)jb.hidden=dir==="en2pai"}
 document.querySelectorAll(".gl li").forEach(function(li){li.hidden=!(dir==="all"||li.dataset.dir===dir)||(!!v&&li.dataset.q.indexOf(v)<0)});
 document.querySelectorAll(".gl details.rows").forEach(function(g){var live=g.querySelectorAll("li:not([hidden])");g.hidden=!live.length;
 var c=g.querySelector(".cnt");if(c)c.textContent=live.length;if(v||dir!=="all")g.open=!!live.length})}
-document.querySelectorAll(".filters button").forEach(function(b){b.addEventListener("click",function(){dir=b.dataset.dir;
-document.querySelectorAll(".filters button").forEach(function(x){x.setAttribute("aria-pressed",String(x===b))});apply()})});
+function setDir(d){dir=d;document.querySelectorAll(".filters button").forEach(function(x){x.setAttribute("aria-pressed",String(x.dataset.dir===d))});apply()}
+document.querySelectorAll("button[data-dir]").forEach(function(b){b.addEventListener("click",function(){setDir(b.dataset.dir)})});
 q.addEventListener("input",apply);
+apply();
 function openHash(){var l=document.getElementById(location.hash.slice(1));if(!l)return;var d=l.querySelector("details");if(d)d.open=true;
 var g=l.closest("details.rows");if(g)g.open=true;l.scrollIntoView()}
 openHash();addEventListener("hashchange",openHash);
@@ -190,6 +193,7 @@ export function renderProverbs(xs: Proverb[], siteKey = ""): string {
     groups.set(k, [...(groups.get(k) ?? []), p]);
   }
   const waiting = xs.filter((p) => !p.paite).length;
+  const paiteCount = xs.length - waiting;
   const body = groups.size
     ? [...groups]
         .map(
@@ -236,8 +240,9 @@ export function renderProverbs(xs: Proverb[], siteKey = ""): string {
 <header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="proverbsTitle">Proverbs &amp; Idioms</h1><p data-s="proverbsLine">The sayings our elders use, and what each one means.</p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
-<p class="filters"><button type="button" data-dir="all" aria-pressed="true" data-s="filterAll">All</button><button type="button" data-dir="pai2en" aria-pressed="false" data-s="filterPai2En">Paite &rarr; English</button><button type="button" data-dir="en2pai" aria-pressed="false" data-s="filterEn2Pai">English &rarr; Paite</button></p>
-${waiting ? `<p class="note"><span data-s="waitingNote">English idioms and proverbs are here for translation into Paite.</span> ${waiting} waiting.</p>` : ""}
+<p class="filters"><button type="button" data-dir="all" aria-pressed="false" data-s="filterAll">All</button><button type="button" data-dir="pai2en" aria-pressed="true" data-s="filterPai2En">Paite &rarr; English</button><button type="button" data-dir="en2pai" aria-pressed="false" data-s="filterEn2Pai">English &rarr; Paite</button></p>
+${paiteCount < 5 ? `<p class="note" id="paite-thin"><span data-s="paiteThin">Paite sayings are still being gathered. The English list is open for translating.</span></p>` : ""}
+${waiting ? `<p class="note" id="waiting"><span data-s="waitingNote">English idioms and proverbs are here for translation into Paite.</span> ${waiting} waiting. <button type="button" class="jump" data-dir="en2pai" data-s="filterEn2Pai">English &rarr; Paite</button></p>` : ""}
 ${body}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a Sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
 ${FOOTER}

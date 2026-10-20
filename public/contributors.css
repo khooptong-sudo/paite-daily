@@ -194,6 +194,7 @@
 .gl .n.by { font-size: .82rem; }
 /* The translate form on an English saying that is waiting for its Paite line. */
 .gl .note { margin: 12px 0 0; color: var(--muted); font-size: .9rem; }
+.gl .note .jump { background: none; border: 0; padding: 0; font: inherit; font-size: .9rem; text-decoration: underline; cursor: pointer; color: var(--fg); }
 .gl details.tr { margin-top: 10px; padding: 0; border-top: 1px solid var(--line); }
 .gl details.tr > summary { font-size: .9rem; font-weight: 700; padding: 10px 0 0; list-style: none; }
 .gl details.tr > summary::-webkit-details-marker { display: none; }
