@@ -1,5 +1,56 @@
 Newest first. Each session prepends one section directly under this line.
 
+## ✅ 20102026 EoS — sayings you can translate, reviewer credit everywhere, and a chat demo that cannot lie
+
+### Shipped
+
+- **Proverbs & Idioms** (`/proverbs`): fixed pairs of Paite line + English line + explainer, submitted from the front page in either
+  direction, reviewed before they appear. The page opens on **Paite → English** (the owner's default; the Paite list is his to supply)
+  and says plainly that it is still being gathered, with a one-tap jump to the English side.
+- **A real English list to translate**: 172 sourced sayings added (142 idioms, 30 proverbs) on top of the 51 already seeded, so 224
+  English lines wait for a Paite version. Idioms and their definitions come from Wikipedia's *English-language idioms* table; the
+  proverbs come from *List of proverbial phrases* and carry a one-line gloss we wrote. Deduplicated against every seed file, which
+  needed a punctuation-stripped key — the seeder only catches exact repeats, so `Don't judge a book…` and `An arm and a leg` slipped past it.
+- **Reviewer credit on every reviewed entity**, not just sayings: `glossary.reviewed_by` (migration `0020`) is written when a word
+  submission is approved, taking the reviewer's name from the `reviewers` table with their email as fallback; `/glossary` and
+  `glossary.json` read `Added by X · Reviewed by Y`; the sentence feedback card signs the reviewer's note. Existing history was
+  backfilled from `word_submissions.decided_by` — 309 rows, 301 resolving to a name.
+- **Chat demo at the top of the front page** (`src/chat.ts`, `public/chat.js`): five conversations built only from verified pairs, plus
+  a lookup that answers from the corpus or says it cannot. No generation. A miss offers *Ask contributors for this line*, stored in
+  `chat_wants` (migration `0021`, deduped, counted) — the most-wanted uncovered lines are the next prompts for refill. Returning
+  contributors see the card folded to one line.
+- **Daily caps removed** for the word, meaning, saying-translation and saying-submission forms. The only remaining limits are ten
+  answers a minute on sentences and the reviewer-application day cap.
+- **UI corrections**: `Translate into Paite` is a bordered row with a chevron instead of a caption; the send button in that form was a
+  black circle (Paite label stacked over English inside a 999px radius) and is now a normal pill; the sayings card gained a quiet arrow
+  to `/proverbs` and the name **Paunakte leh Pau Upa / Pau Kulmut**.
+
+Migrations: `0020_glossary_reviewed.sql`, `0021_chat_wants.sql`. HEAD `ad5455d`. 376 tests, `tsc` clean, cache `v16`.
+
+### What needs updating
+
+- **The reviewer queue is still the missing piece.** Sayings, words and sentence corrections all land `pending`, and nothing in the UI
+  lists them. Until it exists, the reviewer credit added this week stays invisible in practice.
+- `chat_wants` is written but not read: `wantedLines()` exists and is unused. Wire it into `refill` (behind the same lock) so demand
+  actually becomes sentences.
+- No live translation box, by decision. If one is ever added, it must be badged as an AI draft and never presented as reviewed.
+- The corpus still carries 11 accepted answers that are English on both sides, 8 with `/` alternates and 8 under ten characters. The
+  chat demo filters them out rather than fixing them; a reviewer pass over those rows would let more lines into the demo.
+- `Where do you live?` has a two-variant accepted answer, so it cannot appear in a scene until someone picks one.
+
+### Facts worth not rediscovering
+
+- Chat scenes are English-only in code and look Paite up at request time, so a scene cannot show an unreviewed rendering and heals
+  when a pair is corrected. Do not bake Paite strings into `SCENES`.
+- The lookup scores F1 over content words with a 0.7 floor. `how`, `what` and `where` must stay out of the `STOP` set or
+  "how much is this" becomes zero tokens and matches nothing.
+- `small { display: block; color: var(--muted) }` is global: inside a dark button the English label renders black-on-black. Set
+  `display:inline; color:inherit` in the button's own rule.
+- The sayings page script must call `apply()` on load or the first paint ignores `var dir="pai2en"` and shows everything.
+- `wrangler dev` can leave two listeners on one port; requests hang and curl reports `000`. Kill the node parents by PID from
+  `Get-CimInstance Win32_Process | ? CommandLine -match wrangler`, then confirm with `netstat` before restarting.
+- Push with `git -c credential.helper='!gh auth git-credential' push origin main`; a plain push waits for a TTY that never arrives.
+
 ## ✅ 16102026 EoS — hardening, error tracking, backups, social cards, contact
 
 ### Shipped
