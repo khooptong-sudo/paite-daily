@@ -151,7 +151,7 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .chips::-webkit-scrollbar { display: none; }
 .chip { flex: none; padding: .38em .85em; border-radius: 1em; border: 1px solid var(--line); background: transparent; color: var(--fg); font: inherit; font-size: .85rem; cursor: pointer; }
 .chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
-.thread { display: grid; gap: 9px; max-height: 420px; overflow-y: auto; padding-right: 2px; }
+.thread { display: grid; gap: 9px; }
 .turn { display: grid; gap: 3px; max-width: 90%; }
 .turn.they { justify-self: start; }
 .turn.me { justify-self: end; text-align: right; }
