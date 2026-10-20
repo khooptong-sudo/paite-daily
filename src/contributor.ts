@@ -1,3 +1,4 @@
+import { buildScenes, matchChat, recordWant } from "./chat";
 import { handleApply } from "./apply";
 import { getGoal } from "./goal";
 import { badgeFor, getContributors } from "./contributors";
@@ -48,6 +49,18 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   if (pathname === "/api/apply" && req.method === "POST") return handleApply(req, env, deps, ctx);
   if (pathname === "/api/contributors" && req.method === "GET") return json(await getContributors(env), 200, "public, max-age=300");
   if (pathname === "/api/goal" && req.method === "GET") return json(await getGoal(env), 200, "public, max-age=300");
+
+  // The chat demo is for visitors: no session, no Turnstile. The only write is a
+  // line somebody asked for and we could not answer, which is deduped by wording.
+  if (pathname === "/api/chat/scenes" && req.method === "GET") return json({ scenes: await buildScenes(env) }, 200, "public, max-age=120");
+  if (pathname === "/api/chat/match" && req.method === "GET") {
+    const q = new URL(req.url).searchParams.get("q") ?? "";
+    return json({ match: await matchChat(env, q.slice(0, 200)) }, 200, "public, max-age=60");
+  }
+  if (pathname === "/api/chat/want" && req.method === "POST") {
+    const b = await body(req);
+    return (await recordWant(env, b.q)) ? json({ ok: true }) : json({ error: "bad_request" }, 400);
+  }
 
   const phoneId = await readSession(req.headers.get("X-Session"), deps.now(), env.SESSION_SECRET);
   if (!phoneId) return json({ error: "no_session" }, 401);

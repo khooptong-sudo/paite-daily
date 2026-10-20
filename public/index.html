@@ -45,6 +45,21 @@
     <ul id="fb-list"></ul>
     <button type="button" class="primary" id="fb-ok" data-s="gotIt"></button>
   </section>
+  <section class="card chat" id="chat" aria-labelledby="chat-h">
+    <div>
+      <div class="label" id="chat-h" data-s="chatTitle"></div>
+      <p class="hello" id="chat-hello">Zingpha! Na dam hia?</p>
+      <p class="hello-en" data-s="chatHelloEn"></p>
+    </div>
+    <div class="chips" id="chat-chips" role="group" aria-label="Sample conversations"></div>
+    <div class="thread" id="chat-thread" aria-live="polite"></div>
+    <form class="ask" id="chat-form" novalidate>
+      <input id="chat-q" type="text" autocomplete="off" autocapitalize="sentences" maxlength="120">
+      <button type="submit" class="primary" data-s="chatAsk"></button>
+    </form>
+    <p class="chat-note" id="chat-note" data-s="chatNote"></p>
+    <button type="button" class="chat-more" id="chat-more" data-s="chatShow"></button>
+  </section>
   <section class="card">
     <div class="label" id="label" data-s="translate"></div>
     <p class="sentence" id="sentence" aria-live="polite"></p>
@@ -162,6 +177,7 @@
 </main>
 <script src="/strings.js"></script>
 <script src="/app.js"></script>
+<script src="/chat.js"></script>
 <script src="/footer.js"></script>
 <script src="/pwa.js"></script>
 <script src="/track.js"></script>

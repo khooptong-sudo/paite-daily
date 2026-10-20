@@ -142,3 +142,35 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
   .card .dirs { grid-template-columns: 1fr 1fr; gap: 26px; }
   .card .saying + .saying { border-left: 1px solid var(--line); padding-left: 26px; }
 }
+
+/* Front-page chat demo: five reviewed conversations, and a lookup that answers
+   only from the corpus. Colours come from the same tokens as everything else. */
+.chat .hello { font: 400 1.45rem/1.25 var(--display); margin: 6px 0 0; }
+.chat .hello-en { color: var(--muted); font-size: .9rem; margin: 2px 0 0; }
+.chips { display: flex; gap: 8px; overflow-x: auto; margin: 0 -4px; padding: 2px 4px 4px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; padding: .38em .85em; border-radius: 1em; border: 1px solid var(--line); background: transparent; color: var(--fg); font: inherit; font-size: .85rem; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.thread { display: grid; gap: 9px; max-height: 420px; overflow-y: auto; padding-right: 2px; }
+.turn { display: grid; gap: 3px; max-width: 90%; }
+.turn.they { justify-self: start; }
+.turn.me { justify-self: end; text-align: right; }
+.turn .who { font-size: .7rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted); }
+.bub { padding: .55em .85em; border-radius: 16px; border: 1px solid var(--line); background: var(--bg); }
+.turn.they .bub { border-bottom-left-radius: 5px; }
+.turn.me .bub { border-bottom-right-radius: 5px; background: var(--accent); color: var(--accent-fg); border-color: var(--accent); }
+.bub .pai { font: 400 1.08rem/1.35 var(--display); }
+.bub .eng { font-size: .84rem; color: var(--muted); margin-top: 2px; }
+.turn.me .bub .eng { color: rgba(255, 255, 255, .78); }
+.chat .ask { display: flex; gap: 8px; }
+.chat .ask input { flex: 1; min-width: 0; }
+.chat .ask button { padding-inline: 1.1em; }
+.chat-note { font-size: .85rem; color: var(--muted); margin: 0; }
+.chat-more { justify-self: start; background: none; border: 0; padding: 0; color: var(--fg); font: inherit; font-size: .9rem; text-decoration: underline; cursor: pointer; }
+.chat.collapsed .chips, .chat.collapsed .thread, .chat.collapsed .ask, .chat.collapsed .chat-note { display: none; }
+.chat.collapsed .chat-more { display: block; }
+.chat:not(.collapsed) .chat-more { display: none; }
+.want { display: block; margin-top: 6px; background: none; border: 0; padding: 0; color: var(--fg); font: inherit; font-size: .9rem; text-decoration: underline; cursor: pointer; }
+.chat-note .answer { display: grid; gap: 2px; padding: .6em .85em; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+.chat-note .answer .pai { font: 400 1.15rem/1.35 var(--display); color: var(--fg); }
+.chat-note .answer .eng { font-size: .84rem; color: var(--muted); }
