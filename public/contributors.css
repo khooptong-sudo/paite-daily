@@ -204,7 +204,7 @@
 .gl .lbl { display: block; margin: 10px 0 4px; font-size: .82rem; color: var(--muted); }
 .gl textarea { width: 100%; padding: 10px 12px; font: inherit; font-size: .95rem; color: #000; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; resize: vertical; }
 .gl .send { font: inherit; font-weight: 700; display: inline-flex; align-items: baseline; gap: .45em; margin-top: 10px; padding: 10px 18px; border-radius: 12px; border: 1px solid var(--fg); background: var(--fg); color: var(--accent-fg); cursor: pointer; }
-.gl .send small { font-weight: 400; opacity: .8; }
+.gl .send small { display: inline; color: inherit; font-weight: 400; opacity: .8; }
 .gl .send[disabled] { opacity: .5; cursor: default; }
 .gl .st { margin: 8px 0 0; font-size: .88rem; min-height: 1.2em; }
 .gl .st.ok { font-weight: 700; }
