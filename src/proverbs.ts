@@ -193,7 +193,7 @@ function item(p: Proverb): string {
   // Credit both sides of a reviewed entry: who contributed it, and who cleared it.
   const credit = [p.by ? `Added by ${esc(p.by)}` : "", p.reviewed_by ? `Reviewed by ${esc(p.reviewed_by)}` : ""].filter(Boolean).join(" · ");
   const creditLine = credit ? `<p class="n by">${credit}</p>` : "";
-  return `<li id="p-${p.id}" data-dir="${p.entered_from}" data-q="${esc(q)}"><details open><summary><b class="w">${esc(first ?? "")}</b> ${other}${tag(p.kind)}</summary>${
+  return `<li id="p-${p.id}" data-st="${collecting ? "open" : "live"}" data-dir="${p.entered_from}" data-q="${esc(q)}"><details open><summary><b class="w">${esc(first ?? "")}</b> ${other}${tag(p.kind)}</summary>${
     p.explainer ? `<p class="n">${esc(p.explainer)}</p>` : ""
   }${p.explainer_en ? `<p class="n en">${esc(p.explainer_en)}</p>` : ""}${count}${creditLine}${collecting ? form(p) : ""}</details></li>`;
 }

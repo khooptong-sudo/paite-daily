@@ -197,3 +197,28 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .chat-note .answer { display: grid; gap: 2px; padding: .6em .85em; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
 .chat-note .answer .pai { font: 400 1.15rem/1.35 var(--display); color: var(--fg); }
 .chat-note .answer .eng { font-size: .84rem; color: var(--muted); }
+
+/* Forms: the place to type is obvious, and each form has one clear action.
+   White fields with a solid charcoal edge, no glass. Paite is typed in the display face.
+   The main button is solid black; the other button in a row (Skip) reads as a text link.
+   Errors are plain red text, not bold and underlined. */
+textarea, input:not([type=radio]):not([type=checkbox]), select { background: #fff; border: 1.5px solid #202223; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+textarea { font-family: var(--display); line-height: 1.35; }
+textarea:focus, input:not([type=radio]):not([type=checkbox]):focus, select:focus { outline: 3px solid rgba(0, 166, 81, .45); outline-offset: 1px; border-color: #000; }
+button.primary, .seg button[aria-pressed="true"] { background: #111; color: #fff; border-color: #111; box-shadow: 0 6px 16px -8px rgba(0, 0, 0, .5); -webkit-backdrop-filter: none; backdrop-filter: none; }
+button.primary:hover:not(:disabled) { background: #000; }
+button.primary small, .seg button[aria-pressed="true"] small { color: #d6d7d9; opacity: 1; }
+.actions { align-items: center; }
+.actions button:not(.primary) { flex: none; background: none; border: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; padding: 12px 8px; text-decoration: underline; text-underline-offset: 4px; color: #000; }
+.status { font-weight: 400; }
+.status.err { text-decoration: none; color: #b3141a; }
+
+/* Paite leads, English glosses: in the chat, Paite is the larger line and English a quiet italic. */
+.bub .pai { font-size: 1.28rem; }
+.bub .eng { font-style: italic; }
+/* The goal bar fills with the Puandum weave instead of plain black. */
+.goal-bar { height: 10px; background: #ececea; }
+.goal-bar i { background: repeating-linear-gradient(90deg, #d71920 0 10px, #f6ff00 10px 14px, #00a651 14px 20px, #111 20px 30px); }
+/* Fewer cards: the link rows (word list, sayings, contributors, app) become plain rows with
+   a rule between them, so only the forms read as cards. */
+.pan { background: transparent; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; border: 0; border-bottom: 1px solid rgba(0, 0, 0, .14); border-radius: 0; }

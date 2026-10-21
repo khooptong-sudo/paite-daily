@@ -102,7 +102,7 @@ document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];i
 var q=document.getElementById("q"),sr=S.search;if(sr&&sr.pai){q.placeholder=q.ariaLabel=sr.pai+" / "+sr.en;q.setAttribute("aria-label",q.placeholder)}q.addEventListener("input",function(){var t=q.value.trim().toLowerCase();
 document.querySelectorAll(".gl li").forEach(function(li){li.hidden=!!t&&li.dataset.q.indexOf(t)<0});
 document.querySelectorAll(".gl details.rows").forEach(function(g){var has=!!g.querySelector("li:not([hidden])");
-g.hidden=!has;g.open=t?has:false})});
+g.hidden=!has;g.open=t?has:true})});
 function openHash(){var l=document.getElementById(location.hash.slice(1));if(!l)return;var d=l.querySelector("details");if(d)d.open=true;
 var g=l.closest("details.rows");if(g)g.open=true;l.scrollIntoView()}
 openHash();addEventListener("hashchange",openHash);
@@ -116,8 +116,10 @@ export function renderGlossary(xs: Entry[]): string {
     groups.set(k, [...(groups.get(k) ?? []), e]);
   }
   const li = (e: Entry) => `<li id="w-${e.id}" data-q="${esc([e.paite, e.english, e.note, e.example?.paite, e.example?.english].filter(Boolean).join(" ").toLowerCase())}"><details><summary><b class="w">${esc(e.paite)}</b> <small class="m">${esc(e.english)}</small></summary><p class="m">${esc(e.english)}</p>${e.note ? `<span class="n">${esc(e.note)}</span>` : ""}${e.example ? `<span class="ex">${esc(e.example.paite)}<br>${esc(e.example.english)}</span>` : ""}${e.by || e.reviewed_by ? `<span class="n">${[e.by ? `Added by ${esc(e.by)}` : "", e.reviewed_by ? `Reviewed by ${esc(e.reviewed_by)}` : ""].filter(Boolean).join(" · ")}</span>` : `<span class="n" data-s="${e.source === "contributed" ? "srcContributed" : "srcNote"}">${e.source === "contributed" ? "Added by a contributor" : "From a contributor's note"}</span>`}</details></li>`;
+  // A to Z rail: one link per letter group, sticky above the list.
+  const rail = groups.size > 1 ? `<nav class="az" aria-label="Letters">${[...groups.keys()].map((k) => `<a href="#l-${esc(k)}">${esc(k)}</a>`).join("")}</nav>` : "";
   const body = groups.size
-    ? [...groups].map(([k, es]) => `<details class="rows" aria-label="${esc(k)}" data-letter="${esc(k)}"><summary><span class="ltr">${esc(k)}</span><span class="cnt">${es.length}</span></summary><ul>${es.map(li).join("")}</ul></details>`).join("")
+    ? [...groups].map(([k, es]) => `<details class="rows" open id="l-${esc(k)}" aria-label="${esc(k)}" data-letter="${esc(k)}"><summary><span class="ltr">${esc(k)}</span><span class="cnt">${es.length}</span></summary><ul>${es.map(li).join("")}</ul></details>`).join("")
     : '<p class="empty"><span data-s="glossaryEmpty">No words yet. Add the first one on the front page.</span> <a href="/">Paite Daily</a></p>';
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -155,7 +157,7 @@ export function renderGlossary(xs: Entry[]): string {
 <header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="glossaryTitle">Paite Word List</h1><p data-s="glossaryLine">Words from the notes of our contributors.</p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
-${body}
+${rail}${body}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a Sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="pan" href="/paite-daily.apk" download>
 <span><b data-s="getApp">Get the Android app</b><small data-s="getAppNote">Download the APK file.</small></span>
