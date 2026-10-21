@@ -3,6 +3,7 @@ import { handleOwnerReview } from "./apply";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
 import { REQUIRED_REVIEWERS, decideProverbAnswer, decideProverbPair, getProverbReviewList } from "./proverbreview";
+import { saveProverbReview } from "./proverbcard";
 
 /**
  * Two body shapes reach the saying endpoints. The older one is {id, accept},
@@ -89,6 +90,28 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     if (d === null) return json({ error: "bad_request" }, 400);
     const r = await decideProverbAnswer(env, email, b.id as number, d.accept, d.opts);
     if (r === "not_found") return json({ error: "not_found" }, 404);
+    if (r === "duplicate") return json({ error: "duplicate", message: "That Paite line already belongs to another saying." }, 409);
+    return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
+  }
+  // Whole card: accept one line (with a correction if the reviewer made one), keep
+  // others as variants, reject the rest, or reject all, or retire the saying.
+  if (pathname === "/review/api/proverbs/save" && req.method === "POST") {
+    if (!isId(b.proverbId)) return json({ error: "bad_request" }, 400);
+    if (b.acceptAnswerId !== undefined && !isId(b.acceptAnswerId)) return json({ error: "bad_request" }, 400);
+    if (b.finalPaite !== undefined && typeof b.finalPaite !== "string") return json({ error: "bad_request" }, 400);
+    if (b.note !== undefined && typeof b.note !== "string") return json({ error: "bad_request" }, 400);
+    if (b.alsoCorrect !== undefined && !isIdList(b.alsoCorrect)) return json({ error: "bad_request" }, 400);
+    const r = await saveProverbReview(env, email, {
+      proverbId: b.proverbId as number,
+      acceptAnswerId: b.acceptAnswerId as number | undefined,
+      finalPaite: b.finalPaite as string | undefined,
+      alsoCorrect: b.alsoCorrect as number[] | undefined,
+      note: b.note as string | undefined,
+      rejectAll: b.rejectAll === true,
+      retire: b.retire === true,
+    });
+    if (r === "not_found") return json({ error: "not_found" }, 404);
+    if (r === "bad_answer") return json({ error: "bad_answer", message: "That line is no longer open for review." }, 400);
     if (r === "duplicate") return json({ error: "duplicate", message: "That Paite line already belongs to another saying." }, 409);
     return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
   }

@@ -4,152 +4,215 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Sayings queue · Paite Review</title>
+<title>Sayings review · Paite Review</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
-:root{--ink:#12100e;--paper:#fdfcf9;--line:#e2ddd1;--muted:#6b665c;--crimson:#c21b33;--sage:#4f6b4a;--head:"Young Serif",Georgia,serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif}
+:root{--ink:#12100e;--paper:#f4f2ed;--card:#fffdf8;--line:#ddd7c9;--muted:#6b665c;--crimson:#b3253c;--sage:#4f6b4a;--head:"Young Serif",Georgia,serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif}
 *{box-sizing:border-box}
-body{margin:0;padding:28px 18px 80px;background:var(--paper);color:var(--ink);font:16px/1.55 var(--body)}
-main{max-width:46rem;margin:0 auto}
-header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
-h1{font:400 1.7rem/1.2 var(--head);margin:0}
-.back{color:var(--muted);font-size:.88rem;text-decoration:none;border-bottom:1px solid var(--line)}
-.back:hover{color:var(--ink)}
-.lede{color:var(--muted);margin:.4rem 0 1.6rem;font-size:.94rem}
-h2{font:400 1.15rem/1.3 var(--head);margin:2rem 0 .2rem}
-h2 span{font:400 .8rem var(--body);color:var(--muted);margin-left:.5rem}
-.note{color:var(--muted);font-size:.88rem;margin:.2rem 0 1rem}
-.card{border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 12px;background:#fff}
-.en{font:400 1.12rem/1.35 var(--head);margin:0 0 4px}
-.meta{color:var(--muted);font-size:.8rem;margin:0 0 10px}
-.tag{display:inline-block;font-size:.66rem;letter-spacing:.07em;text-transform:uppercase;color:var(--sage);border:1px solid var(--line);border-radius:99px;padding:2px 8px;margin-left:8px;vertical-align:2px}
-.paite{font-size:1.16rem;margin:0 0 6px}
-.ex{color:var(--muted);font-size:.9rem;margin:0 0 12px;white-space:pre-wrap}
-.acts{display:flex;gap:8px;flex-wrap:wrap}
-button{font:inherit;font-size:.9rem;padding:8px 16px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer}
-button.ok{background:var(--ink);color:var(--paper);border-color:var(--ink)}
-button.no{color:var(--crimson);border-color:#e8c9ce}
+body{margin:0;padding:26px 16px 90px;background:var(--paper);color:var(--ink);font:16px/1.55 var(--body)}
+main{max-width:38rem;margin:0 auto}
+.top{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+h1{font:400 1.6rem/1.2 var(--head);margin:0}
+.who{color:var(--muted);font-size:.85rem}
+.back{color:var(--muted);font-size:.86rem;text-decoration:none;border-bottom:1px solid var(--line)}
+.count{color:var(--muted);font-size:.9rem;margin:.5rem 0 1.4rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:22px;margin:0 0 26px;box-shadow:0 10px 30px rgba(0,0,0,.05)}
+.eyebrow{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.prompt{font:400 1.6rem/1.22 var(--head);margin:0 0 10px}
+.help{color:var(--muted);font-size:.83rem;margin:0 0 16px}
+.block{background:#f7f5ef;border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 12px}
+.block.sel{border-color:var(--ink);box-shadow:0 0 0 2px rgba(18,16,14,.12)}
+.txt{font-size:1.12rem;margin:0 0 4px}
+.meta{color:var(--muted);font-size:.78rem;margin:0 0 10px}
+textarea{width:100%;font:inherit;font-size:1rem;padding:11px 12px;border:1px solid #cfc8b8;border-radius:12px;background:#efece4;color:var(--ink);resize:vertical;min-height:64px}
+.check{display:flex;align-items:center;gap:8px;font-size:.86rem;color:var(--muted);margin:10px 0 12px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-size:.9rem;padding:9px 16px;border-radius:12px;border:1px solid #cfc8b8;background:#fff;color:var(--ink);cursor:pointer}
+button.accept{flex:1;background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:700}
+button.reject{color:var(--ink)}
+button.danger{color:var(--crimson)}
 button:disabled{opacity:.45;cursor:default}
-.empty{color:var(--muted);padding:14px 0}
-.wait{color:var(--sage);font-size:.86rem;margin:0}
-.tag.votes{color:var(--crimson);border-color:#e8c9ca}
-.status{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:99px;font-size:.86rem;opacity:0;transition:opacity .2s}
+label.field{display:block;font-size:.8rem;color:var(--muted);margin:16px 0 6px}
+input.note{width:100%;font:inherit;padding:10px 12px;border:1px solid #cfc8b8;border-radius:12px;background:#fff}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.empty{color:var(--muted);padding:16px 0}
+h2{font:400 1.1rem/1.3 var(--head);margin:2rem 0 .3rem}
+h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
+.status{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:99px;font-size:.86rem;opacity:0;transition:opacity .2s;z-index:9}
 .status.on{opacity:1}
 </style>
 </head>
 <body>
 <main>
-  <header>
-    <h1>Sayings queue</h1>
-    <a class="back" href="/review">&larr; Back to sentences</a>
-  </header>
-  <p class="lede">Candidate Paite lines for English sayings, and whole sayings submitted from the front page. Two reviewers must approve before a saying is published, so your first approval records a vote and leaves the card here.</p>
+  <div class="top">
+    <h1>Sayings review</h1>
+    <a class="back" href="/review">&larr; Sentences</a>
+  </div>
+  <p class="count" id="count">Loading.</p>
 
-  <h2>Paite lines waiting <span id="n-answers"></span></h2>
-  <p class="note">Each card is one contributor's rendering of the English saying above it.</p>
-  <div id="answers"></div>
+  <h2>Waiting for a second pair of eyes <span id="n-second"></span></h2>
+  <p class="help">A line below already has one approval. Confirming here publishes the saying and puts it back in the pool for more renderings.</p>
+  <div id="second"></div>
 
-  <h2>Sayings waiting <span id="n-pairs"></span></h2>
-  <p class="note">Whole pairs submitted from the front page, in either direction.</p>
+  <h2>Waiting for a first review <span id="n-first"></span></h2>
+  <p class="help">Press Accept this on the best line. Tick any other correct line to keep it as a variant. Accepting leaves the saying unpublished until a second reviewer confirms.</p>
+  <div id="first"></div>
+
+  <h2>Whole sayings waiting <span id="n-pairs"></span></h2>
+  <p class="help">Pairs submitted from the front page, in either direction.</p>
   <div id="pairs"></div>
 </main>
 <div class="status" id="status" role="status" aria-live="polite"></div>
 <script>
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var answersBox = $("answers"), pairsBox = $("pairs"), need = 2;
+  var need = 2;
 
-  // Every string below comes from a contributor, so the DOM is built with
-  // textContent throughout. No innerHTML, no escaping to get wrong.
   function h(tag, cls, text) {
     var n = document.createElement(tag);
     if (cls) n.className = cls;
     if (text != null) n.textContent = String(text);
     return n;
   }
-
   function say(msg) {
     var el = $("status");
-    el.textContent = msg;
-    el.classList.add("on");
-    clearTimeout(say.t);
-    say.t = setTimeout(function () { el.classList.remove("on"); }, 2600);
+    el.textContent = msg; el.classList.add("on");
+    clearTimeout(say.t); say.t = setTimeout(function () { el.classList.remove("on"); }, 2800);
+  }
+  function post(url, body) {
+    return fetch(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) })
+      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); });
   }
 
-  function actions(url, id, card) {
-    var box = h("div", "acts");
-    var ok = h("button", "ok", "Accept and publish");
-    var no = h("button", "no", "Reject");
-    box.append(ok, no);
-    [ok, no].forEach(function (btn) {
-      btn.dataset.v = btn === ok ? "1" : "0";
-      btn.addEventListener("click", function () {
-        var accept = btn.dataset.v === "1";
+  // ---- a saying with candidate lines -------------------------------------
+  function answerCard(a, secondPass) {
+    var card = h("section", "card");
+    card.appendChild(h("p", "eyebrow", a.kind === "idiom" ? "English idiom" : "English proverb"));
+    card.appendChild(h("p", "prompt", a.english || "(no English line)"));
+    card.appendChild(h("p", "help", secondPass
+      ? "One reviewer has approved a line for this saying. Check it and confirm, or correct it first."
+      : "Pick the line that reads best. Correct it in the box if it needs it."));
+
+    var blocks = [];
+    var chosen = null;
+
+    a.candidates.forEach(function (c) {
+      var block = h("div", "block");
+      block.appendChild(h("p", "txt", c.paite));
+      block.appendChild(h("p", "meta", (c.contributor_name || "an unnamed contributor") + " \u00b7 " + (c.kind === "idiom" ? "idiom" : "proverb") + " \u00b7 " + c.created_at));
+      var ta = document.createElement("textarea");
+      ta.value = c.paite;
+      ta.setAttribute("aria-label", "Correct this line");
+      block.appendChild(ta);
+      var lab = h("label", "check");
+      var box = document.createElement("input");
+      box.type = "checkbox";
+      lab.appendChild(box); lab.appendChild(h("span", null, "Also correct (keep as variant)"));
+      block.appendChild(lab);
+      var row = h("div", "row");
+      var ok = h("button", "accept", secondPass ? "Confirm this and publish" : "Accept this");
+      var no = h("button", "reject", "Reject this line");
+      row.append(ok, no);
+      block.appendChild(row);
+      card.appendChild(block);
+
+      blocks.push({ c: c, el: block, ta: ta, box: box });
+
+      ok.addEventListener("click", function () {
+        blocks.forEach(function (b) { b.el.classList.remove("sel"); });
+        block.classList.add("sel");
+        chosen = blocks.findIndex(function (b) { return b.el === block; });
+      });
+
+      no.addEventListener("click", function () {
         [ok, no].forEach(function (b) { b.disabled = true; });
-        fetch(url, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ id: id, accept: accept }),
-        })
-          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
-          .then(function (res) {
-            if (res.ok) {
-              if (res.body && res.body.waiting) { say("Recorded. One more reviewer needed."); markWaiting(card); return; }
-              card.remove(); say(accept ? "Published." : "Rejected."); return;
-            }
-            [ok, no].forEach(function (b) { b.disabled = false; });
-            say((res.body && res.body.message) || "That did not go through.");
-          })
-          .catch(function () {
-            [ok, no].forEach(function (b) { b.disabled = false; });
-            say("Network error. Try again.");
-          });
+        post("/review/api/proverbs/answer", { id: c.id, accept: false }).then(function (res) {
+          if (res.ok) { block.remove(); say("Line rejected."); }
+          else { [ok, no].forEach(function (b) { b.disabled = false; }); say((res.body && res.body.message) || "That did not go through."); }
+        });
       });
     });
-    return box;
-  }
 
-  function markWaiting(card) {
-    var box = card.querySelector(".acts");
-    if (!box) return;
-    box.textContent = "";
-    box.appendChild(h("p", "wait", "You approved this. Waiting for one more reviewer."));
-  }
+    var noteLab = h("label", "field", "Note (optional)");
+    var note = document.createElement("input");
+    note.className = "note";
+    note.type = "text";
+    note.placeholder = "Why you corrected it, or anything the next reviewer should know.";
+    card.appendChild(noteLab);
+    card.appendChild(note);
 
-  function voteTag(n) {
-    return n ? h("span", "tag votes", n + " of " + need + " reviews") : null;
-  }
+    var actions = h("div", "actions");
+    var save = h("button", "accept", secondPass ? "Save and publish" : "Save");
+    var rejAll = h("button", "reject", "Reject all");
+    var retire = h("button", "danger", "Retire saying");
+    actions.append(save, rejAll, retire);
+    card.appendChild(actions);
 
-  function answerCard(a) {
-    var card = h("article", "card");
-    var en = h("p", "en", a.english || "(no English line)");
-    en.appendChild(h("span", "tag", a.kind));
-    var v = voteTag(a.accepts);
-    if (v) en.appendChild(v);
-    card.appendChild(en);
-    card.appendChild(h("p", "meta", (a.contributor_name || "an unnamed contributor") + " \u00b7 " + a.created_at));
-    card.appendChild(h("p", "paite", a.paite));
-    if (a.explainer_en) card.appendChild(h("p", "ex", a.explainer_en));
-    if (a.explainer) card.appendChild(h("p", "ex", a.explainer));
-    card.appendChild(actions("/review/api/proverbs/answer", a.id, card));
-    if (a.mine) markWaiting(card);
+    save.addEventListener("click", function () {
+      if (chosen === null) { say("Choose the line you are accepting first."); return; }
+      var picked = blocks[chosen];
+      var variants = blocks.filter(function (b, i) { return i !== chosen && b.box.checked; }).map(function (b) { return b.c.id; });
+      save.disabled = true;
+      post("/review/api/proverbs/save", {
+        proverbId: a.proverb_id,
+        acceptAnswerId: picked.c.id,
+        finalPaite: picked.ta.value,
+        alsoCorrect: variants,
+        note: note.value,
+      }).then(function (res) {
+        if (!res.ok) { save.disabled = false; say((res.body && res.body.message) || "That did not go through."); return; }
+        card.remove();
+        say(res.body.waiting ? "Recorded. One more reviewer needed." : "Published.");
+      }).catch(function () { save.disabled = false; say("Network error. Try again."); });
+    });
+
+    rejAll.addEventListener("click", function () {
+      rejAll.disabled = true;
+      post("/review/api/proverbs/save", { proverbId: a.proverb_id, rejectAll: true }).then(function (res) {
+        if (res.ok) { card.remove(); say("Every line on this saying rejected."); }
+        else { rejAll.disabled = false; say("That did not go through."); }
+      });
+    });
+
+    retire.addEventListener("click", function () {
+      retire.disabled = true;
+      post("/review/api/proverbs/save", { proverbId: a.proverb_id, retire: true }).then(function (res) {
+        if (res.ok) { card.remove(); say("Saying retired."); }
+        else { retire.disabled = false; say("That did not go through."); }
+      });
+    });
+
     return card;
   }
 
+  // ---- a whole submitted saying, no candidates ---------------------------
   function pairCard(p) {
-    var card = h("article", "card");
-    var en = h("p", "en", p.english);
-    en.appendChild(h("span", "tag", p.kind));
-    var v = voteTag(p.accepts);
-    if (v) en.appendChild(v);
-    card.appendChild(en);
+    var card = h("section", "card");
+    card.appendChild(h("p", "eyebrow", p.kind === "idiom" ? "Submitted idiom" : "Submitted proverb"));
+    card.appendChild(h("p", "prompt", p.english));
+    card.appendChild(h("p", "txt", p.paite));
     card.appendChild(h("p", "meta", (p.contributor_name || "an unnamed contributor") + " \u00b7 " + p.created_at));
-    card.appendChild(h("p", "paite", p.paite));
-    if (p.explainer_en) card.appendChild(h("p", "ex", p.explainer_en));
-    card.appendChild(actions("/review/api/proverbs/pair", p.id, card));
-    if (p.mine) markWaiting(card);
+    var actions = h("div", "actions");
+    var ok = h("button", "accept", "Accept this");
+    var no = h("button", "danger", "Reject");
+    actions.append(ok, no);
+    card.appendChild(actions);
+    ok.addEventListener("click", function () {
+      [ok, no].forEach(function (b) { b.disabled = true; });
+      post("/review/api/proverbs/pair", { id: p.id, accept: true }).then(function (res) {
+        if (res.ok) { card.remove(); say(res.body.waiting ? "Recorded. One more reviewer needed." : "Published."); }
+        else { [ok, no].forEach(function (b) { b.disabled = false; }); say("That did not go through."); }
+      });
+    });
+    no.addEventListener("click", function () {
+      [ok, no].forEach(function (b) { b.disabled = true; });
+      post("/review/api/proverbs/pair", { id: p.id, accept: false }).then(function (res) {
+        if (res.ok) { card.remove(); say("Rejected."); }
+        else { [ok, no].forEach(function (b) { b.disabled = false; }); say("That did not go through."); }
+      });
+    });
     return card;
   }
 
@@ -159,16 +222,34 @@ button:disabled{opacity:.45;cursor:default}
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (d) {
       need = d.required || 2;
-      $("n-answers").textContent = d.answers.length;
+      // Group candidates by saying, so one card carries every line for it.
+      var bySaying = {};
+      d.answers.forEach(function (a) {
+        var key = a.proverb_id;
+        if (!bySaying[key]) bySaying[key] = { proverb_id: key, english: a.english, kind: a.kind, candidates: [], accepts: 0, mine: 0 };
+        bySaying[key].candidates.push(a);
+        bySaying[key].accepts = Math.max(bySaying[key].accepts, a.accepts);
+        bySaying[key].mine = Math.max(bySaying[key].mine, a.mine);
+      });
+      var cards = Object.keys(bySaying).map(function (k) { return bySaying[k]; });
+      var firsts = cards.filter(function (c) { return c.accepts === 0 && c.mine === 0; });
+      var seconds = cards.filter(function (c) { return c.accepts > 0 && c.mine === 0; });
+      var held = cards.filter(function (c) { return c.mine > 0; });
+
+      $("n-first").textContent = firsts.length;
+      $("n-second").textContent = seconds.length;
       $("n-pairs").textContent = d.pairs.length;
-      if (!d.answers.length) empty(answersBox, "Nothing waiting.");
-      if (!d.pairs.length) empty(pairsBox, "Nothing waiting.");
-      d.answers.forEach(function (a) { answersBox.appendChild(answerCard(a)); });
-      d.pairs.forEach(function (p) { pairsBox.appendChild(pairCard(p)); });
+      $("count").textContent = firsts.length + seconds.length + d.pairs.length + " waiting, " + held.length + " held by you.";
+
+      if (!seconds.length) empty($("second"), "Nothing waiting for a second look.");
+      if (!firsts.length) empty($("first"), "Nothing waiting.");
+      if (!d.pairs.length) empty($("pairs"), "Nothing waiting.");
+
+      seconds.forEach(function (c) { $("second").appendChild(answerCard(c, true)); });
+      firsts.forEach(function (c) { $("first").appendChild(answerCard(c, false)); });
+      d.pairs.forEach(function (p) { $("pairs").appendChild(pairCard(p)); });
     })
-    .catch(function () {
-      empty(answersBox, "Could not load the queue. Reload to try again.");
-    });
+    .catch(function () { $("count").textContent = "Could not load the queue. Reload to try again."; });
 })();
 </script>
 </body>
