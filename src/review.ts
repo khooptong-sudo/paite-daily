@@ -2,7 +2,7 @@ import { isOwner, reviewerName } from "./access";
 import { handleOwnerReview } from "./apply";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
-import { decideProverbAnswer, decideProverbPair, getProverbReviewList } from "./proverbreview";
+import { REQUIRED_REVIEWERS, decideProverbAnswer, decideProverbPair, getProverbReviewList } from "./proverbreview";
 import { getGlossaryForReview } from "./glossary";
 import { cap, cleanText, isId, isIdList, isPhoneId } from "./text";
 import { analytics, recentErrors } from "./observability";
@@ -60,18 +60,19 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     }
   }
   // Sayings: the lane that was missing. Candidates and whole submitted pairs, listed.
-  if (pathname === "/review/api/proverbs" && req.method === "GET") return json(await getProverbReviewList(env));
+  if (pathname === "/review/api/proverbs" && req.method === "GET") return json(await getProverbReviewList(env, email));
   if (pathname === "/review/api/proverbs/answer" && req.method === "POST") {
     if (!isId(b.id) || typeof b.accept !== "boolean") return json({ error: "bad_request" }, 400);
     const r = await decideProverbAnswer(env, email, b.id as number, b.accept);
     if (r === "not_found") return json({ error: "not_found" }, 404);
     if (r === "duplicate") return json({ error: "duplicate", message: "That Paite line already belongs to another saying." }, 409);
-    return json({ ok: true });
+    return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
   }
   if (pathname === "/review/api/proverbs/pair" && req.method === "POST") {
     if (!isId(b.id) || typeof b.accept !== "boolean") return json({ error: "bad_request" }, 400);
     const r = await decideProverbPair(env, email, b.id as number, b.accept);
-    return r === "ok" ? json({ ok: true }) : json({ error: "not_found" }, 404);
+    if (r === "not_found") return json({ error: "not_found" }, 404);
+    return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
   }
   if (pathname === "/review/api/decide" && req.method === "POST") {
     if (!isId(b.sentenceId) || !["accept", "reject", "retire", "variant"].includes(b.decision as string) || !isIdList(b.answerIds) || (b.alsoCorrect !== undefined && !isIdList(b.alsoCorrect)) || (b.decision === "accept" && !isId(b.answerId))) return json({ error: "bad_request" }, 400);
