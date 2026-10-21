@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paite Daily — a Paite–English corpus</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/icons/emblem-small.svg" type="image/svg+xml">
+<link rel="icon" href="/icons/icon-192.png" sizes="192x192">
+<meta name="description" content="A free, volunteer-reviewed Paite–English corpus. Paite has 78,725 speakers and no spellchecker. Every pair is checked by a native speaker and released public domain.">
+<link rel="canonical" href="https://paite.lamkalabs.com/">
+<meta property="og:site_name" content="Paite Daily">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="en_IN">
+<meta property="og:url" content="https://paite.lamkalabs.com/">
+<meta property="og:title" content="Paite Daily — a Paite word corpus">
+<meta property="og:description" content="Verified Paite–English pairs, reviewed by native speakers, released CC0 — free for any keyboard, dictionary or translation project.">
+<meta property="og:image" content="https://paite.lamkalabs.com/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Paite Daily — a Paite word corpus">
+<meta name="twitter:description" content="Verified Paite–English pairs, reviewed by native speakers, released CC0.">
+<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png">
+<meta name="twitter:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
+</head>
+<body>
+<img class="puan" src="/liangbat.png" width="560" height="120" alt="Paite liangbat, the woven shoulder shawl" decoding="async">
+<main>
+  <header>
+    <h1>Paite Daily</h1>
+    <div><span class="streak" id="today"></span> <span class="badge" id="badge" hidden></span></div>
+    <a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a>
+  </header>
+  <div class="goal" id="goal" hidden><div><b id="goal-n"></b> / <span id="goal-max"></span> <span data-s="goalLine"></span></div><div class="goal-bar" id="goal-bar" role="progressbar" aria-valuemin="0"><i></i></div></div>
+  <section class="card" id="feedback" aria-labelledby="fb-title" hidden>
+    <h2 id="fb-title" data-s="feedbackTitle"></h2>
+    <ul id="fb-list"></ul>
+    <button type="button" class="primary" id="fb-ok" data-s="gotIt"></button>
+  </section>
+  <section class="card chat" id="chat" aria-labelledby="chat-h">
+    <div>
+      <div class="label" id="chat-h" data-s="chatTitle"></div>
+      <p class="hello" id="chat-hello">Zingpha! Na dam hia?</p>
+      <p class="hello-en" data-s="chatHelloEn"></p>
+    </div>
+    <div class="chips" id="chat-chips" role="group" aria-label="Sample conversations"></div>
+    <div class="thread" id="chat-thread" aria-live="polite"></div>
+    <form class="ask" id="chat-form" novalidate>
+      <input id="chat-q" type="text" autocomplete="off" autocapitalize="sentences" maxlength="120">
+      <button type="submit" class="primary" data-s="chatAsk"></button>
+    </form>
+    <p class="chat-note" id="chat-note" data-s="chatNote"></p>
+    <button type="button" class="chat-more" id="chat-more" data-s="chatShow"></button>
+  </section>
+  <section class="card">
+    <div class="label" id="label" data-s="translate"></div>
+    <p class="sentence" id="sentence" aria-live="polite"></p>
+    <button type="button" id="retry" data-s="tryAgain" hidden></button>
+    <form id="form" novalidate>
+      <textarea id="paite" required autocomplete="off" autocapitalize="sentences" maxlength="300" aria-label="Paite"></textarea>
+      <label for="explanation" data-s="explanationLabel"></label>
+      <textarea id="explanation" autocomplete="off" maxlength="500" rows="2"></textarea>
+      <fieldset class="register">
+        <legend data-s="register"></legend>
+        <label><input type="radio" name="register" value="both" checked> <span data-s="both"></span></label>
+        <label><input type="radio" name="register" value="spoken"> <span data-s="spoken"></span></label>
+        <label><input type="radio" name="register" value="written"> <span data-s="written"></span></label>
+      </fieldset>
+      <div class="actions">
+        <button type="submit" class="primary" id="send" data-s="send"></button>
+        <button type="button" id="skip" data-s="skip"></button>
+      </div>
+      <p class="licence" data-s="licence"></p>
+      <p class="status" id="status" role="status"></p>
+    </form>
+    <div id="ask-name" hidden>
+      <p id="askName" data-s="askName"></p>
+      <input id="name" aria-labelledby="askName" maxlength="60" autocomplete="nickname" placeholder="Your Name">
+      <div class="actions">
+        <button type="button" class="primary" id="save-name" data-s="saveName">Add My Name</button>
+        <button type="button" id="no-name" data-s="noThanks"></button>
+      </div>
+    </div>
+  </section>
+  <section class="card" aria-labelledby="saying-h">
+    <div class="card-h">
+      <h2 id="saying-h" data-s="sayingsTitle">Paunakte leh Pau Upa / Pau Kulmut</h2>
+      <a class="more" href="/proverbs" aria-label="See all proverbs and idioms"><span aria-hidden="true">&rarr;</span></a>
+    </div>
+    <p class="licence" data-s="sayingsNote">Proverbs and idioms, either direction. A reviewer checks each one.</p>
+    <div class="dirs">
+      <form class="saying" id="saying-paite" data-dir="pai2en" novalidate>
+        <p class="dir" data-s="dirPaiEn">Paite → English</p>
+        <label for="sp-paite" data-s="paiteSaying">Paite idiom or proverb</label>
+        <input id="sp-paite" name="paite" required maxlength="300" autocomplete="off" placeholder="Lampam sik khiallou kuamah omlou">
+        <label for="sp-en" data-s="englishVersion">English version</label>
+        <input id="sp-en" name="english" required maxlength="300" autocomplete="off">
+        <label for="sp-x" data-s="explainerLabel">Explainer (optional)</label>
+        <input id="sp-x" name="explainer" maxlength="600" autocomplete="off">
+        <label class="kind" for="sp-kind" data-s="kindLabel">Proverb or idiom</label>
+        <select id="sp-kind" name="kind"><option value="proverb" data-s="kindProverb">Proverb</option><option value="idiom" data-s="kindIdiom">Idiom</option></select>
+        <div class="actions"><button type="submit" class="primary" data-s="send">Send</button></div>
+        <p class="status" role="status"></p>
+      </form>
+      <form class="saying" id="saying-en" data-dir="en2pai" novalidate>
+        <p class="dir" data-s="dirEnPai">English → Paite</p>
+        <label for="se-en" data-s="englishSaying">English idiom or proverb</label>
+        <input id="se-en" name="english" required maxlength="300" autocomplete="off" placeholder="Break the ice">
+        <label for="se-paite" data-s="paiteVersion">Paite version</label>
+        <input id="se-paite" name="paite" required maxlength="300" autocomplete="off">
+        <label for="se-x" data-s="explainerLabel">Explainer (optional)</label>
+        <input id="se-x" name="explainer" maxlength="600" autocomplete="off">
+        <label class="kind" for="se-kind" data-s="kindLabel">Proverb or idiom</label>
+        <select id="se-kind" name="kind"><option value="proverb" data-s="kindProverb">Proverb</option><option value="idiom" data-s="kindIdiom">Idiom</option></select>
+        <div class="actions"><button type="submit" class="primary" data-s="send">Send</button></div>
+        <p class="status" role="status"></p>
+      </form>
+    </div>
+  </section>
+  <section class="card" aria-labelledby="meaning-h">
+    <h2 id="meaning-h" data-s="giveMeaning">Give the Meaning</h2>
+    <p class="licence" data-s="giveMeaningNote"></p>
+    <form id="meaning-form" novalidate>
+      <p class="word-prompt" id="m-word" aria-live="polite"></p>
+      <label for="m-english" data-s="meaningLabel">Meaning in English</label>
+      <input id="m-english" required maxlength="120" autocomplete="off">
+      <label for="m-note" data-s="wordNote"></label>
+      <input id="m-note" maxlength="200" autocomplete="off">
+      <div class="actions"><button type="submit" class="primary" id="m-send" data-s="send"></button></div>
+      <p class="status" id="m-status" role="status"></p>
+    </form>
+  </section>
+  <section class="card" aria-labelledby="word-h">
+    <h2 id="word-h" data-s="addWord"></h2>
+    <p class="licence" data-s="addWordNote"></p>
+    <form id="word-form" novalidate>
+      <label for="w-paite">Paite</label>
+      <input id="w-paite" required maxlength="60" autocomplete="off">
+      <label for="w-english">English</label>
+      <input id="w-english" required maxlength="120" autocomplete="off">
+      <label for="w-note" data-s="wordNote"></label>
+      <input id="w-note" maxlength="200" autocomplete="off">
+      <div class="actions"><button type="submit" class="primary" id="w-send" data-s="send"></button></div>
+      <p class="status" id="w-status" role="status"></p>
+    </form>
+  </section>
+  <button type="button" class="primary" id="share" data-s="share" hidden></button>
+  <a class="pan" href="/proverbs"><span><b data-s="proverbsTitle">Proverbs &amp; Idioms</b></span><span class="go" aria-hidden="true">&rarr;</span></a>
+  <a class="pan" href="/glossary"><span><b data-s="glossaryTitle">Paite Word List</b></span><span class="go" aria-hidden="true">&rarr;</span></a>
+  <a class="pan" href="/contributors"><span><b data-s="contributorsTitle">Contributors</b></span><span class="go" aria-hidden="true">&rarr;</span></a>
+  <a class="pan" href="/paite-daily.apk" download>
+  <span><b data-s="getApp">Get the Android app</b><small data-s="getAppNote">Download the APK file.</small></span>
+  <span class="go" aria-hidden="true">&darr;</span>
+  </a>
+  <button type="button" class="pan" id="install-app" hidden>
+  <span><b data-s="installApp">Install on this device</b><small data-s="installAppNote">Add Paite Daily to your home screen. No download.</small></span>
+  <span class="go" aria-hidden="true">&darr;</span>
+  </button>
+  <div id="turnstile"></div>
+  <footer class="foot">
+    <p class="contact"><a class="mail" href="mailto:theconcierge@lamkalabs.com" aria-label="Email theconcierge@lamkalabs.com" title="Email theconcierge@lamkalabs.com"><img src="/mail.png" alt="" width="22" height="22" decoding="async"></a> <a class="wa" href="https://wa.me/918375098415" target="_blank" rel="noopener" aria-label="Message Lamka Labs on WhatsApp" title="Message Lamka Labs on WhatsApp"><img src="/whatsapp.png" alt="" width="22" height="22" decoding="async"></a></p>
+    <a class="coffee" id="coffee" href="upi://pay?pa=khooptong%40okicici&amp;pn=Min%20Khooptong&amp;cu=INR&amp;tn=Paite%20Daily" aria-expanded="false" aria-controls="upi">&#9749; <span data-s="coffee"></span> &#128513;
+      <span class="coffee-note" data-s="coffeeNote"></span>
+    </a>
+    <p>Built and maintained by <a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a>.</p>
+    <div class="card" id="upi" hidden>
+      <img class="qr" src="/upi-qr.jpg" alt="UPI QR code for Min Khooptong, khooptong@okicici" loading="lazy" decoding="async">
+      <p data-s="scanUpi"></p>
+      <p>UPI ID: <b id="upi-id">khooptong@okicici</b> <button type="button" id="upi-copy">Copy</button></p>
+    </div>
+  </footer>
+</main>
+<script src="/strings.js"></script>
+<script src="/app.js"></script>
+<script src="/chat.js"></script>
+<script src="/footer.js"></script>
+<script src="/pwa.js"></script>
+<script src="/track.js"></script>
+</body>
+</html>

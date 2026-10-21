@@ -156,14 +156,16 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <meta property="og:image" content="https://paite.lamkalabs.com/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Paite Daily: translate one sentence a day. Free and open data for the Paite language.">
+<meta property="og:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Contributors of Paite Daily">
 <meta name="twitter:description" content="The people writing Paite into the future. See this week's contributors and reviewers, and add a sentence.">
 <meta name="twitter:image" content="https://paite.lamkalabs.com/og.png">
-<meta name="twitter:image:alt" content="Paite Daily: translate one sentence a day.">
+<meta name="twitter:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="icon" href="/favicon.ico" sizes="32x32">
+<link rel="icon" href="/icons/emblem-small.svg" type="image/svg+xml">
 <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
 <script>document.documentElement.className="js"</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
