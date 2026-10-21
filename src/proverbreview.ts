@@ -66,7 +66,8 @@ export async function getProverbReviewList(
                 AND lower(r.reviewer_email) = lower(?1)) AS mine
        FROM proverb_answers a
        JOIN proverbs p ON p.id = a.proverb_id
-      WHERE a.status = 'new' AND p.status IN ('open', 'pending')
+      WHERE a.status = 'new'
+        AND (p.status IN ('open', 'pending') OR (p.status = 'live' AND p.accepting_more = 1))
       ORDER BY a.created_at, a.id
       LIMIT 200`,
   )

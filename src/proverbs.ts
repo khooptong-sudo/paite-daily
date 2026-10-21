@@ -17,6 +17,7 @@ export type Proverb = {
   explainer_en: string | null;
   entered_from: Direction;
   status: Status;
+  accepting_more: number;
   answers: number;
   by: string | null;
   reviewed_by: string | null;
@@ -33,7 +34,7 @@ const lead = (p: Proverb) => p.paite ?? p.english ?? "";
  */
 export async function getProverbs(env: Env, limit = -1): Promise<Proverb[]> {
   const { results } = await env.DB.prepare(
-    `SELECT p.id, p.kind, p.paite, p.english, p.explainer, p.explainer_en, p.entered_from, p.status,
+    `SELECT p.id, p.kind, p.paite, p.english, p.explainer, p.explainer_en, p.entered_from, p.status, p.accepting_more,
             p.contributor_name AS by, p.reviewed_by,
             (SELECT count(*) FROM proverb_answers a WHERE a.proverb_id = p.id AND a.status <> 'rejected') AS answers
        FROM proverbs p WHERE p.status IN ('live', 'open') ORDER BY p.id LIMIT ?1`,
@@ -66,10 +67,14 @@ export async function submitProverbAnswer(env: Env, phoneId: string, b: Record<s
   const paite = cleanText(b.paite, 300), explainer = opt(b.explainer, 600), explainer_en = opt(b.explainer_en, 600), name = opt(b.name, 60);
   if (!isId(b.id) || !paite) return json({ error: "bad_request" }, 400);
   if ((b.explainer && !explainer) || (b.explainer_en && !explainer_en) || (b.name && !name)) return json({ error: "bad_request" }, 400);
-  const p = await env.DB.prepare("SELECT status FROM proverbs WHERE id = ?1").bind(b.id).first<{ status: string }>();
+  const p = await env.DB.prepare("SELECT status, accepting_more FROM proverbs WHERE id = ?1")
+    .bind(b.id)
+    .first<{ status: string; accepting_more: number }>();
   if (!p) return json({ error: "not_found" }, 404);
-  // Only a saying still waiting for its Paite line takes renderings.
-  if (p.status !== "open" && p.status !== "pending") return json({ error: "closed" }, 409);
+  // A saying takes renderings while it waits for its first Paite line, and again
+  // once a reviewed line has published and the saying is collecting more.
+  const collecting = p.status === "open" || p.status === "pending" || (p.status === "live" && p.accepting_more === 1);
+  if (!collecting) return json({ error: "closed" }, 409);
   const dup = await env.DB.prepare("SELECT 1 FROM proverb_answers WHERE proverb_id = ?1 AND phone_id = ?2 AND lower(paite) = lower(?3)").bind(b.id, phoneId, paite).first();
   if (!dup)
     await env.DB.prepare(
@@ -170,9 +175,13 @@ function item(p: Proverb): string {
   const first = p.entered_from === "en2pai" ? p.english : p.paite;
   const second = p.entered_from === "en2pai" ? p.paite : p.english;
   const waiting = !p.paite;
+  const collecting = waiting || p.accepting_more === 1;
   const q = [p.paite, p.english, p.explainer, p.explainer_en].filter(Boolean).join(" ").toLowerCase();
+  const more = p.paite && p.accepting_more === 1
+    ? ' <small class="m" data-s="anotherVersion">Another version welcome</small>'
+    : "";
   const other = second
-    ? `<small class="m">${esc(second)}</small>`
+    ? `<small class="m">${esc(second)}</small>${more}`
     : waiting
       ? '<small class="m" data-s="needsPaite">Needs a Paite version</small>'
       : "";
@@ -182,7 +191,7 @@ function item(p: Proverb): string {
   const creditLine = credit ? `<p class="n by">${credit}</p>` : "";
   return `<li id="p-${p.id}" data-dir="${p.entered_from}" data-q="${esc(q)}"><details open><summary><b class="w">${esc(first ?? "")}</b> ${other}${tag(p.kind)}</summary>${
     p.explainer ? `<p class="n">${esc(p.explainer)}</p>` : ""
-  }${p.explainer_en ? `<p class="n en">${esc(p.explainer_en)}</p>` : ""}${count}${creditLine}${waiting ? form(p) : ""}</details></li>`;
+  }${p.explainer_en ? `<p class="n en">${esc(p.explainer_en)}</p>` : ""}${count}${creditLine}${collecting ? form(p) : ""}</details></li>`;
 }
 
 export function renderProverbs(xs: Proverb[], siteKey = ""): string {

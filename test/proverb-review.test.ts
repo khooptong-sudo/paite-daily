@@ -1,6 +1,8 @@
 import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vitest";
+import { saveProverbReview } from "../src/proverbcard";
 import { decideProverbAnswer, decideProverbPair, getProverbReviewList } from "../src/proverbreview";
+
 import type { Env } from "../src/types";
 
 // Sayings need two reviewers before they publish. These tests hold that rule,
@@ -141,6 +143,36 @@ describe("sayings need two reviewers", () => {
 
     expect(await decideProverbPair(DB, "two@example.org", pid, true)).toBe("ok");
     expect((await sayingStatus(pid)).status).toBe("live");
+  });
+
+  it("takes fresh renderings for a saying that already published", async () => {
+    // A published saying, collecting more: exactly the state a reviewed saying
+    // goes back to the pool in.
+    const pid = await seedSaying(ENGLISH, "live");
+    await DB.DB.prepare("UPDATE proverbs SET paite = ?2, accepting_more = 1 WHERE id = ?1")
+      .bind(pid, LINKS[0])
+      .run();
+
+    const gate = await DB.DB.prepare("SELECT status, accepting_more FROM proverbs WHERE id = ?1")
+      .bind(pid)
+      .first<{ status: string; accepting_more: number }>();
+    expect(gate).toEqual({ status: "live", accepting_more: 1 });
+
+    await seedAnswer(pid, LINKS[2]);
+
+    // The new line reaches the reviewer.
+    const list = await getProverbReviewList(DB, "one@example.org");
+    const fresh = list.answers.find((a) => a.proverb_id === pid);
+    expect(fresh?.paite).toBe(LINKS[2]);
+
+    // Two approvals accept it as an alternative without overwriting the primary line.
+    await saveProverbReview(DB, "one@example.org", { proverbId: pid, acceptAnswerId: fresh!.id, finalPaite: LINKS[2] });
+    await saveProverbReview(DB, "two@example.org", { proverbId: pid, acceptAnswerId: fresh!.id, finalPaite: LINKS[2] });
+
+    const p = await sayingStatus(pid);
+    expect(p.status).toBe("live");
+    expect(p.paite).toBe(LINKS[0]);
+    expect(await answerStatus(fresh!.id)).toBe("accepted");
   });
 
   it("shows the list who has already voted", async () => {

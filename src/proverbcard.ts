@@ -29,9 +29,11 @@ export async function saveProverbReview(
 ): Promise<"ok" | "waiting" | "not_found" | "bad_answer" | "duplicate"> {
   const note = p.note ? cleanText(p.note, 300) : null;
 
-  const saying = await env.DB.prepare("SELECT id, paite, status FROM proverbs WHERE id = ?1 AND status IN ('open', 'pending')")
+  const saying = await env.DB.prepare(
+    "SELECT id, paite, status, accepting_more FROM proverbs WHERE id = ?1 AND (status IN ('open', 'pending') OR (status = 'live' AND accepting_more = 1))",
+  )
     .bind(p.proverbId)
-    .first<{ id: number; paite: string | null; status: string }>();
+    .first<{ id: number; paite: string | null; status: string; accepting_more: number }>();
   if (!saying) return "not_found";
 
   const open = (
@@ -111,13 +113,21 @@ export async function saveProverbReview(
     .first<{ paite: string }>();
 
   try {
+    const text = settled?.final_paite || chosen?.paite || "";
     await env.DB.batch([
-      env.DB.prepare(
-        `UPDATE proverbs
-            SET paite = ?2, status = 'live', accepting_more = 1,
-                reviewed_by = ?3, reviewed_at = datetime('now')
-          WHERE id = ?1`,
-      ).bind(p.proverbId, settled?.final_paite || chosen?.paite || "", email),
+      // A saying that already published keeps its primary line. The new rendering
+      // is accepted as an alternative beside it, which is the whole point of
+      // putting the saying back in the pool.
+      saying.status === "live"
+        ? env.DB.prepare(
+            `UPDATE proverbs SET reviewed_by = ?2, reviewed_at = datetime('now') WHERE id = ?1`,
+          ).bind(p.proverbId, email)
+        : env.DB.prepare(
+            `UPDATE proverbs
+                SET paite = ?2, status = 'live', accepting_more = 1,
+                    reviewed_by = ?3, reviewed_at = datetime('now')
+              WHERE id = ?1`,
+          ).bind(p.proverbId, text, email),
       env.DB.prepare("UPDATE proverb_answers SET status = 'accepted' WHERE id = ?1").bind(p.acceptAnswerId),
     ]);
   } catch (e) {
