@@ -54,8 +54,8 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
   <p class="count" id="count">Loading.</p>
   <p id="undoWrap" hidden><button id="undoLast" style="width:100%;padding:12px;border-radius:14px">&larr; Undo last decision</button></p>
 
-  <h2>Waiting for a second pair of eyes <span id="n-second"></span></h2>
-  <p class="help">A line below already has one approval. Confirming here publishes the saying and puts it back in the pool for more renderings.</p>
+  <h2>Comparing with a published line <span id="n-second"></span></h2>
+  <p class="help">This saying already has a line on the page. Correct it and accept it again, or accept the new submission to replace it. Tick the other to keep both.</p>
   <div id="second"></div>
 
   <h2>Waiting for a first review <span id="n-first"></span></h2>
@@ -102,7 +102,33 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
       ? "One reviewer has approved a line for this saying. Check it and confirm, or correct it first."
       : "Pick the line that reads best. Correct it in the box if it needs it."));
 
-    var blocks = [];
+    // What is already on the page, if anything. The reviewer compares against it
+    // and may correct it in place.
+    var publishedBlock = null;
+    if (a.current_paite) {
+      var pb = h("div", "block pub");
+      pb.appendChild(h("p", "txt", a.current_paite));
+      pb.appendChild(h("p", "meta", "Published"));
+      var pta = document.createElement("textarea");
+      pta.value = a.current_paite;
+      pta.setAttribute("aria-label", "Correct the published line");
+      pb.appendChild(pta);
+      var prow = h("div", "row");
+      var pok = h("button", "accept", "Accept this");
+      prow.appendChild(pok);
+      pb.appendChild(prow);
+      card.appendChild(pb);
+      publishedBlock = { el: pb, ta: pta, ok: pok };
+
+      pok.addEventListener("click", function () {
+        pok.disabled = true;
+        post("/review/api/proverbs/save", { proverbId: a.proverb_id, acceptPublished: true, finalPaite: pta.value })
+          .then(function (res) {
+            if (res.ok) { card.remove(); say("Published line updated."); }
+            else { pok.disabled = false; say((res.body && res.body.message) || "That did not go through."); }
+          });
+      });
+    }
 
     a.candidates.forEach(function (c) {
       var block = h("div", "block");
@@ -118,7 +144,7 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
       lab.appendChild(box); lab.appendChild(h("span", null, "Also correct (keep as variant)"));
       block.appendChild(lab);
       var row = h("div", "row");
-      var ok = h("button", "accept", secondPass ? "Accept and publish" : "Accept this");
+      var ok = h("button", "accept", a.current_paite ? "Accept this one instead" : "Accept and publish");
       var no = h("button", "reject", "Reject this line");
       row.append(ok, no);
       block.appendChild(row);
@@ -249,10 +275,11 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
         bySaying[key].candidates.push(a);
         bySaying[key].accepts = Math.max(bySaying[key].accepts, a.accepts);
         bySaying[key].mine = Math.max(bySaying[key].mine, a.mine);
+        bySaying[key].published = bySaying[key].published || a.current_paite || null;
       });
       var cards = Object.keys(bySaying).map(function (k) { return bySaying[k]; });
-      var firsts = cards.filter(function (c) { return c.accepts === 0 && c.mine === 0; });
-      var seconds = cards.filter(function (c) { return c.accepts > 0 && c.mine === 0; });
+      var firsts = cards.filter(function (c) { return !c.published && c.mine === 0; });
+      var seconds = cards.filter(function (c) { return c.published && c.mine === 0; });
       var held = cards.filter(function (c) { return c.mine > 0; });
 
       $("n-first").textContent = firsts.length;

@@ -119,6 +119,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
       note: b.note as string | undefined,
       rejectAll: b.rejectAll === true,
       retire: b.retire === true,
+      acceptPublished: b.acceptPublished === true,
     });
     if (r === "not_found") return json({ error: "not_found" }, 404);
     if (r === "bad_answer") return json({ error: "bad_answer", message: "That line is no longer open for review." }, 400);

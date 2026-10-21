@@ -16,7 +16,9 @@
 // this lane is a list a reviewer works down, like the glossary lane.
 import type { Env } from "./types";
 
-export const REQUIRED_REVIEWERS = 2;
+// One reviewer publishes. The second submission is a comparison, not a second
+// signature: it arrives later, beside the line that already published.
+export const REQUIRED_REVIEWERS = 1;
 
 export type ProverbAnswerRow = {
   id: number;

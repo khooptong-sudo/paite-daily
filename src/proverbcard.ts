@@ -7,6 +7,7 @@
  * with one difference: the first accept only records the review, and a second
  * reviewer publishes.
  */
+import { REQUIRED_REVIEWERS } from "./proverbreview";
 import type { Env } from "./types";
 
 export type CardSave = {
@@ -17,6 +18,7 @@ export type CardSave = {
   note?: string;
   rejectAll?: boolean;
   retire?: boolean;
+  acceptPublished?: boolean;
 };
 
 const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "");
@@ -48,6 +50,23 @@ export async function saveProverbReview(
       env.DB.prepare("UPDATE proverbs SET status = 'hidden' WHERE id = ?1 AND status IN ('open', 'pending')").bind(p.proverbId),
       env.DB.prepare("UPDATE proverb_answers SET status = 'rejected' WHERE proverb_id = ?1 AND status = 'new'").bind(p.proverbId),
     ]);
+    return "ok";
+  }
+
+  // The line already on the page, corrected and put back. Nothing else moves.
+  if (p.acceptPublished) {
+    const text = p.finalPaite !== undefined ? cleanText(p.finalPaite, 300) : "";
+    if (!text) return "bad_answer";
+    try {
+      await env.DB.prepare(
+        `UPDATE proverbs SET paite = ?2, reviewed_by = ?3, reviewed_at = datetime('now') WHERE id = ?1`,
+      )
+        .bind(p.proverbId, text, email)
+        .run();
+    } catch (e) {
+      if (/UNIQUE constraint failed/i.test(String(e))) return "duplicate";
+      throw e;
+    }
     return "ok";
   }
 
@@ -101,7 +120,7 @@ export async function saveProverbReview(
   )
     .bind(p.acceptAnswerId)
     .first<{ n: number }>();
-  if ((n?.n ?? 0) < 2) return "waiting";
+  if ((n?.n ?? 0) < REQUIRED_REVIEWERS) return "waiting";
 
   const settled = await env.DB.prepare(
     `SELECT final_paite FROM proverb_reviews
@@ -122,8 +141,8 @@ export async function saveProverbReview(
       // putting the saying back in the pool.
       saying.status === "live"
         ? env.DB.prepare(
-            `UPDATE proverbs SET reviewed_by = ?2, reviewed_at = datetime('now') WHERE id = ?1`,
-          ).bind(p.proverbId, email)
+            `UPDATE proverbs SET paite = ?2, reviewed_by = ?3, reviewed_at = datetime('now') WHERE id = ?1`,
+          ).bind(p.proverbId, text, email)
         : env.DB.prepare(
             `UPDATE proverbs
                 SET paite = ?2, status = 'live', accepting_more = 1,
