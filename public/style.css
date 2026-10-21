@@ -238,3 +238,5 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 .mypuan h2 small { font: 400 .78rem var(--body); color: var(--muted); margin-left: 6px; }
 .mypuan canvas { display: block; width: 100%; border-radius: 10px; box-shadow: 0 10px 24px -16px rgba(0, 0, 0, .55); }
 .mypuan-note { margin: 0; font-size: .82rem; color: var(--muted); }
+.mypuan-how { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: .86rem; line-height: 1.45; color: var(--muted); }
+.mypuan-how b { color: var(--fg); }

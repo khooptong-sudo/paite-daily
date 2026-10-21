@@ -38,7 +38,7 @@
     const w = c.clientWidth || 320, h = Math.min(160, 24 + n * 2), d = Math.min(devicePixelRatio || 1, 2);
     c.width = w * d; c.height = h * d; c.style.height = h + "px";
     const g = c.getContext("2d"); g.setTransform(d, 0, 0, d, 0, 0); weave(g, w, h, n, me.name);
-    document.getElementById("mypuan-note").textContent = `${setFor(me.name).name}. ${n} thread${n === 1 ? "" : "s"} woven. Each verified line adds one.`;
+    document.getElementById("mypuan-note").textContent = `${setFor(me.name).name} · ${n} thread${n === 1 ? "" : "s"} so far`;
   }
   document.addEventListener("paite:me", (e) => { me = e.detail; draw(); });
   addEventListener("resize", draw);
@@ -51,13 +51,13 @@
     const display = css.getPropertyValue("--display"), body = css.getPropertyValue("--body");
     g.fillStyle = "#fbfbf9"; g.fillRect(0, 0, 1080, 1920);
     g.save(); g.beginPath(); g.roundRect(140, 300, 800, 900, 40); g.clip(); weave(g, 800 + 140, 1200, Math.max(n, 12), me.name); g.restore();
-    g.textAlign = "center"; g.fillStyle = "#111"; g.font = `400 96px ${display}`; g.fillText("Ka puan", 540, 1360);
+    g.textAlign = "center"; g.fillStyle = "#111"; g.font = `400 96px ${display}`; g.fillText("Nampuan Liangbat Gat", 540, 1360, 960);
     g.fillStyle = "#5d6066"; g.font = `44px ${body}`; g.fillText(`${me.name ? me.name + " · " : ""}${setFor(me.name).name} · ${n} threads`, 540, 1440, 960);
-    g.fillStyle = "#111"; g.font = `700 46px ${body}`; g.fillText("Weave yours: one sentence, one thread.", 540, 1640, 960);
+    g.fillStyle = "#111"; g.font = `700 46px ${body}`; g.fillText("One verified sentence, one thread. Weave yours.", 540, 1640, 960);
     g.fillStyle = "#5d6066"; g.font = `40px ${body}`; g.fillText("paite.lamkalabs.com", 540, 1710);
     const blob = await new Promise((r) => k.toBlob(r, "image/png"));
     const file = new File([blob], "ka-puan.png", { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: "Ka puan, woven from Paite sentences. https://paite.lamkalabs.com" }).catch(() => {});
+    if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: "Nampuan Liangbat Gat: my shawl, woven from the Paite I gave. https://paite.lamkalabs.com" }).catch(() => {});
     else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
   });
   // Ask a relative: the current sentence and the link, ready to send on WhatsApp.
