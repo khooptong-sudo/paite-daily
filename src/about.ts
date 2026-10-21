@@ -3,6 +3,8 @@
 // PUAN band, same footer, same font links, so /about cannot drift visually.
 // It also carries the Dataset JSON-LD, so the corpus is machine-readable to
 // anyone who indexes it (keyboard projects, MT researchers, archive crawlers).
+// The section styling borrows the Puandum colours (red, yellow, green, black)
+// and the charcoal bands of the shawl itself.
 import { FOOTER } from "./footer";
 import { PUAN } from "./puan";
 
@@ -12,20 +14,74 @@ const DESC =
 const CANON = "https://paite.lamkalabs.com/about";
 
 // Scoped to this page only, so no shared stylesheet is touched.
+// Yellow and green fail contrast as text on white, so they are fills only.
 const STYLE = `<style>
-.about{max-width:44rem}
-.about h2{font:400 1.35rem/1.25 var(--head,inherit);margin:2.2rem 0 .6rem}
-.about h2:first-of-type{margin-top:.4rem}
-.about p,.about li{line-height:1.62}
-.about p{margin:0 0 .9rem}
-.about ul,.about ol{margin:0 0 1rem;padding-left:1.15rem}
-.about li{margin:0 0 .45rem}
-.about li::marker{color:var(--muted)}
-.about code{font:.9em ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:.08em .38em}
+.about{--red:#d71920;--yel:#f6ff00;--grn:#00a651;--ink:#000;--coal:#202223;max-width:44rem;margin:0 auto}
+.cp main.about{gap:0}
+.about section{margin:0 0 3.25rem}
+.about h2{font:400 clamp(1.5rem,5vw,1.9rem)/1.2 var(--display);margin:.35rem 0 1rem;text-wrap:balance}
+.about h3{font:400 1.15rem/1.3 var(--display);margin:0 0 .4rem}
+.about p,.about li{line-height:1.65}
+.about p{margin:0 0 1rem;max-width:62ch}
 .about em{font-style:italic}
-.about .refs{font-size:.92rem;color:var(--muted)}
-.about .refs li{margin-bottom:.3rem}
-.about .updated{margin-top:2rem;font-size:.82rem;color:var(--muted)}
+.about code{font:.9em ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:.08em .38em}
+.about .stripe{height:6px;border-radius:3px;background:linear-gradient(90deg,var(--red) 0 25%,var(--yel) 25% 50%,var(--grn) 50% 75%,var(--ink) 75%)}
+.about .kicker{display:flex;align-items:center;gap:.6rem;margin:0;font-size:.78rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.about .kicker b{color:var(--red);font-variant-numeric:tabular-nums}
+.about .kicker::after{content:"";flex:1;height:1px;background:var(--line)}
+.about .lead{font-size:1.2rem;line-height:1.55;color:var(--fg);margin:0 0 1rem}
+.about .lead+p{color:var(--muted)}
+.about .facts{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:2rem 0 3.25rem;padding:0}
+.about .facts li{margin:0;padding:14px 14px 16px;border:1px solid var(--line);border-top:6px solid var(--c);border-radius:12px;background:var(--surface)}
+.about .facts b{display:block;font:400 1.75rem/1.1 var(--display);color:var(--ink)}
+.about .facts span{display:block;margin-top:4px;font-size:.85rem;line-height:1.4;color:var(--muted)}
+.about .timeline{list-style:none;margin:1.25rem 0 0;padding:0 0 0 1.4rem;border-left:2px solid var(--ink)}
+.about .timeline li{position:relative;margin:0 0 1rem;padding-left:.25rem}
+.about .timeline li::before{content:"";position:absolute;left:calc(-1.4rem - 7px);top:.45em;width:12px;height:12px;border-radius:50%;background:var(--c,var(--red));box-shadow:0 0 0 2px var(--ink)}
+.about .timeline time{display:block;font:400 1.05rem/1.2 var(--display)}
+.about .band{margin:0 0 3.25rem;padding:28px 24px 0;border-radius:20px;background:var(--coal);color:#fff;overflow:hidden}
+.about .band p{font:400 clamp(1.35rem,5vw,1.75rem)/1.3 var(--display);margin:0 0 24px;max-width:none;text-wrap:balance}
+.about .band p span{color:var(--yel)}
+.about .band .stripe{margin:0 -24px;border-radius:0;height:8px}
+.about .steps{list-style:none;counter-reset:s;display:grid;gap:12px;margin:1.25rem 0 1.25rem;padding:0}
+.about .steps li{counter-increment:s;margin:0;padding:16px 16px 16px 64px;position:relative;border:1px solid var(--line);border-radius:14px}
+.about .steps li::before{content:counter(s);position:absolute;left:16px;top:16px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:#fff;font:400 1rem/1 var(--display)}
+.about .steps li:last-child::before{background:var(--grn);color:#000}
+.about .steps p{margin:0;font-size:.95rem;color:var(--muted)}
+.about .note{padding:14px 16px;border-left:4px solid var(--red);background:var(--surface);border-radius:0 12px 12px 0}
+.about .cards{display:grid;gap:12px;margin:1.25rem 0 0}
+.about .card2{display:block;padding:16px;border:1px solid var(--line);border-radius:14px;color:inherit;text-decoration:none}
+.about a.card2:hover{border-color:var(--ink)}
+.about .card2 small{display:block;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.about .card2 strong{display:block;margin-top:4px;font-weight:700;overflow-wrap:anywhere}
+.about .card2 span{display:block;margin-top:4px;font-size:.9rem;color:var(--muted)}
+.about .refs{list-style:none;margin:0;padding:0;font-size:.92rem;color:var(--muted)}
+.about .refs li{margin:0 0 .55rem;padding-left:1rem;text-indent:-1rem}
+.about .updated{margin:0 0 2rem;font-size:.82rem;color:var(--muted)}
+.cp main.about{padding-bottom:0}
+.about .foot{gap:14px}
+.about .reach{justify-self:stretch;margin-top:36px;box-shadow:0 0 0 100vmax var(--coal);clip-path:inset(0 -100vmax);position:relative;display:grid;gap:10px;justify-items:center;padding:44px 16px max(28px,env(safe-area-inset-bottom));background:var(--coal);color:rgba(255,255,255,.72)}
+.about .reach::before{content:"";position:absolute;inset:0 0 auto;height:8px;border-image:linear-gradient(90deg,var(--red) calc(50% - 25vw),var(--yel) 0 50%,var(--grn) 0 calc(50% + 25vw),var(--ink) 0) fill 0/0/0 100vmax}
+.about .reach h2{margin:0;font:400 1.6rem/1.2 var(--display);color:#fff}
+.about .reach .note2{margin:0;max-width:32rem;font-size:.95rem;line-height:1.55;text-wrap:balance}
+.about .reach .contact{margin:4px 0 6px;gap:12px}
+.about .reach .contact a{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
+.about .reach .contact a:hover{background:rgba(255,255,255,.18)}
+.about .reach .contact a:focus-visible{outline-color:#fff}
+.about .reach .contact img{filter:invert(1)}
+.about .reach .built{width:100%;max-width:44rem;padding-top:18px;border-top:1px solid rgba(255,255,255,.12);font-size:.85rem}
+.about .reach .built a{color:#fff}
+.about .reach .lab span{color:#ff5a64}
+.about .reach .lab:focus-visible{outline-color:#fff}
+.squiggle{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1}
+@media (min-width:640px){
+.about .facts{grid-template-columns:repeat(4,1fr)}
+.about .steps{grid-template-columns:repeat(3,1fr)}
+.about .steps li{padding:64px 16px 16px}
+.about .cards{grid-template-columns:1fr 1fr}
+.about .band{padding:40px 40px 0}
+.about .band .stripe{margin:0 -40px}
+}
 </style>`;
 
 const JSONLD = JSON.stringify({
@@ -42,6 +98,43 @@ const JSONLD = JSON.stringify({
   keywords: ["Paite", "pck", "Tibeto-Burman", "parallel corpus", "language documentation", "Manipur"],
   spatialCoverage: { "@type": "Place", name: "Churachandpur, Manipur, India" },
 });
+
+// On this page only, the footer is rearranged: the coffee button comes first,
+// then a full-width charcoal band holds the contact icons, a line saying what to
+// write in about, and the "Built and maintained by" line. The shared FOOTER stays
+// untouched; footer.js keeps working because no id or data-s attribute changes.
+// The test fails if FOOTER's markup changes and these matches stop finding it.
+const REACH =
+  "Contact for data, corrections, partnerships, or to volunteer as a reviewer. We treat corrections as data, not as complaints. If a pair is wrong, we fix it at the source.";
+const CONTACT = FOOTER.match(/<p class="contact">[\s\S]*?<\/a><\/p>/)?.[0] ?? "";
+const BUILT = FOOTER.match(/<p>Built and maintained by[\s\S]*?<\/p>/)?.[0] ?? "";
+const FOOT = FOOTER.replace(CONTACT, "")
+  .replace(BUILT, "")
+  .replace(
+    "</footer>",
+    `<div class="reach"><h2>Get in touch</h2><p class="note2">${REACH}</p>${CONTACT}${BUILT.replace("<p>", '<p class="built">')}</div>\n</footer>`,
+  );
+
+// Tap or click anywhere and iridescent strands curl out from the point, then
+// fade. Drawn on a fixed canvas behind the content, so links and text stay
+// usable. Skipped entirely for people who ask for reduced motion.
+const SQUIGGLE = `<script>(function(){
+if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
+var c=document.createElement("canvas");c.className="squiggle";c.setAttribute("aria-hidden","true");document.body.prepend(c);
+var g=c.getContext("2d"),W=0,H=0,S=[],raf=0,down=false,last=0;
+function size(){var d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;g.setTransform(d,0,0,d,0,0)}
+size();addEventListener("resize",size);
+function burst(x,y,n){var h=Math.random()*360;for(var i=0;i<n&&S.length<180;i++)S.push({p:[[x,y]],a:Math.random()*6.283,v:1.8+Math.random()*2.4,w:(Math.random()-.5)*.12,f:.06+Math.random()*.08,ph:Math.random()*6,h:h+i*(360/n),t:0,max:60+Math.random()*60,lw:1.5+Math.random()*2.5});if(!raf)raf=requestAnimationFrame(tick)}
+function tick(){g.clearRect(0,0,W,H);var now=performance.now()/1e3;g.lineCap="round";
+S=S.filter(function(s){return s.t<s.max+45});
+S.forEach(function(s){s.t++;if(s.t<s.max){var q=s.p[s.p.length-1];s.a+=s.w+Math.sin(s.t*s.f+s.ph)*.16;s.v*=.988;s.p.push([q[0]+Math.cos(s.a)*s.v,q[1]+Math.sin(s.a)*s.v])}
+var fade=s.t<s.max?1:1-(s.t-s.max)/45,n=s.p.length;
+for(var i=1;i<n;i++){var k=i/n;g.strokeStyle="hsla("+((s.h+i*5+now*120)%360)+",95%,58%,"+(fade*k*.8)+")";g.lineWidth=s.lw*(.3+k);g.beginPath();g.moveTo(s.p[i-1][0],s.p[i-1][1]);g.lineTo(s.p[i][0],s.p[i][1]);g.stroke()}});
+raf=S.length?requestAnimationFrame(tick):0}
+addEventListener("pointerdown",function(e){down=true;burst(e.clientX,e.clientY,9)},{passive:true});
+addEventListener("pointermove",function(e){var t=performance.now();if(!down||t-last<45)return;last=t;burst(e.clientX,e.clientY,2)},{passive:true});
+addEventListener("pointerup",function(){down=false});addEventListener("pointercancel",function(){down=false});
+})();</script>`;
 
 export function renderAbout(): string {
   return `<!doctype html>
@@ -83,77 +176,106 @@ ${STYLE}
 <header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1>About Paite Daily</h1><p>A free, volunteer-reviewed corpus of Paite.</p></header>
 <main class="gl about">
 
-<p><strong>Paite Daily</strong> is a free, volunteer-run corpus of <strong>Paite</strong> (ISO 639-3: <code>pck</code>). It does three things: it shows reviewed Paite–English sentence pairs, it collects new translations from speakers, and a human reviewer checks every one before it appears. Nothing here is machine-generated. Every line comes from a pair that one person wrote and another person approved.</p>
+<div>
+<p class="lead"><strong>Paite Daily</strong> is a free, volunteer-run corpus of <strong>Paite</strong> (ISO 639-3: <code>pck</code>). Speakers send in Paite–English translations. A second person reviews each one. Only reviewed pairs appear on the site.</p>
+<p>Nothing here is machine-generated. One person wrote every line, and another person approved it.</p>
+</div>
 
-<h2>Who the Paites are</h2>
+<ul class="facts" aria-label="Paite at a glance">
+<li style="--c:var(--red)"><b>78,725</b><span>mother-tongue speakers, Census of India 2011</span></li>
+<li style="--c:var(--yel)"><b>1903</b><span>year the Paite Laimal alphabet was devised</span></li>
+<li style="--c:var(--grn)"><b>2004</b><span>Paite approved as a Manipur University degree subject</span></li>
+<li style="--c:var(--ink)"><b>CC0</b><span>every verified pair is in the public domain</span></li>
+</ul>
 
-<p>The word <em>Paite</em> means “the people who marched”. It comes from <em>pai</em>, to march, and <em>te</em>, the plural marker. The Paites are one of the Zo (Zomi) peoples of the India–Myanmar–Bangladesh borderlands, and a recognised Scheduled Tribe in both Manipur and Mizoram. They are concentrated in Manipur, and are the dominant community in Lamka, the town at the heart of Churachandpur district, where Paite is the everyday language of the street and the market.</p>
+<section aria-labelledby="people">
+<p class="kicker"><b>01</b> The people</p>
+<h2 id="people">Who the Paites are</h2>
+<p>The word <em>Paite</em> means “the people who marched”. It joins <em>pai</em> (to march) and <em>te</em> (the plural marker).</p>
+<p>The Paites are one of the Zo (Zomi) peoples of the India–Myanmar–Bangladesh borderlands. They are a recognised Scheduled Tribe in Manipur and in Mizoram. Most Paites live in Manipur. In Lamka, the main town of Churachandpur district, they are the dominant community. There, Paite is the everyday language of the street and the market.</p>
+<p>The community took to print early. British missionaries brought Christianity in the nineteenth century. Schools, literacy and the written word followed, and they stayed. That is why a language of about 79,000 speakers has three dictionary editions, a reference grammar, a degree course and a daily radio broadcast.</p>
+<p>Proverbs, folksongs and folktales still pass from speaker to speaker by word of mouth. The <em>pau upa</em> section of this site collects the proverbs and idioms.</p>
+</section>
 
-<p>The community took to print early: Christianity arrived in the nineteenth century through British missionaries, and schooling, literacy and the written word followed and held. That is why a language of fewer than eighty thousand speakers has dictionaries in three editions, a reference grammar, a degree-level curriculum and a daily radio broadcast. Folksongs and folktales still travel by mouth alongside all of it, which is what the <em>pau upa</em> section of this site collects.</p>
-
-<h2>What Paite is</h2>
-
-<p>Paite is an independent Tibeto-Burman language, spoken mainly in Churachandpur district of Manipur, with communities in Mizoram and Assam and among Paite families in Myanmar. The 2011 Census of India records <strong>78,725 people whose mother tongue is Paite</strong>. Paite is a non-scheduled language of India, and one of the modern Indian language subjects approved for the three-year degree course at Manipur University by its Academic Council on 22 April 2004. All India Radio Imphal broadcasts in Paite daily.</p>
-
-<p>Paite has its own alphabet, the <em>Paite Laimal</em>, devised by T. Vialphung in 1903 and published in <em>Sintung Bu</em> in 1945. It has its own dictionary tradition, from the Paite Tribe Council’s <em>English–Paite Dictionary</em> (1993, 2003, 2014) back through a century of word books. It has proverbs, recorded in T. Thuamkhopau’s <em>Paite paunaak leh pau upate</em> (2009), and one book-length reference grammar, Naorem Saratchandra Singh’s <em>A Grammar of Paite</em> (Mittal, 2006).</p>
-
-<p>What it does not have is a corpus.</p>
-
-<h2>Why this site exists</h2>
-
-<p>Every part of Paite life is written down. The language itself is not in a machine. A Paite speaker can write a sentence by hand and cannot write it on a phone: there is no spellchecker, no predictive keyboard, no parallel text and no machine translation, because all of those things are built from aligned, machine-readable sentences. For Paite, those sentences have never been assembled.</p>
-
-<p>That is the whole gap. The shortage is not speakers. It is sentences a computer can read in a row. Seventy-eight thousand speakers and no spellchecker is an addressable problem, not a tragedy.</p>
-
-<h2>How a sentence gets verified</h2>
-
-<ol>
-<li>A speaker submits a translation and tags it <em>Gen Thoh</em> (spoken), <em>Gelh Thoh</em> (written) or <em>Anih In</em> (both). Submissions are gated against bots.</li>
-<li>A reviewer checks it against the source. Unreviewed submissions are never shown as answers.</li>
-<li>Only after review does the pair join the pool of verified sentences. Only then does it become the prompt for the next learner.</li>
+<section aria-labelledby="language">
+<p class="kicker"><b>02</b> The language</p>
+<h2 id="language">What Paite is</h2>
+<p>Paite is an independent Tibeto-Burman language. People speak it mainly in Churachandpur district of Manipur. There are also Paite communities in Mizoram and Assam, and Paite families in Myanmar. The 2011 Census of India records <strong>78,725 people whose mother tongue is Paite</strong>.</p>
+<p>Paite is a non-scheduled language of India. All India Radio Imphal broadcasts in Paite every day. The language also has more than a century of written work behind it:</p>
+<ol class="timeline">
+<li style="--c:var(--red)"><time>1903</time>T. Vialphung devises the <em>Paite Laimal</em>, the Paite alphabet.</li>
+<li style="--c:var(--yel)"><time>1945</time>The Laimal is published in <em>Sintung Bu</em>.</li>
+<li style="--c:var(--grn)"><time>1993</time>The Paite Tribe Council publishes its <em>English–Paite Dictionary</em>, after a century of word books. New editions follow in 2003 and 2014.</li>
+<li style="--c:var(--red)"><time>2004</time>On 22 April, the Academic Council of Manipur University approves Paite as a modern Indian language subject for the three-year degree course.</li>
+<li style="--c:var(--yel)"><time>2006</time>Naorem Saratchandra Singh publishes <em>A Grammar of Paite</em> (Mittal), the one book-length reference grammar.</li>
+<li style="--c:var(--grn)"><time>2009</time>T. Thuamkhopau records Paite proverbs in <em>Paite paunaak leh pau upate</em>.</li>
+<li style="--c:var(--ink)"><time>2011</time>The Census of India counts 78,725 speakers.</li>
 </ol>
+</section>
 
-<p>Proverbs and idioms (<em>pau upa</em>) go through the same loop, in both directions, with the same rule: a reviewer checks each one. Nothing is published unreviewed. No model writes our data, and no model decides what counts as correct Paite.</p>
+<div class="band" role="note">
+<p>Paite has an alphabet, dictionaries, a grammar and a radio service. <span>What it does not have is a corpus.</span></p>
+<div class="stripe" aria-hidden="true"></div>
+</div>
 
-<h2>What “public domain” means here</h2>
+<section aria-labelledby="why">
+<p class="kicker"><b>03</b> The gap</p>
+<h2 id="why">Why this site exists</h2>
+<p>Paite life is well written down. The language itself is not in a machine. A speaker can write a Paite sentence by hand, but not easily on a phone. There is no spellchecker, no predictive keyboard, no parallel text and no machine translation.</p>
+<p>All of these tools are built from aligned sentences that a computer can read. For Paite, nobody has assembled those sentences yet.</p>
+<p class="note">That is the whole gap. Paite does not lack speakers. It lacks sentences in a form a computer can read. About 79,000 speakers and no spellchecker is a problem we can fix, not a tragedy.</p>
+</section>
 
-<p>Every verified pair is dedicated to the public domain (CC0). Not “free to use with attribution”. Public domain, irrevocably. If you are building a Paite keyboard dictionary, a spellchecker, a concordance, a school workbook or a translation model, you do not need to ask us and you do not need to credit us. That is deliberate. A corpus that requires permission is a corpus that gets ignored, and a corpus that gets ignored dies with its website.</p>
+<section aria-labelledby="verify">
+<p class="kicker"><b>04</b> The method</p>
+<h2 id="verify">How a sentence gets verified</h2>
+<ol class="steps">
+<li><h3>Submit</h3><p>A speaker sends a translation and tags it <em>Gen Thoh</em> (spoken), <em>Gelh Thoh</em> (written) or <em>Anih In</em> (both). A bot check guards the form.</p></li>
+<li><h3>Review</h3><p>A reviewer checks the translation against the source. The site never shows an unreviewed submission as an answer.</p></li>
+<li><h3>Publish</h3><p>The approved pair joins the pool of verified sentences. Only then does it become a prompt for the next learner.</p></li>
+</ol>
+<p>Proverbs and idioms (<em>pau upa</em>) go through the same loop, in both directions, with a stricter rule: two reviewers must approve each one. Nothing is published without review. No model writes our data, and no model decides what counts as correct Paite.</p>
+</section>
 
-<h2>Who runs this</h2>
+<section aria-labelledby="open">
+<p class="kicker"><b>05</b> Open data</p>
+<h2 id="open">Public domain, and built to outlast this site</h2>
+<p>Every verified pair is dedicated to the public domain under CC0. This is not “free to use with attribution”. It is public domain, and the dedication cannot be withdrawn.</p>
+<p>Use the data for a Paite keyboard dictionary, a spellchecker, a concordance, a school workbook or a translation model. You do not need to ask us. You do not need to credit us. We chose this on purpose: people ignore a corpus that needs permission, and an ignored corpus dies with its website.</p>
+<div class="cards">
+<a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>Data on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The verified corpus, the open Paite&ndash;English dictionary and other Paite text.</span></a>
+<a class="card2" href="https://doi.org/10.5281/zenodo.23349156" target="_blank" rel="noopener"><small>Citable releases on Zenodo</small><strong>doi.org/10.5281/zenodo.23349156</strong><span>Versioned deposits, starting with v1.0.0.</span></a>
+</div>
+<p style="margin-top:1rem">The site is a static export. Anyone can fork it and host it again for the price of a domain. If this project stops, the sentences do not.</p>
+</section>
 
-<p>Paite Daily is built and maintained by Min Khooptong (<a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a>) in Lamka, with 5 volunteer reviewers. It is not a company and it is not funded. Reviewer time is unpaid; hosting is paid out of pocket.</p>
+<section aria-labelledby="who">
+<p class="kicker"><b>06</b> The people behind it</p>
+<h2 id="who">Who runs this</h2>
+<p>Min Khooptong (<a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a>) builds and maintains Paite Daily in Lamka, with 5 volunteer reviewers. It is not a company, and it has no funding. Reviewers give their time for free, and hosting is paid out of pocket.</p>
+<p>This site carries no advertising and never will. Ads on a page about a 79,000-speaker language would earn a few dollars a month at best. The reader’s attention would pay for them, not people who care about Paite.</p>
+<p>If you want to help with running costs, there is a UPI code in the footer. It is entirely optional.</p>
+</section>
 
-<p>Corrections are welcome and are treated as data, not as complaints. If a pair is wrong, it should be fixed at the source.</p>
-
-<h2>Where the data lives</h2>
-
-<p>The verified corpus is exported and published at <a href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener">khooptong-sudo/paite-open-language-data</a>, alongside the open Paite&ndash;English dictionary and other Paite text. Versioned releases are deposited with Zenodo at <a href="https://doi.org/10.5281/zenodo.23349156" target="_blank" rel="noopener">doi.org/10.5281/zenodo.23349156</a> (v1.0.0), so the corpus can be cited. The site itself is a static export and can be forked and rehosted by anyone for the price of a domain. If this project stops, the sentences do not.</p>
-
-<h2>No advertising</h2>
-
-<p>This site carries no advertising and never will. A page about a 79,000-speaker language would earn a few dollars a month at best, and it would be paid for by the reader’s attention rather than by anyone who cares about Paite. Hosting is paid out of pocket. If you would like to contribute to reviewer costs, there is a UPI code in the footer, and it is entirely optional.</p>
-
-<h2>References</h2>
-
+<section aria-labelledby="refs">
+<p class="kicker"><b>07</b> Sources</p>
+<h2 id="refs">References</h2>
 <ul class="refs">
 <li>Saratchandra Singh, Naorem. 2006. <em>A Grammar of Paite</em>. New Delhi: Mittal Publications.</li>
 <li>Paite Tribe Council. 1993, 2003, 2014. <em>English–Paite Dictionary</em>. Lamka, Manipur.</li>
 <li>Thuamkhopau, T. 2009. <em>Paite paunaak leh pau upate</em>.</li>
 <li>Census of India 2011, language tables (Paite, <code>pck</code>).</li>
 </ul>
-
-<h2>Contact</h2>
-
-<p>Email: <a href="mailto:theconcierge@lamkalabs.com">theconcierge@lamkalabs.com</a><br>
-Data, corrections, partnerships and reviewer volunteers: same address.</p>
+</section>
 
 <p class="updated">Last updated: 21 October 2026</p>
 
-${FOOTER}
+${FOOT}
 </main>
 <script src="/strings.js"></script>
 <script src="/back.js"></script>
 <script src="/pwa.js"></script>
 <script src="/track.js"></script>
+${SQUIGGLE}
 </body></html>`;
 }

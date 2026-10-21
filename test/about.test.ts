@@ -55,6 +55,23 @@ describe("about page", () => {
     expect(html).not.toContain("[EMAIL]");
   });
 
+  it("puts coffee first, then a contact band holding the icons and the credit line", () => {
+    const foot = html.slice(html.indexOf('<footer class="foot">'));
+    const reach = foot.slice(foot.indexOf('<div class="reach">'), foot.indexOf("</footer>"));
+    expect(foot.indexOf('id="coffee"')).toBeLessThan(foot.indexOf('<div class="reach">'));
+    expect(reach).toContain('<p class="note2">Contact for data, corrections, partnerships, or to volunteer as a reviewer.');
+    expect(reach).toContain('<p class="contact">');
+    expect(reach).toContain("whatsapp.png");
+    expect(reach).toContain('<p class="built">Built and maintained by');
+    // each piece moved, not copied
+    expect(html.split('<p class="contact">').length).toBe(2);
+    expect(html.split("Built and maintained by").length).toBe(2);
+  });
+
+  it("skips the squiggle for reduced motion", () => {
+    expect(html).toContain("prefers-reduced-motion: reduce");
+  });
+
   it("admits no advertising", () => {
     expect(html).toContain("carries no advertising and never will");
     expect(html.toLowerCase()).not.toContain("google ads");
