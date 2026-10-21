@@ -63,7 +63,7 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
     contributor: row.contributor_name ?? "",
     verified_by: names.get(row.reviewer_email.toLowerCase()) ?? "Reviewer",
     verified_at: row.created_at,
-    licence: "CC0-1.0",
+    licence: "CC-BY-4.0",
     also_correct: also.get(row.sentence_id) ?? [],
     explanation: row.explanation,
   }));

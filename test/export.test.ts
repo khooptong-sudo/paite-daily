@@ -41,7 +41,7 @@ describe("export", () => {
     expect(decode(toBase64Utf8("Pathian — ā"))).toBe("Pathian — ā");
   });
 
-  it("writes one JSON line per accepted review, with reviewer display name and CC0", async () => {
+  it("writes one JSON line per accepted review, with reviewer display name and CC BY 4.0", async () => {
     await verified("I am well.", "Ka dam e.");
     await verified("Good night for now.", "Mangpha phot le.", null);
     await env.DB.prepare("UPDATE answers SET explanation = 'gloss' WHERE paite = 'Ka dam e.'").run();
@@ -51,7 +51,7 @@ describe("export", () => {
     expect(gh.puts).toHaveLength(1);
     expect(gh.puts[0].url).toMatch(/\/repos\/khooptong-sudo\/paite-open-language-data\/contents\/community\/verified-\d+-\d+\.jsonl$/);
     const lines = decode(gh.puts[0].body.content).trim().split("\n").map((l) => JSON.parse(l));
-    expect(lines[0]).toMatchObject({ english: "I am well.", paite: "Ka dam e.", register: "spoken", contributor: "Mang", verified_by: "Rev One", licence: "CC0-1.0" });
+    expect(lines[0]).toMatchObject({ english: "I am well.", paite: "Ka dam e.", register: "spoken", contributor: "Mang", verified_by: "Rev One", licence: "CC-BY-4.0" });
     expect(lines[1].contributor).toBe("");
     expect(lines[0].explanation).toBe("gloss");
     expect(lines[1]).toHaveProperty("explanation", null);

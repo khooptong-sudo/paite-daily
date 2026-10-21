@@ -10,7 +10,7 @@ import { PUAN } from "./puan";
 
 const TITLE = "About Paite Daily";
 const DESC =
-  "Paite Daily is a free, volunteer-reviewed Paite–English corpus. 78,725 speakers, no spellchecker. Every pair is checked by a native speaker and released to the public domain.";
+  "Paite Daily is a free, volunteer-reviewed Paite–English corpus. 78,725 speakers, no spellchecker. Every pair is checked by a native speaker and free to use with credit (CC BY 4.0).";
 const CANON = "https://paite.lamkalabs.com/about";
 
 // Scoped to this page only, so no shared stylesheet is touched.
@@ -73,9 +73,9 @@ const JSONLD = JSON.stringify({
   "@type": "Dataset",
   name: "Paite Daily: a Paite–English verified corpus",
   description:
-    "A volunteer-reviewed corpus of aligned Paite–English sentence pairs, proverbs and idioms. Every pair is checked by a native speaker before publication and released to the public domain (CC0).",
+    "A volunteer-reviewed corpus of aligned Paite–English sentence pairs, proverbs and idioms. Every pair is checked by a native speaker before publication and free to use with credit (CC BY 4.0).",
   url: "https://paite.lamkalabs.com/",
-  license: "https://creativecommons.org/publicdomain/zero/1.0/",
+  license: "https://creativecommons.org/licenses/by/4.0/",
   isAccessibleForFree: true,
   inLanguage: "pck",
   creator: { "@type": "Organization", name: "Lamka Labs", url: "https://lamkalabs.com" },
@@ -132,7 +132,7 @@ ${STYLE}
 <li style="--c:var(--red)"><b>78,725</b><span>mother-tongue speakers, Census of India 2011</span></li>
 <li style="--c:var(--yel)"><b>1903</b><span>year the Paite Laimal alphabet was devised</span></li>
 <li style="--c:var(--grn)"><b>2004</b><span>Paite approved as a Manipur University degree subject</span></li>
-<li style="--c:var(--ink)"><b>CC0</b><span>every verified pair is in the public domain</span></li>
+<li style="--c:var(--ink)"><b>CC BY</b><span>every verified pair is free to use with credit</span></li>
 </ul>
 
 <section aria-labelledby="people">
@@ -186,9 +186,9 @@ ${STYLE}
 
 <section aria-labelledby="open">
 <p class="kicker"><b>05</b> Open data</p>
-<h2 id="open">Public domain, and built to outlast this site</h2>
-<p>Every verified pair is dedicated to the public domain under CC0. This is not “free to use with attribution”. It is public domain, and the dedication cannot be withdrawn.</p>
-<p>Use the data for a Paite keyboard dictionary, a spellchecker, a concordance, a school workbook or a translation model. You do not need to ask us. You do not need to credit us. We chose this on purpose: people ignore a corpus that needs permission, and an ignored corpus dies with its website.</p>
+<h2 id="open">Free to use, and built to outlast this site</h2>
+<p>Every verified pair is free to use under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0</a> licence (CC BY 4.0). You can copy it, change it and build on it, for any purpose, including commercial work. The one condition is credit.</p>
+<p>Use the data for a Paite keyboard dictionary, a spellchecker, a concordance, a school workbook or a translation model. You do not need to ask us. Credit “Paite Daily, Lamka Labs” and link to the dataset, the way the Zenodo record shows how to cite it.</p>
 <div class="cards">
 <a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>Data on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The verified corpus, the open Paite&ndash;English dictionary and other Paite text.</span></a>
 <a class="card2" href="https://doi.org/10.5281/zenodo.23349156" target="_blank" rel="noopener"><small>Citable releases on Zenodo</small><strong>doi.org/10.5281/zenodo.23349156</strong><span>Versioned deposits, starting with v1.0.0.</span></a>

@@ -14,7 +14,7 @@ window.STRINGS = {
   yourName: { pai: "Na Min", en: "Your Name" },
   noThanks: { pai: "Ngaikei", en: "No Thanks" },
   saveName: { pai: "Awle", en: "Add My Name" },
-  licence: { pai: "Mipi muh leh zat theih dia kikoih khia ahi.", en: "Your translations are given to everyone, free (public domain)" },
+  licence: { pai: "Mipi muh leh zat theih dia kikoih khia ahi.", en: "Your translations are free for everyone to use, with credit (CC BY 4.0)" },
   loading: { pai: "Aban adi hong ki load lel ahi", en: "Loading the next sentence…" },
   refilling: { pai: "", en: "Getting more sentences…" },
   tryAgain: { pai: "", en: "Try Again" },

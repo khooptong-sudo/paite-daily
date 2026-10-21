@@ -29,9 +29,11 @@ describe("about page", () => {
     expect(html).toContain('<link rel="icon" href="/favicon.ico" sizes="32x32">');
   });
 
-  it("declares the corpus as a CC0 dataset", () => {
+  it("declares the corpus as a CC BY 4.0 dataset", () => {
     expect(html).toContain('"@type":"Dataset"');
-    expect(html).toContain("creativecommons.org/publicdomain/zero/1.0");
+    expect(html).toContain("creativecommons.org/licenses/by/4.0");
+    expect(html).not.toContain("CC0");
+    expect(html).not.toContain("public domain");
     expect(html).toContain('"inLanguage":"pck"');
   });
 
