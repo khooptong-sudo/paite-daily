@@ -23,14 +23,15 @@ h1{font:400 1.6rem/1.2 var(--head);margin:0}
 .prompt{font:400 1.6rem/1.22 var(--head);margin:0 0 10px}
 .help{color:var(--muted);font-size:.83rem;margin:0 0 16px}
 .block{background:#f7f5ef;border:1px solid var(--line);border-radius:16px;padding:14px;margin:0 0 12px}
-.block.sel{border-color:var(--ink);box-shadow:0 0 0 2px rgba(18,16,14,.12)}
+.block.sel{border-color:rgba(18,16,14,.55);box-shadow:0 0 0 2px rgba(18,16,14,.08)}
 .txt{font-size:1.12rem;margin:0 0 4px}
 .meta{color:var(--muted);font-size:.78rem;margin:0 0 10px}
 textarea{width:100%;font:inherit;font-size:1rem;padding:11px 12px;border:1px solid #cfc8b8;border-radius:12px;background:#efece4;color:var(--ink);resize:vertical;min-height:64px}
 .check{display:flex;align-items:center;gap:8px;font-size:.86rem;color:var(--muted);margin:10px 0 12px}
 .row{display:flex;gap:8px;flex-wrap:wrap}
-button{font:inherit;font-size:.9rem;padding:9px 16px;border-radius:12px;border:1px solid #cfc8b8;background:#fff;color:var(--ink);cursor:pointer}
-button.accept{flex:1;background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:700}
+button{font:inherit;font-size:.9rem;padding:9px 16px;border-radius:12px;border:1px solid #cfc8b8;background:rgba(255,255,255,.55);-webkit-backdrop-filter:blur(14px) saturate(140%);backdrop-filter:blur(14px) saturate(140%);color:var(--ink);cursor:pointer}
+button:hover{background:rgba(255,255,255,.8)}
+button.accept{flex:1;font-weight:700}
 button.reject{color:var(--ink)}
 button.danger{color:var(--crimson)}
 button:disabled{opacity:.45;cursor:default}
@@ -58,7 +59,7 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
   <div id="second"></div>
 
   <h2>Waiting for a first review <span id="n-first"></span></h2>
-  <p class="help">Press Accept this on the best line. Tick any other correct line to keep it as a variant. Accepting leaves the saying unpublished until a second reviewer confirms.</p>
+  <p class="help">Press Accept this on the best line. Correct the text in its box first if it needs it, and tick any other line worth keeping as a variant. One click saves and records you.</p>
   <div id="first"></div>
 
   <h2>Whole sayings waiting <span id="n-pairs"></span></h2>
@@ -102,12 +103,11 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
       : "Pick the line that reads best. Correct it in the box if it needs it."));
 
     var blocks = [];
-    var chosen = null;
 
     a.candidates.forEach(function (c) {
       var block = h("div", "block");
       block.appendChild(h("p", "txt", c.paite));
-      block.appendChild(h("p", "meta", (c.contributor_name || "an unnamed contributor") + " \u00b7 " + (c.kind === "idiom" ? "idiom" : "proverb") + " \u00b7 " + c.created_at));
+      block.appendChild(h("p", "meta", (c.contributor_name || "an unnamed contributor") + " \u00b7 " + String(c.created_at).slice(0, 10)));
       var ta = document.createElement("textarea");
       ta.value = c.paite;
       ta.setAttribute("aria-label", "Correct this line");
@@ -118,7 +118,7 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
       lab.appendChild(box); lab.appendChild(h("span", null, "Also correct (keep as variant)"));
       block.appendChild(lab);
       var row = h("div", "row");
-      var ok = h("button", "accept", secondPass ? "Confirm this and publish" : "Accept this");
+      var ok = h("button", "accept", secondPass ? "Accept and publish" : "Accept this");
       var no = h("button", "reject", "Reject this line");
       row.append(ok, no);
       block.appendChild(row);
@@ -127,9 +127,23 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
       blocks.push({ c: c, el: block, ta: ta, box: box });
 
       ok.addEventListener("click", function () {
-        blocks.forEach(function (b) { b.el.classList.remove("sel"); });
-        block.classList.add("sel");
-        chosen = blocks.findIndex(function (b) { return b.el === block; });
+        // One click. The correction in the box, the ticks on the other lines and
+        // the note all go with it, so there is no separate Save.
+        var idx = blocks.findIndex(function (b) { return b.el === block; });
+        var variants = blocks.filter(function (b, i) { return i !== idx && b.box.checked; }).map(function (b) { return b.c.id; });
+        [ok, no].forEach(function (b) { b.disabled = true; });
+        post("/review/api/proverbs/save", {
+          proverbId: a.proverb_id,
+          acceptAnswerId: c.id,
+          finalPaite: ta.value,
+          alsoCorrect: variants,
+          note: note.value,
+        }).then(function (res) {
+          if (!res.ok) { [ok, no].forEach(function (b) { b.disabled = false; }); say((res.body && res.body.message) || "That did not go through."); return; }
+          card.remove();
+          remember(a.proverb_id);
+          say(res.body.waiting ? "Recorded. One more reviewer needed." : "Published.");
+        }).catch(function () { [ok, no].forEach(function (b) { b.disabled = false; }); say("Network error. Try again."); });
       });
 
       no.addEventListener("click", function () {
@@ -150,31 +164,11 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
     card.appendChild(note);
 
     var actions = h("div", "actions");
-    var save = h("button", "accept", secondPass ? "Save and publish" : "Save");
     var skip = h("button", "reject", "Skip for now");
     var rejAll = h("button", "reject", "Reject all");
     var retire = h("button", "danger", "Retire saying");
-    actions.append(save, skip, rejAll, retire);
+    actions.append(skip, rejAll, retire);
     card.appendChild(actions);
-
-    save.addEventListener("click", function () {
-      if (chosen === null) { say("Choose the line you are accepting first."); return; }
-      var picked = blocks[chosen];
-      var variants = blocks.filter(function (b, i) { return i !== chosen && b.box.checked; }).map(function (b) { return b.c.id; });
-      save.disabled = true;
-      post("/review/api/proverbs/save", {
-        proverbId: a.proverb_id,
-        acceptAnswerId: picked.c.id,
-        finalPaite: picked.ta.value,
-        alsoCorrect: variants,
-        note: note.value,
-      }).then(function (res) {
-        if (!res.ok) { save.disabled = false; say((res.body && res.body.message) || "That did not go through."); return; }
-        card.remove();
-        remember(a.proverb_id);
-        say(res.body.waiting ? "Recorded. One more reviewer needed." : "Published.");
-      }).catch(function () { save.disabled = false; say("Network error. Try again."); });
-    });
 
     skip.addEventListener("click", function () {
       skip.disabled = true;
