@@ -38,7 +38,7 @@
 <main>
   <header>
     <h1>Paite Daily</h1>
-    <div><span class="streak" id="today"></span> <span class="badge" id="badge" hidden></span> <button type="button" class="share-chip" id="share" hidden><img src="/whatsapp.png" alt="" width="16" height="16" decoding="async"><span data-s="share"></span></button></div>
+    <div><span class="streak" id="today"></span> <span class="badge" id="badge" hidden></span> <a class="share-chip about-chip" href="/about">About this project <span aria-hidden="true">&rarr;</span></a></div>
     <a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a>
   </header>
   <div class="goal" id="goal" hidden><div><b id="goal-n"></b> / <span id="goal-max"></span> <span data-s="goalLine"></span></div><div class="goal-bar" id="goal-bar" role="progressbar" aria-valuemin="0"><i></i></div></div>
@@ -51,6 +51,7 @@
     </ul>
     <canvas id="mypuan-c" role="img" aria-label="Your woven shawl"></canvas>
     <p class="mypuan-note" id="mypuan-note"></p>
+    <button type="button" class="share-chip" id="share" hidden><img src="/whatsapp.png" alt="" width="16" height="16" decoding="async"><span data-s="share"></span></button>
   </section>
   <section class="card" id="feedback" aria-labelledby="fb-title" hidden>
     <h2 id="fb-title" data-s="feedbackTitle"></h2>

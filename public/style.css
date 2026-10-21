@@ -240,3 +240,6 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 .mypuan-note { margin: 0; font-size: .82rem; color: var(--muted); }
 .mypuan-how { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: .86rem; line-height: 1.45; color: var(--muted); }
 .mypuan-how b { color: var(--fg); }
+/* The About link sits in the header, beside the score, so people find it. */
+.about-chip { text-decoration: none; }
+.mypuan #share { justify-self: start; }
