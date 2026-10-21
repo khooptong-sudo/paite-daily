@@ -1,5 +1,40 @@
 Newest first. Each session prepends one section directly under this line.
 
+## ✅ 21102026 EoS: a brand, an About page, and a sayings queue that reviews
+
+### Shipped
+
+- **Brand identity**, in `brand/`: the **sash** emblem (a woven band slung across a seal, fringed with warp ends, because a Puandum is worn over one shoulder and not laid flat) and the **P symbol** with a lozenge counter for one-colour work. Full icon set, 1200x630 social card, `INSTALL.md` mapping every file to its real path, and `build_assets.py` so the whole kit regenerates from one file. Wordmark is Young Serif, the site's own display face. Original icons are preserved in `brand/before/`.
+- **The About page** at `/about` (`src/about.ts`): server rendered, sharing the glossary shell so the header, the shawl band and the footer cannot drift. Carries the `Dataset` JSON-LD with a CC0 licence and `inLanguage: pck`, and cites the real Zenodo DOI (`10.5281/zenodo.23349156`, v1.0.0) instead of a placeholder. Reached from the footer on every page.
+- **Terminology is now enforced by test.** `test/about.test.ts` fails the build if Kuki, Chin, Tedim or Tiddim appear on that page, if "one sentence a day" returns, or if a placeholder survives. Paite is described as an independent Tibeto-Burman language, never as a variety of a neighbour.
+- **Head sweep across four files** (`public/index.html`, `glossary.ts`, `proverbs.ts`, `contributors.ts`): "one sentence a day" retired everywhere, new title and description built on 78,725 speakers and the missing spellchecker, corrected `og:image:alt` and `twitter:image:alt`, favicon and emblem links added.
+- **Sayings reviewer** on the same rails as the sentence lane. `proverb_reviews` mirrors `reviews` (`decision`, `final_paite`, `note`, `undone_at`), `proverb_answers` gained `also_correct`. Reviewer sees the English line, every candidate rendering with a correction box, "Also correct (keep as variant)", Accept and Reject, then Skip, Reject all and Retire saying, with an Undo bar.
+- **One click accepts.** The separate Save button is gone: Accept submits immediately with the correction, the ticks and the note. `REQUIRED_REVIEWERS` is **1**, so a single accept publishes.
+- **The line goes back out.** Publishing sets `accepting_more`, the public page shows the saying again with *Another version welcome* and the Paite line withheld, and `submitProverbAnswer` accepts the new rendering. The next submission lands beside the published line, which can be corrected and re-published, or replaced (the old answer stays on record as an accepted alternative).
+- **`docs/grant-narrative.md`**: ~1,430 words, budget in named line items at US$2,000 with no overhead, cost per verified pair, plus an appendix on classification for forms and one on what not to claim.
+
+Migrations: `0021_proverb_votes.sql` (superseded by `0022`), `0022_proverb_reviews.sql`, `0023_proverb_skips.sql`, `0024_proverb_review_undo.sql`, `0025_proverb_reviews_partial_unique.sql`. HEAD `e6e29a48`. 407 tests, `tsc` clean.
+
+### What needs updating
+
+- **The licence contradicts itself.** The Zenodo record says CC-BY-4.0. `/about` says every verified pair is CC0, "you do not need to credit us", and the narrative makes the same promise in section 7. Pick one. My recommendation is CC0 everywhere, because for a language this size the binding constraint is adoption, not credit.
+- **The comparison card has never met real data.** No published saying has received a fresh submission yet, so the published-line-beside-new-line view is proven by test only. Watch the first one that arrives.
+- **Migration numbering collides** at `0021`: `0021_chat_wants.sql` from the previous session and `0021_proverb_votes.sql` from this one. Both applied cleanly and the second is superseded, but renumber before the next migration so the history stays readable.
+- **The sayings reviewer is a separate page**, `public/review/proverbs.html`, linked from the reviewer header. The glossary lane lives as a tab inside `review.js`. Folding proverbs in would make the reviewer one surface instead of two.
+- **The register select is deliberately absent** from the saying card. Sayings have no spoken/written register; sentences do.
+- The narrative is 1,430 words. If a funder caps at 1,000, cut section 5 and keep the budget table.
+
+### Facts worth not rediscovering
+
+- `REQUIRED_REVIEWERS` in `src/proverbreview.ts` is the only switch. `src/proverbcard.ts` used to hardcode `< 2` in its own publish check, so the card sat waiting while the API published. It imports the constant now.
+- The unique index on `proverb_reviews` **must stay partial**, `WHERE undone_at IS NULL`. When it counted undone rows, an undo permanently used up that reviewer's slot: `INSERT OR IGNORE` did nothing, no review was recorded, and the publish count ran without them.
+- One accept decides a saying, so a publish is a real accusation of correctness. Do not accept lines to test the UI; accept, look, then Undo.
+- `/review` is behind Cloudflare Access, which also supplies the reviewer identity. The OTP goes to `khooptong@gmail.com`. Seven people have reviewer history, most of it `sut.tonsing@gmail.com`. Adding a reviewer means adding their address to the Access policy first.
+- The reviewer can be driven without the browser tool: Edge with `--remote-debugging-port=9222 --user-data-dir=<scratch profile>`, then `cdp.py` in the session scratch folder (`eval`, `shot`, `goto`). That is how the click-through was verified.
+- When a migration adds a table the code needs, apply the migration **before** deploying. The reverse leaves the reviewer throwing on a missing table.
+- House rules from this session: no em dashes, no filled or black buttons (translucent surface, hairline border, blur, hierarchy from weight and width), and never classify Paite with a colonial exonym.
+
+
 ## ✅ 20102026 EoS — sayings you can translate, reviewer credit everywhere, and a chat demo that cannot lie
 
 ### Shipped
