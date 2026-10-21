@@ -58,22 +58,6 @@ const STYLE = `<style>
 .about .refs{list-style:none;margin:0;padding:0;font-size:.92rem;color:var(--muted)}
 .about .refs li{margin:0 0 .55rem;padding-left:1rem;text-indent:-1rem}
 .about .updated{margin:0 0 2rem;font-size:.82rem;color:var(--muted)}
-.cp main.about{padding-bottom:0}
-.about .foot{gap:14px}
-.about .reach{justify-self:stretch;margin-top:36px;box-shadow:0 0 0 100vmax var(--coal);clip-path:inset(0 -100vmax);position:relative;display:grid;gap:10px;justify-items:center;padding:44px 16px max(28px,env(safe-area-inset-bottom));background:var(--coal);color:rgba(255,255,255,.72)}
-.about .reach::before{content:"";position:absolute;inset:0 0 auto;height:8px;border-image:linear-gradient(90deg,var(--red) calc(50% - 25vw),var(--yel) 0 50%,var(--grn) 0 calc(50% + 25vw),var(--ink) 0) fill 0/0/0 100vmax}
-.about .reach h2{margin:0;font:400 1.6rem/1.2 var(--display);color:#fff}
-.about .reach .note2{margin:0;max-width:32rem;font-size:.95rem;line-height:1.55;text-wrap:balance}
-.about .reach .contact{margin:4px 0 6px;gap:12px}
-.about .reach .contact a{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.18)}
-.about .reach .contact a:hover{background:rgba(255,255,255,.18)}
-.about .reach .contact a:focus-visible{outline-color:#fff}
-.about .reach .contact img{filter:invert(1)}
-.about .reach .built{width:100%;max-width:44rem;padding-top:18px;border-top:1px solid rgba(255,255,255,.12);font-size:.85rem}
-.about .reach .built a{color:#fff}
-.about .reach .lab span{color:#ff5a64}
-.about .reach .lab:focus-visible{outline-color:#fff}
-.squiggle{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:-1}
 @media (min-width:640px){
 .about .facts{grid-template-columns:repeat(4,1fr)}
 .about .steps{grid-template-columns:repeat(3,1fr)}
@@ -98,43 +82,6 @@ const JSONLD = JSON.stringify({
   keywords: ["Paite", "pck", "Tibeto-Burman", "parallel corpus", "language documentation", "Manipur"],
   spatialCoverage: { "@type": "Place", name: "Churachandpur, Manipur, India" },
 });
-
-// On this page only, the footer is rearranged: the coffee button comes first,
-// then a full-width charcoal band holds the contact icons, a line saying what to
-// write in about, and the "Built and maintained by" line. The shared FOOTER stays
-// untouched; footer.js keeps working because no id or data-s attribute changes.
-// The test fails if FOOTER's markup changes and these matches stop finding it.
-const REACH =
-  "Contact for data, corrections, partnerships, or to volunteer as a reviewer. We treat corrections as data, not as complaints. If a pair is wrong, we fix it at the source.";
-const CONTACT = FOOTER.match(/<p class="contact">[\s\S]*?<\/a><\/p>/)?.[0] ?? "";
-const BUILT = FOOTER.match(/<p>Built and maintained by[\s\S]*?<\/p>/)?.[0] ?? "";
-const FOOT = FOOTER.replace(CONTACT, "")
-  .replace(BUILT, "")
-  .replace(
-    "</footer>",
-    `<div class="reach"><h2>Get in touch</h2><p class="note2">${REACH}</p>${CONTACT}${BUILT.replace("<p>", '<p class="built">')}</div>\n</footer>`,
-  );
-
-// Tap or click anywhere and iridescent strands curl out from the point, then
-// fade. Drawn on a fixed canvas behind the content, so links and text stay
-// usable. Skipped entirely for people who ask for reduced motion.
-const SQUIGGLE = `<script>(function(){
-if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
-var c=document.createElement("canvas");c.className="squiggle";c.setAttribute("aria-hidden","true");document.body.prepend(c);
-var g=c.getContext("2d"),W=0,H=0,S=[],raf=0,down=false,last=0;
-function size(){var d=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;c.width=W*d;c.height=H*d;g.setTransform(d,0,0,d,0,0)}
-size();addEventListener("resize",size);
-function burst(x,y,n){var h=Math.random()*360;for(var i=0;i<n&&S.length<180;i++)S.push({p:[[x,y]],a:Math.random()*6.283,v:1.8+Math.random()*2.4,w:(Math.random()-.5)*.12,f:.06+Math.random()*.08,ph:Math.random()*6,h:h+i*(360/n),t:0,max:60+Math.random()*60,lw:1.5+Math.random()*2.5});if(!raf)raf=requestAnimationFrame(tick)}
-function tick(){g.clearRect(0,0,W,H);var now=performance.now()/1e3;g.lineCap="round";
-S=S.filter(function(s){return s.t<s.max+45});
-S.forEach(function(s){s.t++;if(s.t<s.max){var q=s.p[s.p.length-1];s.a+=s.w+Math.sin(s.t*s.f+s.ph)*.16;s.v*=.988;s.p.push([q[0]+Math.cos(s.a)*s.v,q[1]+Math.sin(s.a)*s.v])}
-var fade=s.t<s.max?1:1-(s.t-s.max)/45,n=s.p.length;
-for(var i=1;i<n;i++){var k=i/n;g.strokeStyle="hsla("+((s.h+i*5+now*120)%360)+",95%,58%,"+(fade*k*.8)+")";g.lineWidth=s.lw*(.3+k);g.beginPath();g.moveTo(s.p[i-1][0],s.p[i-1][1]);g.lineTo(s.p[i][0],s.p[i][1]);g.stroke()}});
-raf=S.length?requestAnimationFrame(tick):0}
-addEventListener("pointerdown",function(e){down=true;burst(e.clientX,e.clientY,9)},{passive:true});
-addEventListener("pointermove",function(e){var t=performance.now();if(!down||t-last<45)return;last=t;burst(e.clientX,e.clientY,2)},{passive:true});
-addEventListener("pointerup",function(){down=false});addEventListener("pointercancel",function(){down=false});
-})();</script>`;
 
 export function renderAbout(): string {
   return `<!doctype html>
@@ -270,12 +217,11 @@ ${STYLE}
 
 <p class="updated">Last updated: 21 October 2026</p>
 
-${FOOT}
+${FOOTER}
 </main>
 <script src="/strings.js"></script>
 <script src="/back.js"></script>
 <script src="/pwa.js"></script>
 <script src="/track.js"></script>
-${SQUIGGLE}
 </body></html>`;
 }

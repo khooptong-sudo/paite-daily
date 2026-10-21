@@ -1,3 +1,4 @@
+import { publicReviewerNames } from "./access";
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
 import { PUAN } from "./puan";
@@ -41,8 +42,11 @@ export async function getProverbs(env: Env, limit = -1): Promise<Proverb[]> {
   )
     .bind(limit)
     .all<Proverb>();
+  // Public: the page and /proverbs.json show the reviewer's name, never the email.
+  const name = await publicReviewerNames(env);
   return results.map((r) => ({
     ...r,
+    reviewed_by: name(r.reviewed_by),
     paite: r.paite ? cap(r.paite) : null,
     english: r.english ? cap(r.english) : null,
   }));

@@ -1,3 +1,4 @@
+import { publicReviewerNames } from "./access";
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
 import { PUAN } from "./puan";
@@ -71,7 +72,9 @@ export async function getGlossary(env: Env, limit = -1): Promise<Entry[]> {
     `SELECT g.id, g.paite, g.english, g.note, g.source, g.contributor_name AS by, g.reviewed_by, a.paite AS ex_paite, s.english AS ex_english FROM glossary g
      LEFT JOIN answers a ON a.id = g.answer_id LEFT JOIN sentences s ON s.id = g.sentence_id WHERE g.hidden = 0 ORDER BY g.id DESC LIMIT ?1`,
   ).bind(limit).all<{ id: number; paite: string; english: string; note: string | null; source: string; by: string | null; reviewed_by: string | null; ex_paite: string | null; ex_english: string | null }>();
-  return results.map((r) => ({ id: r.id, paite: cap(r.paite), english: cap(r.english), note: r.note, source: r.source, by: r.by, reviewed_by: r.reviewed_by, example: r.ex_paite && r.ex_english ? { paite: r.ex_paite, english: r.ex_english } : null }));
+  // Public: the page, glossary.json and the corpus repo show the reviewer's name, never the email.
+  const name = await publicReviewerNames(env);
+  return results.map((r) => ({ id: r.id, paite: cap(r.paite), english: cap(r.english), note: r.note, source: r.source, by: r.by, reviewed_by: name(r.reviewed_by), example: r.ex_paite && r.ex_english ? { paite: r.ex_paite, english: r.ex_english } : null }));
 }
 
 export type ReviewEntry = Entry & { hidden: number; edited_by: string | null; edited_at: string | null };

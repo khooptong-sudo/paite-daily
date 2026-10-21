@@ -222,3 +222,19 @@ describe("POST /api/proverb/submit", () => {
     expect(body.entries[0]).toMatchObject({ by: "Thangboi", reviewed_by: "Lianpu" });
   });
 });
+
+describe("reviewer credit on the public sayings", () => {
+  it("shows the reviewer's name, never the email, on the page data and in proverbs.json", async () => {
+    await env.DB.prepare("INSERT INTO reviewers (email, name, added_by, removed_at) VALUES ('old@example.com', 'Siam Naulak', 'owner@example.com', datetime('now'))").run();
+    const a = await add({ paite: PAI, english: "To err is human", entered_from: "pai2en" });
+    const b = await add({ paite: "Kuamah", english: "Nobody", entered_from: "pai2en" });
+    await env.DB.batch([
+      env.DB.prepare("UPDATE proverbs SET reviewed_by = 'old@example.com' WHERE id = ?1").bind(a),
+      env.DB.prepare("UPDATE proverbs SET reviewed_by = 'stranger@example.com' WHERE id = ?1").bind(b),
+    ]);
+    const xs = await getProverbs(env);
+    expect(xs.map((x) => x.reviewed_by).sort()).toEqual(["Siam Naulak", "a reviewer"]);
+    expect(proverbsJson(xs)).not.toContain("@");
+  });
+});
+

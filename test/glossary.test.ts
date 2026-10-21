@@ -156,3 +156,18 @@ describe("page, hide, export", () => {
     expect(JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(stored), (c) => c.charCodeAt(0))))).toEqual({ entries: [] });
   });
 });
+
+describe("reviewer credit on the public word list", () => {
+  it("shows the reviewer's name, never the email, on the page data and in glossary.json", async () => {
+    await env.DB.prepare("INSERT INTO reviewers (email, name, added_by) VALUES ('rev@example.com', 'Lun Ngaihte', 'owner@example.com')").run();
+    await env.DB.batch([
+      env.DB.prepare("INSERT INTO glossary (paite, english, source, reviewed_by) VALUES ('dai', 'quiet', 'contributed', 'Rev@Example.com')"),
+      env.DB.prepare("INSERT INTO glossary (paite, english, source, reviewed_by) VALUES ('bul', 'base', 'contributed', 'gone@example.com')"),
+      env.DB.prepare("INSERT INTO glossary (paite, english, source, reviewed_by) VALUES ('baal', 'end', 'contributed', 'Lun Ngaihte')"),
+    ]);
+    const xs = await getGlossary(env);
+    expect(Object.fromEntries(xs.map((x) => [x.paite, x.reviewed_by]))).toEqual({ Dai: "Lun Ngaihte", Bul: "a reviewer", Baal: "Lun Ngaihte" });
+    expect(glossaryJson(xs)).not.toContain("@");
+  });
+});
+

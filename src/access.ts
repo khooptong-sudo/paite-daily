@@ -52,6 +52,21 @@ export async function activeReviewers(env: Env): Promise<ReviewerEntry[]> {
   return [...out.values()];
 }
 
+/**
+ * For public output (the word list, the sayings page, their JSON, the corpus repo):
+ * glossary.reviewed_by and proverbs.reviewed_by hold the reviewer's email, which must
+ * never be shown. This turns one into the reviewer's name. Removed reviewers keep their
+ * name on past work. An email with no known name becomes "a reviewer"; a value that is
+ * not an email is already a name and passes through.
+ */
+export async function publicReviewerNames(env: Env): Promise<(v: string | null) => string | null> {
+  const names = new Map<string, string>();
+  const { results } = await env.DB.prepare("SELECT email, name FROM reviewers").all<{ email: string; name: string }>();
+  for (const r of results) names.set(r.email.toLowerCase(), r.name);
+  for (const r of await activeReviewers(env)) if (r.listed || !names.has(r.email)) names.set(r.email, r.name);
+  return (v) => (v === null || v === "" ? null : !v.includes("@") ? v : names.get(v.trim().toLowerCase()) ?? "a reviewer");
+}
+
 export async function reviewerName(env: Env, email: string): Promise<string | null> {
   email = email.toLowerCase();
   const row = await env.DB.prepare("SELECT name FROM reviewers WHERE email = ?1 AND removed_at IS NULL").bind(email).first<{ name: string }>();
