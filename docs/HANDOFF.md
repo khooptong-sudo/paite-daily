@@ -1,3 +1,37 @@
+# Handoff, 22 October 2026, 00:45 IST (design and value-additions session)
+
+## Shipped tonight (all live, main at `cbd668c`, pushed)
+- `/about` rewritten and redesigned: Puandum colours, fact cards, timeline, charcoal quote band. Licence is now **CC BY 4.0** everywhere (About, its JSON-LD, home metadata, `strings.js` licence line, `src/export.ts` corpus `licence: "CC-BY-4.0"`). Zenodo already said CC BY, so the contradiction is closed. Older corpus lines on GitHub still say CC0.
+- Shared footer on every page with one (`src/footer.ts`, copies in `public/index.html`, `404.html`, `500.html`): coffee first, then a charcoal band with contact note, icons, credit line and a random slow iridescent waveform (`public/footer.js`). `test/footer.test.ts` keeps the copies in step.
+- Reviewer emails removed from public output: `publicReviewerNames` in `src/access.ts`, used by `getGlossary` and `getProverbs` (page, `/proverbs.json`, `glossary.json` pushed to the corpus repo). Old emails stay in that repo's git history.
+- Forms: white fields, charcoal edge, Paite typed in Young Serif, main buttons **outlined** (house rule: no filled buttons), Skip as a text link, plain red errors.
+- Contributors: woven podium for the top three (stepped blocks, light sweep, Share chip on each that makes a WhatsApp status card with the site link: `public/podium-share.js`). Rows 4+ show at rest.
+- Word list: letter groups open at rest, sticky A to Z rail. Sayings: green or yellow status dot. Home: larger Paite in chat, woven goal bar, plain link rows.
+- **Nampuan Liangbat Gat** (personal shawl, `public/mypuan.js`): one thread per verified line; the name picks Puandum, BA / Siamsin Puan or Ngoutekhelh (paite.org colour codes, no credit needed); share as status. `app.js` fires `paite:me` with `/api/me` data.
+- **Ask a relative** (next to Skip): opens WhatsApp with the current sentence and the site link. It does not deep-link to that sentence, and replies in WhatsApp are not saved.
+- Header: "About this project" chip beside the score; the score share chip moved under the puan.
+- Service worker cache at `v25`. Raise it whenever a shell file changes.
+
+## Value additions not done yet (from the review, in suggested order)
+1. **Hear it**: record audio for verified sentences, reviewed like text. Needs R2 storage, a migration, and a review step. Biggest long-term value (no Paite speech data exists).
+2. **Is this spelled right?**: lookup that checks a word against verified sentences and suggests attested spellings. Seed of the first Paite spellchecker.
+3. **Swipe review on phone** for reviewers, with answer differences highlighted; keyboard shortcuts on desktop.
+4. **Self-writing spelling rulebook**: save reviewer corrections as rules, show them at review time, publish as a page.
+5. **Gap-driven prompts**: track common English words with no Paite example and serve those sentences first.
+6. **Keyboard and dataset exports**: weekly word-frequency list for Gboard / AnySoftKeyboard; Hugging Face mirror with a dataset card.
+7. **Where you learned it**: optional village tag per answer, shown on a map.
+8. **Seasonal themes and a charcoal dark mode** (Chavang Kut, Christmas).
+9. Ask a relative, version 2: deep link to the exact sentence (`/?s=<id>`) so the relative answers that one, credited to them.
+Concepts for several of these are in the private artifact "Paite Daily Rewoven": https://claude.ai/artifact/2Edbcjuqmzyx4hqD11n1hv
+
+## How to work in this repo (learned tonight)
+- `public/review/proverbs.html` has uncommitted changes from another session. Never commit it. Deploy only from a clean worktree: `git worktree add .claude/worktrees/deploy-x HEAD`, copy `.dev.vars` in, run `../../../node_modules/.bin/vitest run` and `tsc --noEmit`, then `../../../node_modules/.bin/wrangler deploy` from there. Delete the folder after (it holds `.dev.vars`); `cd` out first or Windows refuses.
+- Branch per change, then fast-forward `main` and `git push origin main`.
+- One test (`proverbs.test.ts` sitekey) needs `.dev.vars` present.
+- The Write tool was refused without a prompt for a while; writing files through Bash heredocs worked.
+- The browser pane drops screenshots when hidden; `get_page_text` and JS checks still work.
+- Open decisions: the footer coffee note says "AI and server costs" while /about says nothing is machine-generated. The Paite version of the translate-form licence line does not mention credit.
+
 Newest first. Each session prepends one section directly under this line.
 
 ## ✅ 21102026 EoS: a brand, an About page, and a sayings queue that reviews
