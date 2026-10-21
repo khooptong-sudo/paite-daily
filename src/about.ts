@@ -127,7 +127,7 @@ ${STYLE}
 
 <h2>Where the data lives</h2>
 
-<p>The verified corpus is exported and deposited at [ZENODO DOI] so that it survives this website. The site itself is a static export and can be forked and rehosted by anyone for the price of a domain. If this project stops, the sentences do not.</p>
+<p>The verified corpus is exported and published at <a href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener">khooptong-sudo/paite-open-language-data</a>, alongside the open Paite&ndash;English dictionary and other Paite text. Versioned releases are deposited with Zenodo, so the corpus carries a DOI that anyone can cite. The site itself is a static export and can be forked and rehosted by anyone for the price of a domain. If this project stops, the sentences do not.</p>
 
 <h2>No advertising</h2>
 

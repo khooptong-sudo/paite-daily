@@ -62,6 +62,10 @@ in the place where writing now mostly happens.
 - **A published public-domain commitment.** Every verified pair is released CC0 — irrevocably, with
   no attribution requirement — so that a keyboard project, a school, or a translation team can use
   it without asking us.
+- **Open data already published.** The wider corpus is public at
+  `github.com/khooptong-sudo/paite-open-language-data` — the Paite–English dictionary, verse pairs,
+  hymns and native-speaker corrections — so this project is not proposing to become open. It already
+  is, and has been releasing without a grant.
 - **A documented review protocol.** Contributors tag each pair *Gen Thoh* (spoken), *Gelh Thoh*
   (written) or *Anih In* (both), so register is recorded, not lost.
 - **Abuse protection.** Submissions are gated against automated abuse; publisher identity is not
@@ -138,7 +142,7 @@ paid review hours and adding a second orthography pass — the shape of the proj
 | Recorded proverb pairs | 0 | 100 |
 | Active reviewers | 5 | 5, with paid hours logged |
 | Cost per verified pair | — | US$2.00 |
-| Public release | none | DOI-deposited, CC0 |
+| Public release | `paite-open-language-data` on GitHub, CC0 | same repo, plus a versioned Zenodo release with a citable DOI |
 
 Cost per verified pair is the number to hold us to: US$2,000 for roughly 1,000 new pairs and 100
 recorded units. It is higher than a scraped corpus, because a scraped corpus is not verified, and a
