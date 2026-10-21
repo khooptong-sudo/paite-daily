@@ -243,3 +243,5 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 /* The About link sits in the header, beside the score, so people find it. */
 .about-chip { text-decoration: none; }
 .mypuan #share { justify-self: start; }
+/* One Share only: the puan's. The old score share (#share, still driven by app.js) stays hidden. */
+.mypuan #share { display: none !important; }
