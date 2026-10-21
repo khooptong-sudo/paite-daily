@@ -229,3 +229,12 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 .share-chip img { width: 16px; height: 16px; }
 .share-chip:hover:not(:disabled) { background: rgba(0, 0, 0, .05); }
 .share-chip small { display: none; }
+
+/* Your puan (mypuan.js): the personal shawl, woven one thread per verified line. */
+.mypuan { width: 100%; max-width: 560px; margin: 16px auto 0; display: grid; gap: 8px; }
+.mypuan[hidden] { display: none; }
+.mypuan-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.mypuan h2 { margin: 0; font: 400 1.25rem/1.2 var(--display); }
+.mypuan h2 small { font: 400 .78rem var(--body); color: var(--muted); margin-left: 6px; }
+.mypuan canvas { display: block; width: 100%; border-radius: 10px; box-shadow: 0 10px 24px -16px rgba(0, 0, 0, .55); }
+.mypuan-note { margin: 0; font-size: .82rem; color: var(--muted); }

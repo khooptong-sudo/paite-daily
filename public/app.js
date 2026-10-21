@@ -317,6 +317,8 @@
       total = me.total; words = me.words || 0;
       $("badge").textContent = me.badge || ""; $("badge").hidden = !me.badge;
       $("share").hidden = total + words < 5;
+      // mypuan.js weaves the personal shawl from these counts.
+      document.dispatchEvent(new CustomEvent("paite:me", { detail: me }));
     } catch {}
   }
   $("share").addEventListener("click", () => shareCard().catch(() => status(tBoth("shareError"))));

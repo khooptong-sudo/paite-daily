@@ -42,6 +42,11 @@
     <a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a>
   </header>
   <div class="goal" id="goal" hidden><div><b id="goal-n"></b> / <span id="goal-max"></span> <span data-s="goalLine"></span></div><div class="goal-bar" id="goal-bar" role="progressbar" aria-valuemin="0"><i></i></div></div>
+  <section class="mypuan" id="mypuan" hidden aria-labelledby="mypuan-h">
+    <div class="mypuan-top"><h2 id="mypuan-h">Na puan <small>Your puan</small></h2><button type="button" class="share-chip" id="mypuan-share"><img src="/whatsapp.png" alt="" width="16" height="16" decoding="async">Share</button></div>
+    <canvas id="mypuan-c" role="img" aria-label="Your woven puan"></canvas>
+    <p class="mypuan-note" id="mypuan-note"></p>
+  </section>
   <section class="card" id="feedback" aria-labelledby="fb-title" hidden>
     <h2 id="fb-title" data-s="feedbackTitle"></h2>
     <ul id="fb-list"></ul>
@@ -79,6 +84,7 @@
       <div class="actions">
         <button type="submit" class="primary" id="send" data-s="send"></button>
         <button type="button" id="skip" data-s="skip"></button>
+        <button type="button" id="ask-relative">Ask a relative</button>
       </div>
       <p class="licence" data-s="licence"></p>
       <p class="status" id="status" role="status"></p>
@@ -188,6 +194,7 @@
 <script src="/app.js"></script>
 <script src="/chat.js"></script>
 <script src="/footer.js"></script>
+<script src="/mypuan.js"></script>
 <script src="/pwa.js"></script>
 <script src="/track.js"></script>
 </body>
