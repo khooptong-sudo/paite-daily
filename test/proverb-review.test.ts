@@ -155,6 +155,25 @@ describe("undo, skip and whole sayings", () => {
     expect(await answerStatus(aid)).toBe("new");
   });
 
+  it("lets the same reviewer review again after an undo", async () => {
+    const pid = await seedSaying(ENGLISH);
+    const aid = await seedAnswer(pid, L1);
+
+    await saveProverbReview(DB, "rev@example.org", { proverbId: pid, acceptAnswerId: aid, finalPaite: L1 });
+    await undoProverbReview(DB, "rev@example.org", pid);
+
+    // The undone row must not block a fresh one, or the second review vanishes
+    // silently and the count runs without it.
+    await saveProverbReview(DB, "rev@example.org", { proverbId: pid, acceptAnswerId: aid, finalPaite: L2 });
+    const n = await DB.DB.prepare(
+      "SELECT count(*) AS n FROM proverb_reviews WHERE answer_id = ?1 AND decision = 'accept' AND undone_at IS NULL",
+    )
+      .bind(aid)
+      .first<{ n: number }>();
+    expect(n!.n).toBe(1);
+    expect((await saying(pid)).paite).toBe(L2);
+  });
+
   it("has nothing to undo for a stranger", async () => {
     const pid = await seedSaying(ENGLISH);
     expect(await undoProverbReview(DB, "stranger@example.org", pid)).toBe(false);
