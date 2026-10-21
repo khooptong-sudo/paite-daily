@@ -1,7 +1,7 @@
 import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vitest";
 import { saveProverbReview } from "../src/proverbcard";
-import { decideProverbAnswer, decideProverbPair, getProverbReviewList, skipProverbSaying } from "../src/proverbreview";
+import { decideProverbAnswer, decideProverbPair, getProverbReviewList, skipProverbSaying, undoProverbReview } from "../src/proverbreview";
 
 import type { Env } from "../src/types";
 
@@ -191,6 +191,56 @@ describe("sayings need two reviewers", () => {
     // Back after two hours.
     const later = now + 2 * 60 * 60 * 1000 + 60_000;
     expect((await getProverbReviewList(DB, "one@example.org", later)).answers.length).toBe(1);
+  });
+
+  it("undoes an accept and puts the saying back", async () => {
+    const pid = await seedSaying(ENGLISH);
+    const aid = await seedAnswer(pid, LINKS[0]);
+
+    await saveProverbReview(DB, "one@example.org", { proverbId: pid, acceptAnswerId: aid });
+    expect(await answerStatus(aid)).toBe("new");
+
+    expect(await undoProverbReview(DB, "one@example.org", pid)).toBe(true);
+    expect(await answerStatus(aid)).toBe("new");
+    expect((await sayingStatus(pid)).status).toBe("open");
+
+    const list = await getProverbReviewList(DB, "one@example.org");
+    expect(list.answers.some((a) => a.id === aid)).toBe(true);
+  });
+
+  it("undoes the review that published, and takes the saying back with it", async () => {
+    const pid = await seedSaying(ENGLISH);
+    const aid = await seedAnswer(pid, LINKS[0]);
+
+    await saveProverbReview(DB, "one@example.org", { proverbId: pid, acceptAnswerId: aid, finalPaite: LINKS[0] });
+    await saveProverbReview(DB, "two@example.org", { proverbId: pid, acceptAnswerId: aid, finalPaite: LINKS[0] });
+    expect((await sayingStatus(pid)).status).toBe("live");
+
+    expect(await undoProverbReview(DB, "two@example.org", pid)).toBe(true);
+    const p = await sayingStatus(pid);
+    expect(p.status).toBe("open");
+    expect(p.paite).toBeNull();
+    expect(await answerStatus(aid)).toBe("new");
+  });
+
+  it("does not touch the primary line when undoing an alternative", async () => {
+    const pid = await seedSaying(ENGLISH, "live");
+    await DB.DB.prepare("UPDATE proverbs SET paite = ?2, accepting_more = 1 WHERE id = ?1").bind(pid, LINKS[0]).run();
+    const alt = await seedAnswer(pid, LINKS[1]);
+
+    await saveProverbReview(DB, "one@example.org", { proverbId: pid, acceptAnswerId: alt });
+    await saveProverbReview(DB, "two@example.org", { proverbId: pid, acceptAnswerId: alt });
+    expect(await answerStatus(alt)).toBe("accepted");
+
+    expect(await undoProverbReview(DB, "two@example.org", pid)).toBe(true);
+    const p = await sayingStatus(pid);
+    expect(p.status).toBe("live");
+    expect(p.paite).toBe(LINKS[0]);
+  });
+
+  it("reports nothing to undo when there is nothing", async () => {
+    const pid = await seedSaying(ENGLISH);
+    expect(await undoProverbReview(DB, "stranger@example.org", pid)).toBe(false);
   });
 
   it("shows the list who has already voted", async () => {

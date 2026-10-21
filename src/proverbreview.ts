@@ -100,6 +100,54 @@ export async function getProverbReviewList(
 }
 
 /**
+ * Withdraw this reviewer's most recent decision on a saying. Every answer the
+ * review touched goes back to 'new', and if that review is what published the
+ * saying, the saying goes back to waiting with no Paite line.
+ */
+export async function undoProverbReview(env: Env, email: string, proverbId: number): Promise<boolean> {
+  const r = await env.DB.prepare(
+    `SELECT id, answer_id, answer_ids, published FROM proverb_reviews
+      WHERE proverb_id = ?1 AND lower(reviewer_email) = lower(?2) AND undone_at IS NULL
+      ORDER BY id DESC LIMIT 1`,
+  )
+    .bind(proverbId, email)
+    .first<{ id: number; answer_id: number | null; answer_ids: string | null; published: number }>();
+  if (!r) return false;
+
+  let ids: number[] = [];
+  if (r.answer_ids) {
+    try {
+      ids = JSON.parse(r.answer_ids);
+    } catch {
+      ids = [];
+    }
+  } else if (r.answer_id != null) {
+    ids = [r.answer_id];
+  }
+
+  const stmts = [env.DB.prepare("UPDATE proverb_reviews SET undone_at = datetime('now') WHERE id = ?1").bind(r.id)];
+  if (ids.length) {
+    stmts.push(
+      env.DB.prepare(
+        `UPDATE proverb_answers SET status = 'new'
+          WHERE proverb_id = ?1 AND id IN (SELECT value FROM json_each(?2))
+            AND status IN ('accepted', 'also_correct', 'rejected')`,
+      ).bind(proverbId, JSON.stringify(ids)),
+    );
+  }
+  if (r.published) {
+    stmts.push(
+      env.DB.prepare(
+        `UPDATE proverbs SET status = 'open', paite = NULL, accepting_more = 0,
+                reviewed_by = NULL, reviewed_at = NULL WHERE id = ?1`,
+      ).bind(proverbId),
+    );
+  }
+  await env.DB.batch(stmts);
+  return true;
+}
+
+/**
  * Pass on a saying for two hours. It stays in everyone else's queue.
  * Returns false when the saying is gone or already settled.
  */

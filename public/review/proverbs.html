@@ -51,6 +51,7 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
     <a class="back" href="/review">&larr; Sentences</a>
   </div>
   <p class="count" id="count">Loading.</p>
+  <p id="undoWrap" hidden><button id="undoLast" style="width:100%;padding:12px;border-radius:14px">&larr; Undo last decision</button></p>
 
   <h2>Waiting for a second pair of eyes <span id="n-second"></span></h2>
   <p class="help">A line below already has one approval. Confirming here publishes the saying and puts it back in the pool for more renderings.</p>
@@ -75,6 +76,11 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
     if (cls) n.className = cls;
     if (text != null) n.textContent = String(text);
     return n;
+  }
+  var last = null;
+  function remember(id) {
+    last = id;
+    document.getElementById("undoWrap").hidden = false;
   }
   function say(msg) {
     var el = $("status");
@@ -165,6 +171,7 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
       }).then(function (res) {
         if (!res.ok) { save.disabled = false; say((res.body && res.body.message) || "That did not go through."); return; }
         card.remove();
+        remember(a.proverb_id);
         say(res.body.waiting ? "Recorded. One more reviewer needed." : "Published.");
       }).catch(function () { save.disabled = false; say("Network error. Try again."); });
     });
@@ -180,7 +187,7 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
     rejAll.addEventListener("click", function () {
       rejAll.disabled = true;
       post("/review/api/proverbs/save", { proverbId: a.proverb_id, rejectAll: true }).then(function (res) {
-        if (res.ok) { card.remove(); say("Every line on this saying rejected."); }
+        if (res.ok) { card.remove(); remember(a.proverb_id); say("Every line on this saying rejected."); }
         else { rejAll.disabled = false; say("That did not go through."); }
       });
     });
@@ -188,7 +195,7 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
     retire.addEventListener("click", function () {
       retire.disabled = true;
       post("/review/api/proverbs/save", { proverbId: a.proverb_id, retire: true }).then(function (res) {
-        if (res.ok) { card.remove(); say("Saying retired."); }
+        if (res.ok) { card.remove(); remember(a.proverb_id); say("Saying retired."); }
         else { retire.disabled = false; say("That did not go through."); }
       });
     });
@@ -226,6 +233,15 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
   }
 
   function empty(box, text) { box.appendChild(h("p", "empty", text)); }
+
+  document.getElementById("undoLast").addEventListener("click", function (e) {
+    if (last === null) return;
+    e.target.disabled = true;
+    post("/review/api/proverbs/undo", { proverbId: last }).then(function (res) {
+      if (res.ok) { location.reload(); return; }
+      e.target.disabled = false; say("Nothing to undo there.");
+    });
+  });
 
   fetch("/review/api/proverbs", { headers: { accept: "application/json" } })
     .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })

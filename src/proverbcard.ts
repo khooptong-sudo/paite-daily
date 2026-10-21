@@ -67,11 +67,13 @@ export async function saveProverbReview(
   const finalPaite = p.finalPaite !== undefined ? cleanText(p.finalPaite, 300) : null;
   if (p.finalPaite !== undefined && !finalPaite) return "bad_answer";
 
+  const touched = JSON.stringify([p.acceptAnswerId, ...variants, ...losers]);
+
   await env.DB.batch([
     env.DB.prepare(
-      `INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision, final_paite, note)
-       VALUES (?1, ?2, ?3, 'accept', ?4, ?5)`,
-    ).bind(p.proverbId, p.acceptAnswerId, email, finalPaite, note),
+      `INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision, final_paite, note, answer_ids)
+       VALUES (?1, ?2, ?3, 'accept', ?4, ?5, ?6)`,
+    ).bind(p.proverbId, p.acceptAnswerId, email, finalPaite, note, touched),
     ...variants.map((id) =>
       env.DB.prepare(
         "INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision) VALUES (?1, ?2, ?3, 'variant')",
@@ -129,6 +131,16 @@ export async function saveProverbReview(
               WHERE id = ?1`,
           ).bind(p.proverbId, text, email),
       env.DB.prepare("UPDATE proverb_answers SET status = 'accepted' WHERE id = ?1").bind(p.acceptAnswerId),
+      ...(saying.status === "live"
+        ? []
+        : [
+            env.DB.prepare(
+              `UPDATE proverb_reviews SET published = 1
+                WHERE id = (SELECT max(id) FROM proverb_reviews
+                             WHERE proverb_id = ?1 AND answer_id = ?2 AND decision = 'accept'
+                               AND undone_at IS NULL AND lower(reviewer_email) = lower(?3))`,
+            ).bind(p.proverbId, p.acceptAnswerId, email),
+          ]),
     ]);
   } catch (e) {
     if (/UNIQUE constraint failed/i.test(String(e))) return "duplicate";

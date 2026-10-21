@@ -2,7 +2,7 @@ import { isOwner, reviewerName } from "./access";
 import { handleOwnerReview } from "./apply";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
-import { REQUIRED_REVIEWERS, decideProverbAnswer, decideProverbPair, getProverbReviewList, skipProverbSaying } from "./proverbreview";
+import { REQUIRED_REVIEWERS, decideProverbAnswer, decideProverbPair, getProverbReviewList, skipProverbSaying, undoProverbReview } from "./proverbreview";
 import { saveProverbReview } from "./proverbcard";
 
 /**
@@ -92,6 +92,11 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     if (r === "not_found") return json({ error: "not_found" }, 404);
     if (r === "duplicate") return json({ error: "duplicate", message: "That Paite line already belongs to another saying." }, 409);
     return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
+  }
+  if (pathname === "/review/api/proverbs/undo" && req.method === "POST") {
+    if (!isId(b.proverbId)) return json({ error: "bad_request" }, 400);
+    const ok = await undoProverbReview(env, email, b.proverbId as number);
+    return ok ? json({ ok: true }) : json({ error: "nothing_to_undo" }, 404);
   }
   if (pathname === "/review/api/proverbs/skip" && req.method === "POST") {
     if (!isId(b.proverbId)) return json({ error: "bad_request" }, 400);
