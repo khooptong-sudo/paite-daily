@@ -16,7 +16,7 @@ const LINKS = ["Lampam sik khiallou kuamah omlou", "Suang tuktuk pan a kai kei",
 // suite shares one database, so each test starts from empty.
 beforeEach(async () => {
   await DB.DB.batch([
-    DB.DB.prepare("DELETE FROM proverb_votes"),
+    DB.DB.prepare("DELETE FROM proverb_reviews"),
     DB.DB.prepare("DELETE FROM proverb_answers"),
     DB.DB.prepare("DELETE FROM proverbs"),
   ]);
@@ -90,16 +90,47 @@ describe("sayings need two reviewers", () => {
     expect((await sayingStatus(pid)).status).toBe("open");
   });
 
-  it("rejects the other candidates once one is published", async () => {
+  it("leaves the other candidates in the queue, not thrown away", async () => {
     const pid = await seedSaying(ENGLISH);
     const winner = await seedAnswer(pid, LINKS[0]);
-    const loser = await seedAnswer(pid, LINKS[1]);
+    const other = await seedAnswer(pid, LINKS[1]);
 
     await decideProverbAnswer(DB, "one@example.org", winner, true);
     await decideProverbAnswer(DB, "two@example.org", winner, true);
 
     expect(await answerStatus(winner)).toBe("accepted");
-    expect(await answerStatus(loser)).toBe("rejected");
+    // The saying keeps collecting renderings, so a second line is still a candidate.
+    expect(await answerStatus(other)).toBe("new");
+  });
+
+  it("publishes the reviewer's correction, not the contributor's spelling", async () => {
+    const pid = await seedSaying(ENGLISH);
+    const aid = await seedAnswer(pid, LINKS[0]);
+    const fixed = "Suang tuktuk pan a kai kei.";
+
+    await decideProverbAnswer(DB, "one@example.org", aid, true, { finalPaite: fixed });
+    await decideProverbAnswer(DB, "two@example.org", aid, true);
+
+    expect((await sayingStatus(pid)).paite).toBe(fixed);
+  });
+
+  it("keeps a variant as an alternative without publishing it", async () => {
+    const pid = await seedSaying(ENGLISH);
+    const aid = await seedAnswer(pid, LINKS[1]);
+
+    expect(await decideProverbAnswer(DB, "one@example.org", aid, true, { decision: "variant" })).toBe("ok");
+    expect(await answerStatus(aid)).toBe("also_correct");
+    expect((await sayingStatus(pid)).status).toBe("open");
+  });
+
+  it("opens the saying for more renderings once it publishes", async () => {
+    const pid = await seedSaying(ENGLISH);
+    const aid = await seedAnswer(pid, LINKS[0]);
+    await decideProverbAnswer(DB, "one@example.org", aid, true);
+    await decideProverbAnswer(DB, "two@example.org", aid, true);
+
+    const row = await DB.DB.prepare("SELECT accepting_more FROM proverbs WHERE id = ?1").bind(pid).first<{ accepting_more: number }>();
+    expect(row!.accepting_more).toBe(1);
   });
 
   it("applies the same rule to a whole submitted saying", async () => {

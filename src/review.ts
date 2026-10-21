@@ -3,6 +3,29 @@ import { handleOwnerReview } from "./apply";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
 import { REQUIRED_REVIEWERS, decideProverbAnswer, decideProverbPair, getProverbReviewList } from "./proverbreview";
+
+/**
+ * Two body shapes reach the saying endpoints. The older one is {id, accept},
+ * which the reviewer page still posts. The newer one is {id, decision,
+ * finalPaite, note} and carries a correction. Null means the body was unusable.
+ */
+function readProverbDecision(b: Record<string, unknown>) {
+  if (!isId(b.id)) return null;
+  const decision = ["accept", "reject", "variant"].includes(b.decision as string)
+    ? (b.decision as "accept" | "reject" | "variant")
+    : undefined;
+  if (typeof b.accept !== "boolean" && !decision) return null;
+  if (b.finalPaite !== undefined && typeof b.finalPaite !== "string") return null;
+  if (b.note !== undefined && typeof b.note !== "string") return null;
+  return {
+    accept: b.accept === true,
+    opts: {
+      decision,
+      finalPaite: b.finalPaite as string | undefined,
+      note: b.note as string | undefined,
+    },
+  };
+}
 import { getGlossaryForReview } from "./glossary";
 import { cap, cleanText, isId, isIdList, isPhoneId } from "./text";
 import { analytics, recentErrors } from "./observability";
@@ -62,15 +85,17 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
   // Sayings: the lane that was missing. Candidates and whole submitted pairs, listed.
   if (pathname === "/review/api/proverbs" && req.method === "GET") return json(await getProverbReviewList(env, email));
   if (pathname === "/review/api/proverbs/answer" && req.method === "POST") {
-    if (!isId(b.id) || typeof b.accept !== "boolean") return json({ error: "bad_request" }, 400);
-    const r = await decideProverbAnswer(env, email, b.id as number, b.accept);
+    const d = readProverbDecision(b);
+    if (d === null) return json({ error: "bad_request" }, 400);
+    const r = await decideProverbAnswer(env, email, b.id as number, d.accept, d.opts);
     if (r === "not_found") return json({ error: "not_found" }, 404);
     if (r === "duplicate") return json({ error: "duplicate", message: "That Paite line already belongs to another saying." }, 409);
     return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
   }
   if (pathname === "/review/api/proverbs/pair" && req.method === "POST") {
-    if (!isId(b.id) || typeof b.accept !== "boolean") return json({ error: "bad_request" }, 400);
-    const r = await decideProverbPair(env, email, b.id as number, b.accept);
+    const d = readProverbDecision(b);
+    if (d === null) return json({ error: "bad_request" }, 400);
+    const r = await decideProverbPair(env, email, b.id as number, d.accept, d.opts);
     if (r === "not_found") return json({ error: "not_found" }, 404);
     return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
   }
