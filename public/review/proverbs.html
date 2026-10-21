@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Sayings queue · Paite Review</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<style>
+:root{--ink:#12100e;--paper:#fdfcf9;--line:#e2ddd1;--muted:#6b665c;--crimson:#c21b33;--sage:#4f6b4a;--head:"Young Serif",Georgia,serif;--body:"Atkinson Hyperlegible",system-ui,sans-serif}
+*{box-sizing:border-box}
+body{margin:0;padding:28px 18px 80px;background:var(--paper);color:var(--ink);font:16px/1.55 var(--body)}
+main{max-width:46rem;margin:0 auto}
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+h1{font:400 1.7rem/1.2 var(--head);margin:0}
+.back{color:var(--muted);font-size:.88rem;text-decoration:none;border-bottom:1px solid var(--line)}
+.back:hover{color:var(--ink)}
+.lede{color:var(--muted);margin:.4rem 0 1.6rem;font-size:.94rem}
+h2{font:400 1.15rem/1.3 var(--head);margin:2rem 0 .2rem}
+h2 span{font:400 .8rem var(--body);color:var(--muted);margin-left:.5rem}
+.note{color:var(--muted);font-size:.88rem;margin:.2rem 0 1rem}
+.card{border:1px solid var(--line);border-radius:14px;padding:16px;margin:0 0 12px;background:#fff}
+.en{font:400 1.12rem/1.35 var(--head);margin:0 0 4px}
+.meta{color:var(--muted);font-size:.8rem;margin:0 0 10px}
+.tag{display:inline-block;font-size:.66rem;letter-spacing:.07em;text-transform:uppercase;color:var(--sage);border:1px solid var(--line);border-radius:99px;padding:2px 8px;margin-left:8px;vertical-align:2px}
+.paite{font-size:1.16rem;margin:0 0 6px}
+.ex{color:var(--muted);font-size:.9rem;margin:0 0 12px;white-space:pre-wrap}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;font-size:.9rem;padding:8px 16px;border-radius:10px;border:1px solid var(--line);background:#fff;cursor:pointer}
+button.ok{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+button.no{color:var(--crimson);border-color:#e8c9ce}
+button:disabled{opacity:.45;cursor:default}
+.empty{color:var(--muted);padding:14px 0}
+.status{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:99px;font-size:.86rem;opacity:0;transition:opacity .2s}
+.status.on{opacity:1}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Sayings queue</h1>
+    <a class="back" href="/review">&larr; Back to sentences</a>
+  </header>
+  <p class="lede">Candidate Paite lines for English sayings, and whole sayings submitted from the front page. Accepting a line publishes the saying and records you as the reviewer.</p>
+
+  <h2>Paite lines waiting <span id="n-answers"></span></h2>
+  <p class="note">Each card is one contributor's rendering of the English saying above it.</p>
+  <div id="answers"></div>
+
+  <h2>Sayings waiting <span id="n-pairs"></span></h2>
+  <p class="note">Whole pairs submitted from the front page, in either direction.</p>
+  <div id="pairs"></div>
+</main>
+<div class="status" id="status" role="status" aria-live="polite"></div>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var answersBox = $("answers"), pairsBox = $("pairs");
+
+  // Every string below comes from a contributor, so the DOM is built with
+  // textContent throughout. No innerHTML, no escaping to get wrong.
+  function h(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = String(text);
+    return n;
+  }
+
+  function say(msg) {
+    var el = $("status");
+    el.textContent = msg;
+    el.classList.add("on");
+    clearTimeout(say.t);
+    say.t = setTimeout(function () { el.classList.remove("on"); }, 2600);
+  }
+
+  function actions(url, id, card) {
+    var box = h("div", "acts");
+    var ok = h("button", "ok", "Accept and publish");
+    var no = h("button", "no", "Reject");
+    box.append(ok, no);
+    [ok, no].forEach(function (btn) {
+      btn.dataset.v = btn === ok ? "1" : "0";
+      btn.addEventListener("click", function () {
+        var accept = btn.dataset.v === "1";
+        [ok, no].forEach(function (b) { b.disabled = true; });
+        fetch(url, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ id: id, accept: accept }),
+        })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
+          .then(function (res) {
+            if (res.ok) { card.remove(); say(accept ? "Published." : "Rejected."); return; }
+            [ok, no].forEach(function (b) { b.disabled = false; });
+            say((res.body && res.body.message) || "That did not go through.");
+          })
+          .catch(function () {
+            [ok, no].forEach(function (b) { b.disabled = false; });
+            say("Network error. Try again.");
+          });
+      });
+    });
+    return box;
+  }
+
+  function answerCard(a) {
+    var card = h("article", "card");
+    var en = h("p", "en", a.english || "(no English line)");
+    en.appendChild(h("span", "tag", a.kind));
+    card.appendChild(en);
+    card.appendChild(h("p", "meta", (a.contributor_name || "an unnamed contributor") + " \u00b7 " + a.created_at));
+    card.appendChild(h("p", "paite", a.paite));
+    if (a.explainer_en) card.appendChild(h("p", "ex", a.explainer_en));
+    if (a.explainer) card.appendChild(h("p", "ex", a.explainer));
+    card.appendChild(actions("/review/api/proverbs/answer", a.id, card));
+    return card;
+  }
+
+  function pairCard(p) {
+    var card = h("article", "card");
+    var en = h("p", "en", p.english);
+    en.appendChild(h("span", "tag", p.kind));
+    card.appendChild(en);
+    card.appendChild(h("p", "meta", (p.contributor_name || "an unnamed contributor") + " \u00b7 " + p.created_at));
+    card.appendChild(h("p", "paite", p.paite));
+    if (p.explainer_en) card.appendChild(h("p", "ex", p.explainer_en));
+    card.appendChild(actions("/review/api/proverbs/pair", p.id, card));
+    return card;
+  }
+
+  function empty(box, text) { box.appendChild(h("p", "empty", text)); }
+
+  fetch("/review/api/proverbs", { headers: { accept: "application/json" } })
+    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (d) {
+      $("n-answers").textContent = d.answers.length;
+      $("n-pairs").textContent = d.pairs.length;
+      if (!d.answers.length) empty(answersBox, "Nothing waiting.");
+      if (!d.pairs.length) empty(pairsBox, "Nothing waiting.");
+      d.answers.forEach(function (a) { answersBox.appendChild(answerCard(a)); });
+      d.pairs.forEach(function (p) { pairsBox.appendChild(pairCard(p)); });
+    })
+    .catch(function () {
+      empty(answersBox, "Could not load the queue. Reload to try again.");
+    });
+})();
+</script>
+</body>
+</html>

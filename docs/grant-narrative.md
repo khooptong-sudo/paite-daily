@@ -6,7 +6,7 @@
 
 > **Before you send this.** Figures marked ⟨CURRENT⟩ must be refreshed from the site on the day you
 > submit; everything else is fixed. The paragraph in §11 is the only part that changes between
-> funders. Reviewer-hour and stipend figures are *budgeted*, not measured — do not present them as
+> funders. Reviewer-hour and stipend figures are *budgeted*, not measured, do not present them as
 > history.
 
 ---
@@ -22,7 +22,7 @@ funding and no advertising.
 The grant would pay reviewers for the hours they currently donate, add a recorded audio component,
 and put the corpus somewhere permanent with a DOI. The point is not to keep a website alive. It is to
 produce the aligned text that a Paite spellchecker, keyboard dictionary or translation model would
-have to be built from — text that does not currently exist in any form.
+have to be built from, text that does not currently exist in any form.
 
 ## 2. The language
 
@@ -46,7 +46,7 @@ Everything about Paite is written down except the thing that matters now.
 
 A Paite speaker can write a sentence by hand and cannot write it on a phone. There is no
 spellchecker, no predictive keyboard, no parallel text, no concordance and no machine translation,
-because every one of those is built from aligned, machine-readable sentences — and for Paite those
+because every one of those is built from aligned, machine-readable sentences, and for Paite those
 sentences have never been assembled. A dictionary tells you what a word means. It does not tell a
 computer how the language behaves in a line of text. Only a corpus does, and Paite has none.
 
@@ -59,12 +59,12 @@ in the place where writing now mostly happens.
 - **⟨CURRENT: 521⟩ verified Paite–English pairs**, each written by one speaker and approved by
   another before publication. Unreviewed submissions are never shown as answers.
 - **Five volunteer reviewers.** All native speakers, all named in the corpus metadata.
-- **A published public-domain commitment.** Every verified pair is released CC0 — irrevocably, with
-  no attribution requirement — so that a keyboard project, a school, or a translation team can use
+- **A published public-domain commitment.** Every verified pair is released CC0, irrevocably, with
+  no attribution requirement, so that a keyboard project, a school, or a translation team can use
   it without asking us.
 - **Open data already published.** The wider corpus is public at
-  `github.com/khooptong-sudo/paite-open-language-data` — the Paite–English dictionary, verse pairs,
-  hymns and native-speaker corrections — so this project is not proposing to become open. It already
+  `github.com/khooptong-sudo/paite-open-language-data`, the Paite–English dictionary, verse pairs,
+  hymns and native-speaker corrections, so this project is not proposing to become open. It already
   is, and has been releasing without a grant.
 - **A documented review protocol.** Contributors tag each pair *Gen Thoh* (spoken), *Gelh Thoh*
   (written) or *Anih In* (both), so register is recorded, not lost.
@@ -73,22 +73,22 @@ in the place where writing now mostly happens.
 
 ## 5. What the grant pays for
 
-**Activity 1 — paid review hours.** Five reviewers, twenty hours each, at US$10/hour. The work is
+**Activity 1, paid review hours.** Five reviewers, twenty hours each, at US$10/hour. The work is
 what they already do unpaid: read a submitted pair against its source, decide whether it is correct
 Paite, correct the orthography against the Paite Laimal, and mark it. Paid hours convert a hobby
 rhythm into a schedule, and they make it possible to ask a reviewer for twenty considered hours
 rather than an unlimited favour.
 
-**Activity 2 — orthography and consistency pass.** Forty hours at US$10/hour, on the whole existing
+**Activity 2, orthography and consistency pass.** Forty hours at US$10/hour, on the whole existing
 corpus: one reviewer working through all pairs for consistency of spelling, tone marking and
 register labelling. A corpus with three spellings of the same word is worse than no corpus, because
 the error propagates into every model trained on it.
 
-**Activity 3 — audio.** One hundred proverb pairs recorded with two native speakers, with the audio,
+**Activity 3, audio.** One hundred proverb pairs recorded with two native speakers, with the audio,
 transcription and English gloss stored as one unit. Proverbs are where the language is densest and
 where text alone loses the most; and *pau upa* is the part of the site speakers ask about first.
 
-**Activity 4 — release and deposit.** Export in a documented open format (JSONL plus TSV), a data
+**Activity 4, release and deposit.** Export in a documented open format (JSONL plus TSV), a data
 statement describing collection, review and licensing, and deposit with a DOI so the corpus is
 citable and survives the website.
 
@@ -124,7 +124,7 @@ who cares about the language.
 | Orthography & consistency pass | US$10 / hour | 40 h | US$400 |
 | Proverb audio: 2 speakers + session costs | US$150 / session | 2 | US$300 |
 | Recording kit (2 wired headset mics) | US$75 | 2 | US$150 |
-| Corpus packaging, data statement, DOI deposit | — | 1 | US$100 |
+| Corpus packaging, data statement, DOI deposit |, | 1 | US$100 |
 | Domain & hosting, 12 months | US$50 / year | 1 | US$50 |
 | **Total** | | | **US$2,000** |
 | Founder fee | | | **US$0** |
@@ -132,7 +132,7 @@ who cares about the language.
 No administrative or overhead costs are requested. Every line has a unit rate and a quantity; there
 is no miscellaneous line. If a funder's ceiling is lower, the audio component is the first thing to
 cut, and the corpus work still stands alone. At a €10,000 ceiling the same plan scales by extending
-paid review hours and adding a second orthography pass — the shape of the project does not change.
+paid review hours and adding a second orthography pass, the shape of the project does not change.
 
 ## 9. Outcomes
 
@@ -141,7 +141,7 @@ paid review hours and adding a second orthography pass — the shape of the proj
 | Verified pairs | ⟨CURRENT: 521⟩ | 1,500 |
 | Recorded proverb pairs | 0 | 100 |
 | Active reviewers | 5 | 5, with paid hours logged |
-| Cost per verified pair | — | US$2.00 |
+| Cost per verified pair |, | US$2.00 |
 | Public release | `paite-open-language-data` on GitHub, CC0 | same repo, plus a versioned Zenodo release with a citable DOI |
 
 Cost per verified pair is the number to hold us to: US$2,000 for roughly 1,000 new pairs and 100
@@ -156,7 +156,7 @@ is paid out of pocket. The reviewer network, the review protocol, the public-dom
 the technical infrastructure all exist and have been running without a grant. What is being asked
 for is not the cost of starting, but the cost of the hours that have been given free.
 
-## 11. Funder-specific paragraph — swap this one, keep the rest
+## 11. Funder-specific paragraph, swap this one, keep the rest
 
 > ⟨Replace with two or three sentences that answer *this* funder's own stated priority, using their
 > words, not ours. E.g. for a funder whose remit is documentation of languages at risk: name the
@@ -165,7 +165,7 @@ for is not the cost of starting, but the cost of the hours that have been given 
 
 ---
 
-## Appendix A — classification, for forms that demand it
+## Appendix A, classification, for forms that demand it
 
 Where a form requires a language family, write **Tibeto-Burman (Sino-Tibetan)** and the code
 **`pck`**. Do not write "Kuki-Chin" or "Chin": these are exonyms, and Paite is an independent
@@ -174,7 +174,7 @@ differently, the answer is one sentence: *the older literature classified Paite 
 colonial grouping; the community's own name for the language, and the ISO code, are what this
 project uses.*
 
-## Appendix B — what not to claim
+## Appendix B, what not to claim
 
 - Do not describe Paite as "endangered" in the sense of losing its home speakers. It is not. The
   claim being made is about digital absence, which is true, checkable, and sufficient.

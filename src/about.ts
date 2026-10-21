@@ -1,6 +1,6 @@
 // The About page. Static prose only: no DB, no session, no Turnstile.
-// The shell below is copied from renderGlossary() on purpose — same header, same
-// PUAN band, same footer, same font links — so /about cannot drift visually.
+// The shell below is copied from renderGlossary() on purpose: same header, same
+// PUAN band, same footer, same font links, so /about cannot drift visually.
 // It also carries the Dataset JSON-LD, so the corpus is machine-readable to
 // anyone who indexes it (keyboard projects, MT researchers, archive crawlers).
 import { FOOTER } from "./footer";
@@ -31,7 +31,7 @@ const STYLE = `<style>
 const JSONLD = JSON.stringify({
   "@context": "https://schema.org",
   "@type": "Dataset",
-  name: "Paite Daily — Paite–English verified corpus",
+  name: "Paite Daily: a Paite–English verified corpus",
   description:
     "A volunteer-reviewed corpus of aligned Paite–English sentence pairs, proverbs and idioms. Every pair is checked by a native speaker before publication and released to the public domain (CC0).",
   url: "https://paite.lamkalabs.com/",
@@ -87,9 +87,9 @@ ${STYLE}
 
 <h2>Who the Paites are</h2>
 
-<p>The word <em>Paite</em> means “the people who marched” — from <em>pai</em>, to march, and <em>te</em>, the plural marker. The Paites are one of the Zo (Zomi) peoples of the India–Myanmar–Bangladesh borderlands, and a recognised Scheduled Tribe in both Manipur and Mizoram. They are concentrated in Manipur, and are the dominant community in Lamka, the town at the heart of Churachandpur district, where Paite is the everyday language of the street and the market.</p>
+<p>The word <em>Paite</em> means “the people who marched”. It comes from <em>pai</em>, to march, and <em>te</em>, the plural marker. The Paites are one of the Zo (Zomi) peoples of the India–Myanmar–Bangladesh borderlands, and a recognised Scheduled Tribe in both Manipur and Mizoram. They are concentrated in Manipur, and are the dominant community in Lamka, the town at the heart of Churachandpur district, where Paite is the everyday language of the street and the market.</p>
 
-<p>The community took to print early: Christianity arrived in the nineteenth century through British missionaries, and schooling, literacy and the written word followed and held. That is why a language of fewer than eighty thousand speakers has dictionaries in three editions, a reference grammar, a degree-level curriculum and a daily radio broadcast. Folksongs and folktales still travel by mouth alongside all of it — which is what the <em>pau upa</em> section of this site is for.</p>
+<p>The community took to print early: Christianity arrived in the nineteenth century through British missionaries, and schooling, literacy and the written word followed and held. That is why a language of fewer than eighty thousand speakers has dictionaries in three editions, a reference grammar, a degree-level curriculum and a daily radio broadcast. Folksongs and folktales still travel by mouth alongside all of it, which is what the <em>pau upa</em> section of this site collects.</p>
 
 <h2>What Paite is</h2>
 
@@ -101,23 +101,23 @@ ${STYLE}
 
 <h2>Why this site exists</h2>
 
-<p>Every part of Paite life is written down. The language itself is not in a machine. A Paite speaker can write a sentence by hand and cannot write it on a phone: there is no spellchecker, no predictive keyboard, no parallel text and no machine translation, because all of those things are built from aligned, machine-readable sentences — and for Paite those sentences have never been assembled.</p>
+<p>Every part of Paite life is written down. The language itself is not in a machine. A Paite speaker can write a sentence by hand and cannot write it on a phone: there is no spellchecker, no predictive keyboard, no parallel text and no machine translation, because all of those things are built from aligned, machine-readable sentences. For Paite, those sentences have never been assembled.</p>
 
-<p>That is the whole gap. Not a language with too few speakers — a language with too few sentences in a row that a computer can read. Seventy-eight thousand speakers and no spellchecker is not a tragic fact. It is an addressable one.</p>
+<p>That is the whole gap. The shortage is not speakers. It is sentences a computer can read in a row. Seventy-eight thousand speakers and no spellchecker is an addressable problem, not a tragedy.</p>
 
 <h2>How a sentence gets verified</h2>
 
 <ol>
 <li>A speaker submits a translation and tags it <em>Gen Thoh</em> (spoken), <em>Gelh Thoh</em> (written) or <em>Anih In</em> (both). Submissions are gated against bots.</li>
 <li>A reviewer checks it against the source. Unreviewed submissions are never shown as answers.</li>
-<li>Only after review does the pair join the pool of verified sentences — and only then does it become the prompt for the next learner.</li>
+<li>Only after review does the pair join the pool of verified sentences. Only then does it become the prompt for the next learner.</li>
 </ol>
 
 <p>Proverbs and idioms (<em>pau upa</em>) go through the same loop, in both directions, with the same rule: a reviewer checks each one. Nothing is published unreviewed. No model writes our data, and no model decides what counts as correct Paite.</p>
 
 <h2>What “public domain” means here</h2>
 
-<p>Every verified pair is dedicated to the public domain (CC0). Not “free to use with attribution” — public domain, irrevocably. If you are building a Paite keyboard dictionary, a spellchecker, a concordance, a school workbook or a translation model, you do not need to ask us and you do not need to credit us. That is deliberate. A corpus that requires permission is a corpus that gets ignored, and a corpus that gets ignored dies with its website.</p>
+<p>Every verified pair is dedicated to the public domain (CC0). Not “free to use with attribution”. Public domain, irrevocably. If you are building a Paite keyboard dictionary, a spellchecker, a concordance, a school workbook or a translation model, you do not need to ask us and you do not need to credit us. That is deliberate. A corpus that requires permission is a corpus that gets ignored, and a corpus that gets ignored dies with its website.</p>
 
 <h2>Who runs this</h2>
 

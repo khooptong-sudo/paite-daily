@@ -8,7 +8,7 @@ export const FOOTER = `
   <a class="coffee" id="coffee" href="upi://pay?pa=khooptong%40okicici&amp;pn=Min%20Khooptong&amp;cu=INR&amp;tn=Paite%20Daily" aria-expanded="false" aria-controls="upi">&#9749; <span data-s="coffee">Click Here to Buy Us Coffee</span> &#128513;
     <span class="coffee-note" data-s="coffeeNote">Helps cover the AI and server costs, so the data stays free for everyone.</span>
   </a>
-  <p>Built and maintained by <a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a> &middot; <a href="/about">About this project</a> &middot; <a href="/glossary">Word list</a></p>
+  <p>Built and maintained by <a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a> &middot; <a href="/about">About this project</a></p>
   <div class="card" id="upi" hidden>
     <img class="qr" src="/upi-qr.jpg" alt="UPI QR code for Min Khooptong, khooptong@okicici" loading="lazy" decoding="async">
     <p data-s="scanUpi">Scan with any UPI app</p>
