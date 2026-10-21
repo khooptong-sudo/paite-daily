@@ -55,6 +55,7 @@ const cleanText = (v: unknown, n: number) => clip(v, n).replace(/\s+/g, " ");
 export async function getProverbReviewList(
   env: Env,
   email: string,
+  now = Date.now(),
 ): Promise<{ answers: ProverbAnswerRow[]; pairs: ProverbPairRow[]; required: number }> {
   const answers = await env.DB.prepare(
     `SELECT a.id, a.proverb_id, a.paite, a.explainer, a.explainer_en, a.contributor_name, a.created_at,
@@ -68,10 +69,12 @@ export async function getProverbReviewList(
        JOIN proverbs p ON p.id = a.proverb_id
       WHERE a.status = 'new'
         AND (p.status IN ('open', 'pending') OR (p.status = 'live' AND p.accepting_more = 1))
+        AND NOT EXISTS (SELECT 1 FROM proverb_skips k
+                         WHERE k.proverb_id = p.id AND k.until > ?2 AND lower(k.reviewer_email) = lower(?1))
       ORDER BY a.created_at, a.id
       LIMIT 200`,
   )
-    .bind(email)
+    .bind(email, now)
     .all<ProverbAnswerRow>();
   const pairs = await env.DB.prepare(
     `SELECT p.id, p.kind, p.paite, p.english, p.explainer, p.explainer_en, p.contributor_name, p.created_at,
@@ -82,16 +85,40 @@ export async function getProverbReviewList(
                 AND lower(r.reviewer_email) = lower(?1)) AS mine
        FROM proverbs p
       WHERE p.status = 'pending'
+        AND NOT EXISTS (SELECT 1 FROM proverb_skips k
+                         WHERE k.proverb_id = p.id AND k.until > ?2 AND lower(k.reviewer_email) = lower(?1))
       ORDER BY p.created_at, p.id
       LIMIT 200`,
   )
-    .bind(email)
+    .bind(email, now)
     .all<ProverbPairRow>();
   return {
     answers: answers.results ?? [],
     pairs: pairs.results ?? [],
     required: REQUIRED_REVIEWERS,
   };
+}
+
+/**
+ * Pass on a saying for two hours. It stays in everyone else's queue.
+ * Returns false when the saying is gone or already settled.
+ */
+export async function skipProverbSaying(env: Env, email: string, proverbId: number, now: number): Promise<boolean> {
+  const p = await env.DB.prepare(
+    "SELECT 1 AS ok FROM proverbs WHERE id = ?1 AND (status IN ('open', 'pending') OR (status = 'live' AND accepting_more = 1))",
+  )
+    .bind(proverbId)
+    .first<{ ok: number }>();
+  if (!p) return false;
+  await env.DB.batch([
+    env.DB.prepare("DELETE FROM proverb_skips WHERE proverb_id = ?1 AND lower(reviewer_email) = lower(?2)").bind(proverbId, email),
+    env.DB.prepare("INSERT INTO proverb_skips (proverb_id, reviewer_email, until) VALUES (?1, ?2, ?3)").bind(
+      proverbId,
+      email,
+      now + 2 * 60 * 60 * 1000,
+    ),
+  ]);
+  return true;
 }
 
 /**

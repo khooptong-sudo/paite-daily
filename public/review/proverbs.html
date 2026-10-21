@@ -145,9 +145,10 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
 
     var actions = h("div", "actions");
     var save = h("button", "accept", secondPass ? "Save and publish" : "Save");
+    var skip = h("button", "reject", "Skip for now");
     var rejAll = h("button", "reject", "Reject all");
     var retire = h("button", "danger", "Retire saying");
-    actions.append(save, rejAll, retire);
+    actions.append(save, skip, rejAll, retire);
     card.appendChild(actions);
 
     save.addEventListener("click", function () {
@@ -166,6 +167,14 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
         card.remove();
         say(res.body.waiting ? "Recorded. One more reviewer needed." : "Published.");
       }).catch(function () { save.disabled = false; say("Network error. Try again."); });
+    });
+
+    skip.addEventListener("click", function () {
+      skip.disabled = true;
+      post("/review/api/proverbs/skip", { proverbId: a.proverb_id }).then(function (res) {
+        if (res.ok) { card.remove(); say("Skipped. It stays in the queue for everyone else."); }
+        else { skip.disabled = false; say("That did not go through."); }
+      });
     });
 
     rejAll.addEventListener("click", function () {

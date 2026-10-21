@@ -1,7 +1,7 @@
 import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it } from "vitest";
 import { saveProverbReview } from "../src/proverbcard";
-import { decideProverbAnswer, decideProverbPair, getProverbReviewList } from "../src/proverbreview";
+import { decideProverbAnswer, decideProverbPair, getProverbReviewList, skipProverbSaying } from "../src/proverbreview";
 
 import type { Env } from "../src/types";
 
@@ -18,6 +18,7 @@ const LINKS = ["Lampam sik khiallou kuamah omlou", "Suang tuktuk pan a kai kei",
 // suite shares one database, so each test starts from empty.
 beforeEach(async () => {
   await DB.DB.batch([
+    DB.DB.prepare("DELETE FROM proverb_skips"),
     DB.DB.prepare("DELETE FROM proverb_reviews"),
     DB.DB.prepare("DELETE FROM proverb_answers"),
     DB.DB.prepare("DELETE FROM proverbs"),
@@ -173,6 +174,23 @@ describe("sayings need two reviewers", () => {
     expect(p.status).toBe("live");
     expect(p.paite).toBe(LINKS[0]);
     expect(await answerStatus(fresh!.id)).toBe("accepted");
+  });
+
+  it("skips a saying out of one reviewer's queue only", async () => {
+    const pid = await seedSaying(ENGLISH);
+    await seedAnswer(pid, LINKS[0]);
+    const now = Date.now();
+
+    expect((await getProverbReviewList(DB, "one@example.org", now)).answers.length).toBe(1);
+    expect(await skipProverbSaying(DB, "one@example.org", pid, now)).toBe(true);
+
+    // Gone for the reviewer who skipped, still there for everyone else.
+    expect((await getProverbReviewList(DB, "one@example.org", now + 60_000)).answers.length).toBe(0);
+    expect((await getProverbReviewList(DB, "two@example.org", now + 60_000)).answers.length).toBe(1);
+
+    // Back after two hours.
+    const later = now + 2 * 60 * 60 * 1000 + 60_000;
+    expect((await getProverbReviewList(DB, "one@example.org", later)).answers.length).toBe(1);
   });
 
   it("shows the list who has already voted", async () => {

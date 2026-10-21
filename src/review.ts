@@ -2,7 +2,7 @@ import { isOwner, reviewerName } from "./access";
 import { handleOwnerReview } from "./apply";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
-import { REQUIRED_REVIEWERS, decideProverbAnswer, decideProverbPair, getProverbReviewList } from "./proverbreview";
+import { REQUIRED_REVIEWERS, decideProverbAnswer, decideProverbPair, getProverbReviewList, skipProverbSaying } from "./proverbreview";
 import { saveProverbReview } from "./proverbcard";
 
 /**
@@ -84,7 +84,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     }
   }
   // Sayings: the lane that was missing. Candidates and whole submitted pairs, listed.
-  if (pathname === "/review/api/proverbs" && req.method === "GET") return json(await getProverbReviewList(env, email));
+  if (pathname === "/review/api/proverbs" && req.method === "GET") return json(await getProverbReviewList(env, email, deps.now()));
   if (pathname === "/review/api/proverbs/answer" && req.method === "POST") {
     const d = readProverbDecision(b);
     if (d === null) return json({ error: "bad_request" }, 400);
@@ -92,6 +92,11 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     if (r === "not_found") return json({ error: "not_found" }, 404);
     if (r === "duplicate") return json({ error: "duplicate", message: "That Paite line already belongs to another saying." }, 409);
     return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
+  }
+  if (pathname === "/review/api/proverbs/skip" && req.method === "POST") {
+    if (!isId(b.proverbId)) return json({ error: "bad_request" }, 400);
+    const ok = await skipProverbSaying(env, email, b.proverbId as number, deps.now());
+    return ok ? json({ ok: true }) : json({ error: "not_found" }, 404);
   }
   // Whole card: accept one line (with a correction if the reviewer made one), keep
   // others as variants, reject the rest, or reject all, or retire the saying.

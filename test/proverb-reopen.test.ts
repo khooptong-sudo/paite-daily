@@ -10,6 +10,7 @@ const DB = env as unknown as Env;
 
 beforeEach(async () => {
   await DB.DB.batch([
+    DB.DB.prepare("DELETE FROM proverb_skips"),
     DB.DB.prepare("DELETE FROM proverb_reviews"),
     DB.DB.prepare("DELETE FROM proverb_answers"),
     DB.DB.prepare("DELETE FROM proverbs"),
