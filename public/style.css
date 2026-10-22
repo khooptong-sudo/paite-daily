@@ -189,10 +189,19 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .chat .ask input { flex: 1; min-width: 0; }
 .chat .ask button { padding-inline: 1.1em; }
 .chat-note { font-size: .85rem; color: var(--muted); margin: 0; }
-.chat-more { justify-self: start; background: none; border: 0; padding: 0; color: var(--fg); font: inherit; font-size: .9rem; text-decoration: underline; cursor: pointer; }
-.chat.collapsed .chips, .chat.collapsed .thread, .chat.collapsed .ask, .chat.collapsed .chat-note { display: none; }
-.chat.collapsed .chat-more { display: block; }
-.chat:not(.collapsed) .chat-more { display: none; }
+/* The chat is a folded box: the greeting is the label, the chevron says it opens.
+   Native <details> carries the state, so it works before chat.js runs. */
+.chat-box summary { list-style: none; cursor: pointer; }
+.chat-box summary::-webkit-details-marker { display: none; }
+.chat-box summary::marker { content: ""; }
+.chat-summary { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.chat-intro { display: grid; gap: 0; }
+.chat-chev { flex: none; margin-top: 4px; color: var(--muted); transition: transform .2s; }
+.chat-box[open] .chat-chev { transform: rotate(180deg); }
+.chat-box summary:hover .chat-chev { color: var(--fg); }
+.chat-box summary:focus-visible { outline: 3px solid var(--ring); outline-offset: 4px; border-radius: 10px; }
+.chat-body { display: grid; gap: 16px; margin-top: 16px; }
+@media (prefers-reduced-motion: reduce) { .chat-chev { transition: none; } }
 .want { display: block; margin-top: 6px; background: none; border: 0; padding: 0; color: var(--fg); font: inherit; font-size: .9rem; text-decoration: underline; cursor: pointer; }
 .chat-note .answer { display: grid; gap: 2px; padding: .6em .85em; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
 .chat-note .answer .pai { font: 400 1.15rem/1.35 var(--display); color: var(--fg); }

@@ -115,8 +115,6 @@ window.STRINGS = {
   chatMiss: { pai: "", en: "No reviewed pair for that yet." },
   chatWant: { pai: "", en: "Ask contributors for this line" },
   chatWanted: { pai: "", en: "Noted — it is on the list for contributors." },
-  chatShow: { pai: "", en: "Show sample conversations" },
-  chatHide: { pai: "", en: "Hide sample conversations" },
   chatFromCorpus: { pai: "", en: "from the reviewed corpus" },
   chatPlaceholder: { pai: "", en: "Type an English line…" },
   paiteThin: { pai: "", en: "Paite sayings are still being gathered. The English list is open for translating." },

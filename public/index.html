@@ -59,19 +59,25 @@
     <button type="button" class="primary" id="fb-ok" data-s="gotIt"></button>
   </section>
   <section class="card chat" id="chat" aria-labelledby="chat-h">
-    <div>
-      <div class="label" id="chat-h" data-s="chatTitle"></div>
-      <p class="hello" id="chat-hello">Zingpha! Na dam hia?</p>
-      <p class="hello-en" data-s="chatHelloEn"></p>
-    </div>
-    <div class="chips" id="chat-chips" role="group" aria-label="Sample conversations"></div>
-    <div class="thread" id="chat-thread" aria-live="polite"></div>
-    <form class="ask" id="chat-form" novalidate>
-      <input id="chat-q" type="text" autocomplete="off" autocapitalize="sentences" maxlength="120">
-      <button type="submit" class="primary" data-s="chatAsk"></button>
-    </form>
-    <p class="chat-note" id="chat-note" data-s="chatNote"></p>
-    <button type="button" class="chat-more" id="chat-more" data-s="chatShow"></button>
+    <details class="chat-box" id="chat-box">
+      <summary class="chat-summary">
+        <span class="chat-intro">
+          <span class="label" id="chat-h" data-s="chatTitle"></span>
+          <span class="hello" id="chat-hello">Zingpha! Na dam hia?</span>
+          <span class="hello-en" data-s="chatHelloEn"></span>
+        </span>
+        <svg class="chat-chev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </summary>
+      <div class="chat-body">
+        <div class="chips" id="chat-chips" role="group" aria-label="Sample conversations"></div>
+        <div class="thread" id="chat-thread" aria-live="polite"></div>
+        <form class="ask" id="chat-form" novalidate>
+          <input id="chat-q" type="text" autocomplete="off" autocapitalize="sentences" maxlength="120">
+          <button type="submit" class="primary" data-s="chatAsk"></button>
+        </form>
+        <p class="chat-note" id="chat-note" data-s="chatNote"></p>
+      </div>
+    </details>
   </section>
   <section class="card">
     <div class="label" id="label" data-s="translate"></div>

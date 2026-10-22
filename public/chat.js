@@ -11,7 +11,8 @@
   const note = $("chat-note");
   const form = $("chat-form");
   const input = $("chat-q");
-  const more = $("chat-more");
+  const chatBox = $("chat-box");
+  if (!chatBox) return;
   const store = {
     get(k, d) { try { const v = localStorage.getItem("pd:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
     set(k, v) { try { localStorage.setItem("pd:" + k, JSON.stringify(v)); } catch {} },
@@ -20,12 +21,6 @@
   let scenes = [];
 
   input.placeholder = t("chatPlaceholder") || "Type an English line…";
-
-  const collapse = (on) => {
-    card.classList.toggle("collapsed", on);
-    more.textContent = t(on ? "chatShow" : "chatHide");
-  };
-  more.addEventListener("click", () => collapse(!card.classList.contains("collapsed")));
 
   function draw(i) {
     thread.replaceChildren(
@@ -72,9 +67,10 @@
     })
     .catch(() => { /* the greeting still greets; chips stay empty */ });
 
-  // Someone who has already contributed does not need the tour.
-  collapse(store.get("chatMini", false));
-  card.addEventListener("click", () => { if (card.classList.contains("collapsed")) return; store.set("chatMini", true); }, { once: true });
+  // Folded to its greeting by default: the demo is a tour, not the page. Once a
+  // visitor opens it, their choice is remembered.
+  chatBox.open = store.get("chatOpen", false);
+  chatBox.addEventListener("toggle", () => store.set("chatOpen", chatBox.open));
 
   function say(match) {
     const box = document.createElement("div");
