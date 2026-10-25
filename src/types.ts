@@ -21,6 +21,8 @@ export interface Deps {
   verifyTurnstile(token: string, ip: string | null, env: Env): Promise<boolean>;
   verifyAccess(req: Request, env: Env): Promise<string | null>;
   now(): number;
+  /** The model call, swapped out in tests. */
+  fetch?: typeof fetch;
 }
 
 export function json(data: unknown, status = 200, cache = "no-store"): Response {

@@ -74,7 +74,7 @@
         <div class="chips" id="chat-chips" role="group" aria-label="Sample conversations"></div>
         <div class="thread" id="chat-thread" aria-live="polite"></div>
         <form class="ask" id="chat-form" novalidate>
-          <input id="chat-q" type="text" autocomplete="off" autocapitalize="sentences" maxlength="120">
+          <input id="chat-q" data-lang="en" data-check="off" type="text" autocomplete="off" autocapitalize="sentences" maxlength="120">
           <button type="submit" class="primary" data-s="chatAsk"></button>
         </form>
         <p class="chat-note" id="chat-note" data-s="chatNote"></p>
@@ -87,7 +87,7 @@
     <p class="sentence" id="sentence" aria-live="polite"></p>
     <button type="button" id="retry" data-s="tryAgain" hidden></button>
     <form id="form" novalidate>
-      <textarea id="paite" required autocomplete="off" autocapitalize="sentences" maxlength="300" aria-label="Paite"></textarea>
+      <textarea id="paite" data-lang="pai" required autocomplete="off" autocapitalize="sentences" maxlength="300" aria-label="Paite"></textarea>
       <label for="explanation" data-s="explanationLabel"></label>
       <textarea id="explanation" autocomplete="off" maxlength="500" rows="2"></textarea>
       <fieldset class="register">
@@ -109,7 +109,7 @@
     </form>
     <div id="ask-name" hidden>
       <p id="askName" data-s="askName"></p>
-      <input id="name" aria-labelledby="askName" maxlength="60" autocomplete="nickname" placeholder="Your Name">
+      <input id="name" spellcheck="false" aria-labelledby="askName" maxlength="60" autocomplete="nickname" placeholder="Your Name">
       <div class="actions">
         <button type="button" class="primary" id="save-name" data-s="saveName">Add My Name</button>
         <button type="button" id="no-name" data-s="noThanks"></button>
@@ -145,9 +145,9 @@
       <form class="saying" id="saying-paite" data-dir="pai2en" novalidate>
         <p class="dir" data-s="dirPaiEn">Paite → English</p>
         <label for="sp-paite" data-s="paiteSaying">Paite idiom or proverb</label>
-        <input id="sp-paite" name="paite" required maxlength="300" autocomplete="off" placeholder="Lampam sik khiallou kuamah omlou">
+        <input id="sp-paite" data-lang="pai" name="paite" required maxlength="300" autocomplete="off" placeholder="Lampam sik khiallou kuamah omlou">
         <label for="sp-en" data-s="englishVersion">English version</label>
-        <input id="sp-en" name="english" required maxlength="300" autocomplete="off">
+        <input id="sp-en" data-lang="en" name="english" required maxlength="300" autocomplete="off">
         <label for="sp-x" data-s="explainerLabel">Explainer (optional)</label>
         <input id="sp-x" name="explainer" maxlength="600" autocomplete="off">
         <label class="kind" for="sp-kind" data-s="kindLabel">Proverb or idiom</label>
@@ -158,9 +158,9 @@
       <form class="saying" id="saying-en" data-dir="en2pai" novalidate>
         <p class="dir" data-s="dirEnPai">English → Paite</p>
         <label for="se-en" data-s="englishSaying">English idiom or proverb</label>
-        <input id="se-en" name="english" required maxlength="300" autocomplete="off" placeholder="Break the ice">
+        <input id="se-en" data-lang="en" name="english" required maxlength="300" autocomplete="off" placeholder="Break the ice">
         <label for="se-paite" data-s="paiteVersion">Paite version</label>
-        <input id="se-paite" name="paite" required maxlength="300" autocomplete="off">
+        <input id="se-paite" data-lang="pai" name="paite" required maxlength="300" autocomplete="off">
         <label for="se-x" data-s="explainerLabel">Explainer (optional)</label>
         <input id="se-x" name="explainer" maxlength="600" autocomplete="off">
         <label class="kind" for="se-kind" data-s="kindLabel">Proverb or idiom</label>
@@ -177,7 +177,7 @@
     <form id="meaning-form" novalidate>
       <p class="word-prompt" id="m-word" aria-live="polite"></p>
       <label for="m-english" data-s="meaningLabel">Meaning in English</label>
-      <input id="m-english" required maxlength="120" autocomplete="off">
+      <input id="m-english" data-lang="en" required maxlength="120" autocomplete="off">
       <label for="m-note" data-s="wordNote"></label>
       <input id="m-note" maxlength="200" autocomplete="off">
       <div class="actions"><button type="submit" class="primary" id="m-send" data-s="send"></button></div>
@@ -190,9 +190,9 @@
     <p class="licence" data-s="addWordNote"></p>
     <form id="word-form" novalidate>
       <label for="w-paite">Paite</label>
-      <input id="w-paite" required maxlength="60" autocomplete="off">
+      <input id="w-paite" data-lang="pai" required maxlength="60" autocomplete="off">
       <label for="w-english">English</label>
-      <input id="w-english" required maxlength="120" autocomplete="off">
+      <input id="w-english" data-lang="en" required maxlength="120" autocomplete="off">
       <label for="w-note" data-s="wordNote"></label>
       <input id="w-note" maxlength="200" autocomplete="off">
       <div class="actions"><button type="submit" class="primary" id="w-send" data-s="send"></button></div>
@@ -230,6 +230,7 @@
   </footer>
 </main>
 <script src="/strings.js"></script>
+<script src="/grammar.js"></script>
 <script src="/app.js"></script>
 <script src="/chat.js"></script>
 <script src="/footer.js"></script>

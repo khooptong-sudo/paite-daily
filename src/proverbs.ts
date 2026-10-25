@@ -167,7 +167,7 @@ const tag = (k: Kind) =>
 function form(p: Proverb): string {
   return `<details class="tr"><summary data-s="translateIt">Translate into Paite</summary><form data-id="${p.id}">
 <label class="lbl" for="p-${p.id}" data-s="yourVersion">Your Paite version</label>
-<textarea id="p-${p.id}" name="paite" rows="2" maxlength="300" required></textarea>
+<textarea id="p-${p.id}" name="paite" lang="pck" spellcheck="false" rows="2" maxlength="300" required></textarea>
 <label class="lbl" for="e-${p.id}" data-s="explainerOptional">Explain what it means (optional)</label>
 <textarea id="e-${p.id}" name="explainer" rows="2" maxlength="600"></textarea>
 <button type="submit" class="send" data-s="send">Send</button>

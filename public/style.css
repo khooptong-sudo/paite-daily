@@ -261,6 +261,15 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 /* Ask a relative: its own row under Send and Skip, a pill with a short how and why. */
 .ask { display: grid; justify-items: start; gap: 6px; }
 .ask .share-chip { margin-left: 0; padding: 6px 12px; font-size: .85rem; }
+/* Check English: a quiet pill under an English field, and the suggestion beneath it. */
+.gram { display: grid; justify-items: start; gap: 6px; margin-top: 6px; }
+.gram[hidden] { display: none; }
+.gram .share-chip { margin-left: 0; }
+.gram-out { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: .9rem; color: var(--muted); }
+.gram-out[hidden] { display: none; }
+.gram-label { width: 100%; font: 700 .7rem/1.2 var(--body); letter-spacing: .08em; text-transform: uppercase; }
+.gram-text { width: 100%; margin: 0; color: var(--fg); font-size: 1rem; }
+.gram-out .linkish { background: none; border: 0; box-shadow: none; padding: 4px 2px; font: 700 .8rem var(--body); text-decoration: underline; color: var(--fg); }
 /* Hear it: the consent line reads as a sentence with its box, not a form row. */
 .hear .consent { display: flex; align-items: flex-start; gap: 8px; font: 400 .9rem/1.4 var(--body); }
 .hear .consent input { width: auto; margin: 3px 0 0; }

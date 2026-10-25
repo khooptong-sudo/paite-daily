@@ -96,6 +96,7 @@
       const rev = current.direction === "pai2en";
       $("label").innerHTML = tBoth(rev ? "reverseTitle" : "translate");
       $("paite").setAttribute("aria-label", rev ? "English" : "Paite");
+      if (window.pdLang) window.pdLang($("paite"), rev ? "en" : "pai");
       document.querySelector(".register").hidden = rev;
       $("sentence").textContent = current.english;
       $("send").disabled = false;

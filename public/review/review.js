@@ -38,7 +38,7 @@
       box.append(p, meta);
       if (a.explanation) { const ex = document.createElement("div"); ex.className = "meta"; ex.textContent = a.explanation; box.append(ex); }
       if (a.ai_note) { const ai = document.createElement("div"); ai.className = "ai"; ai.textContent = "AI note (advisory)" + (a.ai_flag ? " [" + (rev && a.ai_flag === "english" ? "not_english" : a.ai_flag) + "]" : "") + ": " + a.ai_note; box.append(ai); }
-      const edit = document.createElement("textarea"); edit.value = a.paite; edit.maxLength = 300; edit.setAttribute("aria-label", "Edit before accepting: " + a.paite);
+      const edit = document.createElement("textarea"); edit.value = a.paite; edit.maxLength = 300; edit.setAttribute("aria-label", "Edit before accepting: " + a.paite); edit.dataset.lang = rev ? "en" : "pai";
       const also = document.createElement("label"); also.hidden = !multi;
       const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.answerId = a.id; cb.setAttribute("aria-label", "Also correct (keep as variant): " + a.paite);
       cb.addEventListener("change", () => box.classList.toggle("variant", cb.checked));
@@ -56,6 +56,7 @@
       box.append(edit, also, row);
       return box;
     }));
+    $("answers").querySelectorAll("textarea[data-lang]").forEach((t) => window.pdLang && window.pdLang(t, t.dataset.lang));
     const first = $("answers").querySelector(".answer p");
     if (first) { first.tabIndex = -1; first.focus(); } else $("english").focus();
   }
