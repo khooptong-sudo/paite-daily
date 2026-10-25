@@ -14,6 +14,7 @@ window.STRINGS = {
   yourName: { pai: "Na Min", en: "Your Name" },
   noThanks: { pai: "Ngaikei", en: "No Thanks" },
   saveName: { pai: "Awle", en: "Add My Name" },
+  askHelp: { pai: "Theihchian louhte midang kiangah khaksawn inla dong mah. Ahon dawnna te uh hiai ah gelh lut inla hon khak lechin aw. Kana endik di uh.", en: "Not sure how to say it? Send this sentence on WhatsApp to a parent, grandparent or anyone whose Paite you trust. When they reply, type their answer in the box yourself: their reply is not saved here." },
   licence: { pai: "A utteng muh leh zat theih dia kikoih khia ahi.", en: "Your translations are free for everyone to use, with credit (CC BY 4.0)" },
   loading: { pai: "Aban adi hong ki load lel ahi", en: "Loading the next sentence…" },
   refilling: { pai: "", en: "Getting more sentences…" },

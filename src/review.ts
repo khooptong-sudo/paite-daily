@@ -97,6 +97,12 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     if (r === "duplicate") return json({ error: "duplicate", message: "That Paite line already belongs to another saying." }, 409);
     return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
   }
+  // The contributor's choice of proverb or idiom is a guess; the reviewer may correct it.
+  if (pathname === "/review/api/proverbs/kind" && req.method === "POST") {
+    if (!isId(b.proverbId) || !["proverb", "idiom"].includes(b.kind as string)) return json({ error: "bad_request" }, 400);
+    const r = await env.DB.prepare("UPDATE proverbs SET kind = ?2 WHERE id = ?1").bind(b.proverbId, b.kind).run();
+    return r.meta.changes ? json({ ok: true }) : json({ error: "not_found" }, 404);
+  }
   if (pathname === "/review/api/proverbs/undo" && req.method === "POST") {
     if (!isId(b.proverbId)) return json({ error: "bad_request" }, 400);
     const ok = await undoProverbReview(env, email, b.proverbId as number);
