@@ -1,39 +1,63 @@
-# Handoff, 22 October 2026, 00:45 IST (design and value-additions session)
+# Handoff, 26 October 2026 (counts, Hear it, Check English, title styles)
 
-## Shipped tonight (all live, main at `cbd668c`, pushed)
-- `/about` rewritten and redesigned: Puandum colours, fact cards, timeline, charcoal quote band. Licence is now **CC BY 4.0** everywhere (About, its JSON-LD, home metadata, `strings.js` licence line, `src/export.ts` corpus `licence: "CC-BY-4.0"`). Zenodo already said CC BY, so the contradiction is closed. Older corpus lines on GitHub still say CC0.
-- Shared footer on every page with one (`src/footer.ts`, copies in `public/index.html`, `404.html`, `500.html`): coffee first, then a charcoal band with contact note, icons, credit line and a random slow iridescent waveform (`public/footer.js`). `test/footer.test.ts` keeps the copies in step.
-- Reviewer emails removed from public output: `publicReviewerNames` in `src/access.ts`, used by `getGlossary` and `getProverbs` (page, `/proverbs.json`, `glossary.json` pushed to the corpus repo). Old emails stay in that repo's git history.
-- Forms: white fields, charcoal edge, Paite typed in Young Serif, main buttons **outlined** (house rule: no filled buttons), Skip as a text link, plain red errors.
-- Contributors: woven podium for the top three (stepped blocks, light sweep, Share chip on each that makes a WhatsApp status card with the site link: `public/podium-share.js`). Rows 4+ show at rest.
-- Word list: letter groups open at rest, sticky A to Z rail. Sayings: green or yellow status dot. Home: larger Paite in chat, woven goal bar, plain link rows.
-- **Nampuan Liangbat Gat** (personal shawl, `public/mypuan.js`): one thread per verified line; the name picks Puandum, BA / Siamsin Puan or Ngoutekhelh (paite.org colour codes, no credit needed); share as status. `app.js` fires `paite:me` with `/api/me` data.
-- **Ask a relative** (next to Skip): opens WhatsApp with the current sentence and the site link. It does not deep-link to that sentence, and replies in WhatsApp are not saved.
-- Header: "About this project" chip beside the score; the score share chip moved under the puan.
-- Service worker cache at `v25`. Raise it whenever a shell file changes.
+Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or start on value addition 2.**
 
-## Value additions not done yet (from the review, in suggested order)
-0. **Done 25 Oct 2026 (branch `section-counts`, not yet deployed): one Share with counts for each section.** Make `/api/me` return separate counts for sentences, words, sayings (proverbs) and meanings. Put those counts on the Nampuan Liangbat Gat share card. Show a small "You: N" count, with no button, in each box: Translate, Proverbs & Idioms, Give the Meaning, Add a Word, and `/proverbs`. The old score share (`#share` in `index.html`, driven by `app.js`) is hidden by CSS since `cbd668c`+1; remove it together with its `app.js` code.
-1. **Hear it**: record audio for verified sentences, reviewed like text. Needs R2 storage, a migration, and a review step. Biggest long-term value (no Paite speech data exists).
-2. **Is this spelled right?**: lookup that checks a word against verified sentences and suggests attested spellings. Seed of the first Paite spellchecker.
+## Where things stand
+- Live version `4673df25`, from `main` at `1615a62`, pushed. Live site, GitHub and `main` all match. Service worker cache **`v35`**.
+- Remote D1 has every migration through **`0027_grammar_checks.sql`**. Nothing pending.
+- R2 bucket **`paite-daily-audio`** exists, bound as `AUDIO` in `wrangler.jsonc`.
+- 268 tests pass, `tsc` clean.
+
+## Shipped 25 and 26 October
+- **Counts for each section.** `/api/me` returns `total` (sentences), `words`, `meanings`, `sayings`, `recordings`, `verified`, `badge`. Each front-page box shows a quiet "You: N"; `/proverbs` reads the stored copy (`localStorage pd:me`). The shawl weaves a thread per item in every section, and its share card lists each section. The old score share and its `app.js` code are gone.
+- **Hear it** (value addition 1). The card shows only to phones with at least one verified sentence. One-time CC BY 4.0 consent (kept on the phone, sent with every upload), record up to 20 s, play back, send. Clips go to R2 (`src/recordings.ts`, `public/hear.js`, migration `0026`). Reviewer page `/review/audio`: one accept publishes at `/audio/<id>`, Undo returns the clip to the queue. Three voices per line at most. **No recordings yet, and no public play button yet.**
+- **A reviewer's correction stands over the submission everywhere.** `src/final.ts` `finalPaite(alias)` is the one rule: the reviewer's `final_paite` when they accepted that answer, else the contributor's text. The chat demo, word-list examples, word extraction and reverse prompts all use it. Export, feedback and Hear it already used `final_paite`.
+- **Spellcheck by language and Check English.** Fields carry `data-lang="en"` or `"pai"` (`public/grammar.js`, `window.pdLang`). English fields spellcheck in English and get a Check English pill. Paite fields have spellcheck off. The answer box and the reviewer correction box switch with the sentence's direction. The check calls DeepSeek for grammar, spelling and punctuation only (`src/grammar.ts`), applies nothing until "Use this", 10 a minute and 200 a day per person (migration `0027`). Confirmed working on the owner's phone.
+- **Sayings reviewer**: a proverb/idiom dropdown on every card (`/review/api/proverbs/kind`), and the missing `var blocks = []` fix. `public/review/proverbs.html` is committed again; the old never-commit rule is retired.
+- **Look and words.** Every card title is Young Serif at regular weight with its English as a small uppercase caption (`.card h2`, `.card h2 small`). The owner kept Young Serif after previewing Morenn and Rosehot. Contributor-facing "sayings" are now **Pau Upa** (proverbs & idioms). "About This Project" sits right-aligned under Reviewer and matches the footer link. Ask a relative is a WhatsApp pill on its own row with the owner's Paite how-to above the English. The Paite licence line opens "A utteng".
+
+## Value additions still to do (suggested order)
+2. **Is this spelled right?**: check a word against verified sentences and suggest attested spellings. Seed of the first Paite spellchecker.
 3. **Swipe review on phone** for reviewers, with answer differences highlighted; keyboard shortcuts on desktop.
 4. **Self-writing spelling rulebook**: save reviewer corrections as rules, show them at review time, publish as a page.
-5. **Gap-driven prompts**: track common English words with no Paite example and serve those sentences first.
+5. **Gap-driven prompts**: serve sentences for common English words with no Paite example first.
 6. **Keyboard and dataset exports**: weekly word-frequency list for Gboard / AnySoftKeyboard; Hugging Face mirror with a dataset card.
 7. **Where you learned it**: optional village tag per answer, shown on a map.
 8. **Seasonal themes and a charcoal dark mode** (Chavang Kut, Christmas).
-9. Ask a relative, version 2: deep link to the exact sentence (`/?s=<id>`) so the relative answers that one, credited to them.
-Concepts for several of these are in the private artifact "Paite Daily Rewoven": https://claude.ai/artifact/2Edbcjuqmzyx4hqD11n1hv
+9. **Ask a relative, version 2**: deep link to the exact sentence (`/?s=<id>`), credited to the relative.
+Concepts for several are in the private artifact "Paite Daily Rewoven": https://claude.ai/artifact/2Edbcjuqmzyx4hqD11n1hv
 
-## How to work in this repo (learned tonight)
-- `public/review/proverbs.html` is committed again as of 25 Oct 2026 (`05b7ad1`, with the owner's go-ahead); the old never-commit rule is retired. Deploy only from a clean worktree: `git worktree add .claude/worktrees/deploy-x HEAD`, copy `.dev.vars` in, run `../../../node_modules/.bin/vitest run` and `tsc --noEmit`, then `../../../node_modules/.bin/wrangler deploy` from there. Delete the folder after (it holds `.dev.vars`); `cd` out first or Windows refuses.
-- Branch per change, then fast-forward `main` and `git push origin main`.
-- One test (`proverbs.test.ts` sitekey) needs `.dev.vars` present.
-- The Write tool was refused without a prompt for a while; writing files through Bash heredocs worked.
-- The browser pane drops screenshots when hidden; `get_page_text` and JS checks still work.
-- Open decisions: the footer coffee note says "AI and server costs" while /about says nothing is machine-generated. The Paite version of the translate-form licence line does not mention credit.
+## Loose ends
+- **Hear it has no public player.** Accepted clips play at `/audio/<id>` but no page shows them yet; the chat demo or the corpus export are the obvious places. Rejected clips stay in R2.
+- **Hear it card text is English only.** The owner can supply Paite for "Hear it" and the consent line.
+- The owner has not yet seen the Hear it card on their phone. Their three linked phones have verified sentences, so it is most likely a different browser. Ask whether it shows now.
+- `/about`, `/glossary` and `/contributors` keep their own heading styles; match them to the new card titles if the owner asks.
+- Word-list entries extracted before 25 Oct may carry uncorrected Paite; reviewers fix them with Edit.
+- Reviewer pages still say "saying"; only contributor-facing text became Pau Upa.
+- Open decisions from before: the footer coffee note says "AI and server costs" while /about says nothing is machine-generated.
+
+## How to work in this repo
+- **Ship fully.** When the owner approves a change ("push", "go ahead", "ship it"), commit, push, apply any pending migration, deploy and check the live site in one go. Still ask first about anything new or risky (new outside service, new bucket, destructive migration).
+- **Order:** migration first (`CI=1 node_modules/.bin/wrangler d1 migrations apply paite-daily --remote`), then push, then deploy. A deploy before its migration breaks the new endpoints.
+- **Deploy only from a clean worktree:** `git worktree add -q .claude/worktrees/deploy-x <sha>`, copy `.dev.vars` in, run `../../../node_modules/.bin/tsc --noEmit` and `../../../node_modules/.bin/vitest run`, then `../../../node_modules/.bin/wrangler deploy`, all inside that folder. Then `rm -rf` it (it holds `.dev.vars`) and `git worktree prune`. Run each step in a subshell `( cd ... )` so the session never sits inside the folder, or Windows refuses to delete it.
+- **Git in this folder:** files are owned by another Windows account, so plain `git` refuses. Use `git -c safe.directory=*`. Push with `git -c credential.helper='!gh auth git-credential' push origin main`.
+- **Running tests in the main folder** also picks up the old `.claude/worktrees/paite-footer` copy; use `npx vitest run --exclude ".claude/**"`.
+- **Editing files from Bash:** Windows Python under Git Bash does not read heredoc stdin, so write the script to the scratchpad and run `python script.py < /dev/null`. Many files are CRLF; match line endings when replacing text.
+- **Cloudflare login:** `wrangler login` alone fails in Firefox (it reaches `localhost` over IPv6). Run `npx wrangler login --callback-host 127.0.0.1 --callback-port 8976` in a terminal tab that stays open; if the browser still says "Unable to connect", change `localhost` to `127.0.0.1` in the address bar.
+- **Browser pane:** it fails the site's Turnstile check, so it never gets a contributor session. Hear it, Check English and anything behind `/api/*` must be tried on the owner's phone. Layout checks work by injecting CSS on the live page.
+- Raise the service worker `CACHE` in `public/sw.js` with every shell change.
+- House rules: no em dashes in copy, buttons outlined never filled, never classify Paite with a colonial exonym.
 
 Newest first. Each session prepends one section directly under this line.
+
+## ✅ 22102026 EoS: About, footer, podium, Nampuan Liangbat Gat
+
+- `/about` rewritten, licence **CC BY 4.0** everywhere (About, JSON-LD, home metadata, `strings.js`, `src/export.ts`). Older corpus lines on GitHub still say CC0.
+- Shared footer on every page (`src/footer.ts`, copies in `public/index.html`, `404.html`, `500.html`, kept in step by `test/footer.test.ts`) with the waveform (`public/footer.js`).
+- Reviewer emails removed from public output (`publicReviewerNames` in `src/access.ts`).
+- Outlined forms and buttons, woven podium with Share chips (`public/podium-share.js`), A to Z rail on the word list.
+- **Nampuan Liangbat Gat** (`public/mypuan.js`): the name picks Puandum, BA / Siamsin Puan or Ngoutekhelh.
+- **Ask a relative**: WhatsApp with the current sentence and the site link; replies are not saved.
 
 ## ✅ 21102026 EoS: a brand, an About page, and a sayings queue that reviews
 
