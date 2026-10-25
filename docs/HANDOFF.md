@@ -26,7 +26,7 @@
 Concepts for several of these are in the private artifact "Paite Daily Rewoven": https://claude.ai/artifact/2Edbcjuqmzyx4hqD11n1hv
 
 ## How to work in this repo (learned tonight)
-- `public/review/proverbs.html` has uncommitted changes from another session. Never commit it. Deploy only from a clean worktree: `git worktree add .claude/worktrees/deploy-x HEAD`, copy `.dev.vars` in, run `../../../node_modules/.bin/vitest run` and `tsc --noEmit`, then `../../../node_modules/.bin/wrangler deploy` from there. Delete the folder after (it holds `.dev.vars`); `cd` out first or Windows refuses.
+- `public/review/proverbs.html` is committed again as of 25 Oct 2026 (`05b7ad1`, with the owner's go-ahead); the old never-commit rule is retired. Deploy only from a clean worktree: `git worktree add .claude/worktrees/deploy-x HEAD`, copy `.dev.vars` in, run `../../../node_modules/.bin/vitest run` and `tsc --noEmit`, then `../../../node_modules/.bin/wrangler deploy` from there. Delete the folder after (it holds `.dev.vars`); `cd` out first or Windows refuses.
 - Branch per change, then fast-forward `main` and `git push origin main`.
 - One test (`proverbs.test.ts` sitekey) needs `.dev.vars` present.
 - The Write tool was refused without a prompt for a while; writing files through Bash heredocs worked.
