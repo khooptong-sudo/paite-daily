@@ -77,10 +77,12 @@ button.primary small { color: inherit; opacity: .85; }
 small { display: block; font-size: .75em; color: var(--muted); font-weight: 400; }
 #ask-name { display: grid; gap: 10px; border-top: 1px solid var(--line); padding-top: 14px; }
 [hidden] { display: none !important; }
-#feedback h2 { font: 400 1.2rem/1.3 var(--display); margin: 0; }
 /* A card heading with a quiet way out to the full page. */
 .card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.card-h h2 { font: 400 1.15rem/1.3 var(--display); margin: 0; }
+/* Card titles, one voice everywhere: the Paite title in the display serif, and its
+   English beneath as the same quiet uppercase caption the Translate card uses. */
+.card h2, .mypuan h2 { font: 400 1.3rem/1.25 var(--display); letter-spacing: -.005em; margin: 0; text-wrap: balance; }
+.card h2 small, .mypuan h2 small { display: block; margin: 5px 0 0; font: 700 .7rem/1.3 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .card-h .more { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); color: var(--fg); text-decoration: none; background: rgba(255, 255, 255, .55); font-size: 1.05rem; }
 .card-h .more:hover { border-color: var(--hair); }
 #fb-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
@@ -243,8 +245,6 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 .mypuan { width: 100%; max-width: 560px; margin: 16px auto 0; display: grid; gap: 8px; }
 .mypuan[hidden] { display: none; }
 .mypuan-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.mypuan h2 { margin: 0; font: 400 1.25rem/1.2 var(--display); }
-.mypuan h2 small { font: 400 .78rem var(--body); color: var(--muted); margin-left: 6px; }
 .mypuan canvas { display: block; width: 100%; border-radius: 10px; box-shadow: 0 10px 24px -16px rgba(0, 0, 0, .55); }
 .mypuan-note { margin: 0; font-size: .82rem; color: var(--muted); }
 .mypuan-how { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: .86rem; line-height: 1.45; color: var(--muted); }

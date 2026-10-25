@@ -217,7 +217,7 @@ export function renderProverbs(xs: Proverb[], siteKey = ""): string {
               .join("")}</ul></details>`,
         )
         .join("")
-    : '<p class="empty"><span data-s="proverbsEmpty">No sayings yet. Add the first one.</span> <a href="/">Paite Daily</a></p>';
+    : '<p class="empty"><span data-s="proverbsEmpty">No Pau Upa yet. Add the first one.</span> <a href="/">Paite Daily</a></p>';
 
   return `<!doctype html>
 <html lang="en" data-sitekey="${esc(siteKey)}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -229,7 +229,7 @@ export function renderProverbs(xs: Proverb[], siteKey = ""): string {
 <meta property="og:locale" content="en_IN">
 <meta property="og:url" content="https://paite.lamkalabs.com/proverbs">
 <meta property="og:title" content="Paite Proverbs &amp; Idioms">
-<meta property="og:description" content="Paite proverbs and idioms with an explainer saying what each one means, and English sayings waiting for their Paite version.">
+<meta property="og:description" content="Paite proverbs and idioms with an explainer for each, and English proverbs and idioms waiting for their Paite version.">
 <meta property="og:image" content="https://paite.lamkalabs.com/og.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -253,11 +253,11 @@ export function renderProverbs(xs: Proverb[], siteKey = ""): string {
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 </head>
 <body class="cp">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="proverbsTitle">Proverbs &amp; Idioms</h1><p data-s="proverbsLine">The sayings our elders use, and what each one means.</p><p class="you" id="you" hidden></p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="proverbsTitle">Proverbs &amp; Idioms</h1><p data-s="proverbsLine">Pau Upa: the proverbs and idioms our elders use, and what each one means.</p><p class="you" id="you" hidden></p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
 <p class="filters"><button type="button" data-dir="all" aria-pressed="false" data-s="filterAll">All</button><button type="button" data-dir="pai2en" aria-pressed="true" data-s="filterPai2En">Paite &rarr; English</button><button type="button" data-dir="en2pai" aria-pressed="false" data-s="filterEn2Pai">English &rarr; Paite</button></p>
-${paiteCount < 5 ? `<p class="note" id="paite-thin"><span data-s="paiteThin">Paite sayings are still being gathered. The English list is open for translating.</span></p>` : ""}
+${paiteCount < 5 ? `<p class="note" id="paite-thin"><span data-s="paiteThin">Paite Pau Upa (proverbs &amp; idioms) are still being gathered. The English list is open for translating.</span></p>` : ""}
 ${waiting ? `<p class="note" id="waiting"><span data-s="waitingNote">English idioms and proverbs are here for translation into Paite.</span> ${waiting} waiting. <button type="button" class="jump" data-dir="en2pai" data-s="filterEn2Pai">English &rarr; Paite</button></p>` : ""}
 ${body}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a Sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>

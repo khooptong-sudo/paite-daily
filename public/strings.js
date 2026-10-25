@@ -65,8 +65,8 @@ window.STRINGS = {
   srcContributed: { pai: "", en: "Added by a contributor" },
   search: { pai: "", en: "Search" },
   proverbsTitle: { pai: "Paunakte leh Pau Upa / Pau Kulmut", en: "Proverbs & Idioms" },
-  proverbsLine: { pai: "", en: "The sayings our elders use, and what each one means." },
-  proverbsEmpty: { pai: "", en: "No sayings yet." },
+  proverbsLine: { pai: "", en: "Pau Upa: the proverbs and idioms our elders use, and what each one means." },
+  proverbsEmpty: { pai: "", en: "No Pau Upa yet." },
   kindProverb: { pai: "", en: "Proverb" },
   kindIdiom: { pai: "", en: "Idiom" },
   needsPaite: { pai: "", en: "Needs a Paite version" },
@@ -114,5 +114,5 @@ window.STRINGS = {
   chatWanted: { pai: "", en: "Noted — it is on the list for contributors." },
   chatFromCorpus: { pai: "", en: "from the reviewed corpus" },
   chatPlaceholder: { pai: "", en: "Type an English line…" },
-  paiteThin: { pai: "", en: "Paite sayings are still being gathered. The English list is open for translating." },
+  paiteThin: { pai: "", en: "Paite Pau Upa (proverbs & idioms) are still being gathered. The English list is open for translating." },
 };
