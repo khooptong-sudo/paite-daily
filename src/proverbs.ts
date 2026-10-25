@@ -113,6 +113,7 @@ export async function submitProverbPair(env: Env, phoneId: string, b: Record<str
 }
 
 const JS = `(function(){var S=window.STRINGS||{};
+try{var me=JSON.parse(localStorage.getItem("pd:me"));if(me&&me.sayings>0){var y=document.getElementById("you");y.textContent="You: "+me.sayings;y.hidden=false}}catch(e){}
 function t(k,f){var s=S[k];return s&&s.pai?s.pai:(s&&s.en)||f}
 document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
 var q=document.getElementById("q"),sr=S.search;if(sr&&sr.pai){q.placeholder=q.ariaLabel=sr.pai+" / "+sr.en;q.setAttribute("aria-label",q.placeholder)}
@@ -252,7 +253,7 @@ export function renderProverbs(xs: Proverb[], siteKey = ""): string {
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 </head>
 <body class="cp">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="proverbsTitle">Proverbs &amp; Idioms</h1><p data-s="proverbsLine">The sayings our elders use, and what each one means.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="proverbsTitle">Proverbs &amp; Idioms</h1><p data-s="proverbsLine">The sayings our elders use, and what each one means.</p><p class="you" id="you" hidden></p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
 <p class="filters"><button type="button" data-dir="all" aria-pressed="false" data-s="filterAll">All</button><button type="button" data-dir="pai2en" aria-pressed="true" data-s="filterPai2En">Paite &rarr; English</button><button type="button" data-dir="en2pai" aria-pressed="false" data-s="filterEn2Pai">English &rarr; Paite</button></p>

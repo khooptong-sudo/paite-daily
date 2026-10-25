@@ -251,6 +251,7 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 .mypuan-how b { color: var(--fg); }
 /* The About link sits in the header, beside the score, so people find it. */
 .about-chip { text-decoration: none; }
-.mypuan #share { justify-self: start; }
-/* One Share only: the puan's. The old score share (#share, still driven by app.js) stays hidden. */
-.mypuan #share { display: none !important; }
+/* "You: N" in each box: a quiet count, not a button. */
+.you { margin: 0; font: 700 .78rem/1.2 var(--body); color: var(--muted); }
+.you[hidden] { display: none; }
+.card-h .you { margin-left: auto; }

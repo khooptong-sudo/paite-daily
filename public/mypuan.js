@@ -14,6 +14,12 @@
   ];
   const setFor = (name) => { const r = seed(name || "Paite"); return SETS[Math.floor(r() * SETS.length)]; };
   let me = null;
+  // Every section counts as thread: sentences, words, sayings and meanings.
+  const threads = (m) => (m.total || 0) + (m.words || 0) + (m.meanings || 0) + (m.sayings || 0);
+  const plural = (n, one) => `${n} ${one}${n === 1 ? "" : "s"}`;
+  // The share card names each section the person gave to, e.g. "12 sentences · 3 words".
+  const sections = (m) => [[m.total, "sentence"], [m.words, "word"], [m.sayings, "saying"], [m.meanings, "meaning"]]
+    .filter(([v]) => v > 0).map(([v, one]) => plural(v, one)).join(" · ");
   const seed = (s) => { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0) / 4294967296); };
   // Draw `n` threads (horizontal weft rows) across a black ground, with yellow warp
   // stripes at fixed places, the way the liangbat is woven.
@@ -32,7 +38,7 @@
   }
   function draw() {
     if (!me) return;
-    const n = (me.total || 0) + (me.words || 0);
+    const n = threads(me);
     box.hidden = n < 1;
     if (n < 1) return;
     const w = c.clientWidth || 320, h = Math.min(160, 24 + n * 2), d = Math.min(devicePixelRatio || 1, 2);
@@ -44,7 +50,7 @@
   addEventListener("resize", draw);
   document.getElementById("mypuan-share").addEventListener("click", async () => {
     if (!me) return;
-    const n = (me.total || 0) + (me.words || 0);
+    const n = threads(me);
     await document.fonts.ready;
     const k = document.createElement("canvas"); k.width = 1080; k.height = 1920;
     const g = k.getContext("2d"), css = getComputedStyle(document.documentElement);
@@ -52,7 +58,8 @@
     g.fillStyle = "#fbfbf9"; g.fillRect(0, 0, 1080, 1920);
     g.save(); g.beginPath(); g.roundRect(140, 300, 800, 900, 40); g.clip(); weave(g, 800 + 140, 1200, Math.max(n, 12), me.name); g.restore();
     g.textAlign = "center"; g.fillStyle = "#111"; g.font = `400 96px ${display}`; g.fillText("Nampuan Liangbat Gat", 540, 1360, 960);
-    g.fillStyle = "#5d6066"; g.font = `44px ${body}`; g.fillText(`${me.name ? me.name + " · " : ""}${setFor(me.name).name} · ${n} threads`, 540, 1440, 960);
+    g.fillStyle = "#5d6066"; g.font = `44px ${body}`; g.fillText(`${me.name ? me.name + " · " : ""}${setFor(me.name).name} · ${plural(n, "thread")}`, 540, 1440, 960);
+    g.fillStyle = "#111"; g.font = `700 44px ${body}`; g.fillText(sections(me), 540, 1520, 960);
     g.fillStyle = "#111"; g.font = `700 46px ${body}`; g.fillText("One verified sentence, one thread. Weave yours.", 540, 1640, 960);
     g.fillStyle = "#5d6066"; g.font = `40px ${body}`; g.fillText("paite.lamkalabs.com", 540, 1710);
     const blob = await new Promise((r) => k.toBlob(r, "image/png"));

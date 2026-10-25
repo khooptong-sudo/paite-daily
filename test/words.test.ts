@@ -70,11 +70,11 @@ describe("give the meaning", () => {
     expect(await n("word_submissions")).toBe(0);
   });
 
-  it("counts the words a phone gave on /api/me", async () => {
+  it("counts a meaning as a meaning, not a word, on /api/me", async () => {
     const id = await withWord("Tui", "Water");
     await meaning({ id, english: "Drinking water" });
-    const me = await (await call("/api/me", { session: await session(PHONE_A) })).json<{ words: number }>();
-    expect(me.words).toBe(1);
+    const me = await (await call("/api/me", { session: await session(PHONE_A) })).json<{ words: number; meanings: number }>();
+    expect(me).toMatchObject({ words: 0, meanings: 1 });
   });
 });
 

@@ -256,72 +256,23 @@
     } catch {}
   }
 
-  const cap = (v) => v.charAt(0).toLocaleUpperCase() + v.slice(1);
-  // Paite puts the number after the noun (thuvual 8), English puts it before (8 Sentences).
-  function shareCounts() {
-    const pairs = [];
-    if (total > 0) pairs.push([S.sentences.pai ? `${cap(S.sentences.pai)} ${total} toh` : null, `${total} Sentence${total === 1 ? "" : "s"}`]);
-    if (words > 0) pairs.push([S.words.pai ? `${cap(S.words.pai)} ${words}` : null, `${words} Word${words === 1 ? "" : "s"}`]);
-    return {
-      pai: pairs.map((p) => p[0]).filter(Boolean).join(" ").trim(),
-      en: pairs.map((p) => p[1]).join(" and "),
-    };
+  // "You: N" in each box. The counts are also kept for /proverbs, which has no session of its own.
+  function showCounts(me) {
+    const n = { sentences: me.total || 0, words: me.words || 0, meanings: me.meanings || 0, sayings: me.sayings || 0 };
+    store.set("me", n);
+    document.querySelectorAll("[data-you]").forEach((el) => { const v = n[el.dataset.you]; el.textContent = "You: " + v; el.hidden = !v; });
   }
-  async function shareCard() {
-    await document.fonts.ready;
-    const c = document.createElement("canvas"); c.width = 1080; c.height = 1920;
-    const g = c.getContext("2d"), css = getComputedStyle(document.documentElement);
-    g.fillStyle = css.getPropertyValue("--bg") || "#f7f4ef"; g.fillRect(0, 0, 1080, 1920);
-    // The header band is the shawl artwork: draw the picture straight into the card.
-    const band = document.querySelector("img.puan");
-    const img = new Image();
-    img.src = band.currentSrc || band.src;
-    await img.decode(); g.drawImage(img, 0, 0, 1080, 231);
-    const display = css.getPropertyValue("--display"), body = css.getPropertyValue("--body");
-    g.textAlign = "center"; g.fillStyle = css.getPropertyValue("--fg") || "#1b1616";
-    const wrap = (text, y, font, lh) => {
-      g.font = font; let line = "";
-      for (const w of text.split(" ")) {
-        if (line && g.measureText(line + " " + w).width > 920) { g.fillText(line, 540, y); y += lh; line = w; } else line = line ? line + " " + w : w;
-      }
-      g.fillText(line, 540, y); return y + lh;
-    };
-    let y = wrap(S.shareLine.pai || S.shareLine.en, 520, `72px ${display}`, 90);
-    if (S.shareLine.pai) y = wrap(S.shareLine.en, y + 20, `44px ${body}`, 60);
-    const counts = shareCounts();
-    g.fillStyle = css.getPropertyValue("--accent") || "#b0102e";
-    if (counts.pai) y = wrap(counts.pai, y + 80, `700 52px ${body}`, 70);
-    if (counts.en) { g.fillStyle = css.getPropertyValue("--fg") || "#1b1616"; y = wrap(counts.en, y + (counts.pai ? 24 : 80), `700 52px ${body}`, 70); }
-    // The invitation to post this as a status, then the address.
-    g.fillStyle = css.getPropertyValue("--fg") || "#1b1616";
-    if (S.share.pai) { y = wrap(S.share.pai, 1560, `700 46px ${body}`, 58); g.fillStyle = css.getPropertyValue("--muted") || "#625755"; }
-    wrap(S.share.en, y + 14, `38px ${body}`, 48);
-    g.fillStyle = css.getPropertyValue("--muted") || "#625755";
-    wrap("paite.lamkalabs.com", 1810, `34px ${body}`, 44);
-    const blob = await new Promise((res) => c.toBlob(res, "image/png"));
-    const file = new File([blob], "paite-daily.png", { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-      try { await navigator.share({ files: [file], text: `${S.share.en} https://paite.lamkalabs.com` }); } catch (e) { if (e.name !== "AbortError") { download(blob); status(tBoth("shareFailed")); } }
-    } else download(blob);
-  }
-  function download(blob) {
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "paite-daily.png"; a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  }
-  let total = 0, words = 0;
   async function refreshMe() {
     try {
       const r = await api("/api/me");
       if (!r.ok) return;
       const me = await r.json();
-      total = me.total; words = me.words || 0;
       $("badge").textContent = me.badge || ""; $("badge").hidden = !me.badge;
-      $("share").hidden = total + words < 5;
+      showCounts(me);
       // mypuan.js weaves the personal shawl from these counts.
       document.dispatchEvent(new CustomEvent("paite:me", { detail: me }));
     } catch {}
   }
-  $("share").addEventListener("click", () => shareCard().catch(() => status(tBoth("shareError"))));
 
   async function showGoal() {
     try {

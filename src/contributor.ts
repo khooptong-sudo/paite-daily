@@ -80,9 +80,12 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
     const r = await env.DB.prepare(
       `SELECT (SELECT count(*) FROM answers WHERE phone_id = ?1) AS total,
               (SELECT COALESCE(SUM(status IN ('accepted', 'also_correct')), 0) FROM answers WHERE phone_id = ?1) AS verified,
-              (SELECT count(*) FROM word_submissions WHERE phone_id = ?1) AS words`,
-    ).bind(phoneId).first<{ total: number; verified: number; words: number }>();
-    return json({ total: r!.total, verified: r!.verified, words: r!.words, badge: badgeFor(r!.verified) });
+              (SELECT count(*) FROM word_submissions WHERE phone_id = ?1 AND source = 'word') AS words,
+              (SELECT count(*) FROM word_submissions WHERE phone_id = ?1 AND source = 'meaning') AS meanings,
+              (SELECT count(*) FROM proverb_answers WHERE phone_id = ?1) + (SELECT count(*) FROM proverbs WHERE submitted_by = ?1) AS sayings`,
+    ).bind(phoneId).first<{ total: number; verified: number; words: number; meanings: number; sayings: number }>();
+    // One count per section: the puan's share card and each box's "You: N" read these.
+    return json({ total: r!.total, verified: r!.verified, words: r!.words, meanings: r!.meanings, sayings: r!.sayings, badge: badgeFor(r!.verified) });
   }
 
   if (pathname === "/api/word" && req.method === "POST") return submitWord(env, phoneId, await body(req));

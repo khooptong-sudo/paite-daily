@@ -17,7 +17,18 @@ describe("/api/me", () => {
     await env.DB.prepare("UPDATE answers SET status = 'also_correct' WHERE phone_id = ?1 AND sentence_id = ?2").bind(PHONE_A, ids[1]).run();
     await env.DB.prepare("UPDATE answers SET status = 'rejected' WHERE phone_id = ?1 AND sentence_id = ?2").bind(PHONE_A, ids[2]).run();
     const r = await call("/api/me", { session: await session(PHONE_A) });
-    expect(await r.json()).toEqual({ total: 3, verified: 2, words: 0, badge: null });
+    expect(await r.json()).toEqual({ total: 3, verified: 2, words: 0, meanings: 0, sayings: 0, badge: null });
+  });
+
+
+  it("counts each section apart: words, meanings and sayings", async () => {
+    await env.DB.prepare("INSERT INTO word_submissions (paite, english, phone_id) VALUES ('Tui', 'Water', ?1), ('Mei', 'Fire', ?1), ('Ni', 'Sun', ?2)").bind(PHONE_A, PHONE_B).run();
+    await env.DB.prepare("INSERT INTO word_submissions (paite, english, phone_id, source) VALUES ('Van', 'Sky', ?1, 'meaning')").bind(PHONE_A).run();
+    const p = await env.DB.prepare("INSERT INTO proverbs (kind, english, entered_from, status) VALUES ('proverb', 'Haste makes waste.', 'en2pai', 'open') RETURNING id").first<{ id: number }>();
+    await env.DB.prepare("INSERT INTO proverb_answers (proverb_id, paite, phone_id) VALUES (?1, 'x', ?2)").bind(p!.id, PHONE_A).run();
+    await env.DB.prepare("INSERT INTO proverbs (kind, paite, english, entered_from, status, source, submitted_by) VALUES ('idiom', 'y', 'Break a leg.', 'pai2en', 'pending', 'contributed', ?1)").bind(PHONE_A).run();
+    const r = await call("/api/me", { session: await session(PHONE_A) });
+    expect(await r.json()).toMatchObject({ total: 0, words: 2, meanings: 1, sayings: 2 });
   });
 });
 

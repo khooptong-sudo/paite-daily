@@ -13,7 +13,7 @@
 - Service worker cache at `v25`. Raise it whenever a shell file changes.
 
 ## Value additions not done yet (from the review, in suggested order)
-0. **Do first: one Share with counts for each section (agreed with the owner).** Make `/api/me` return separate counts for sentences, words, sayings (proverbs) and meanings. Put those counts on the Nampuan Liangbat Gat share card. Show a small "You: N" count, with no button, in each box: Translate, Proverbs & Idioms, Give the Meaning, Add a Word, and `/proverbs`. The old score share (`#share` in `index.html`, driven by `app.js`) is hidden by CSS since `cbd668c`+1; remove it together with its `app.js` code.
+0. **Done 25 Oct 2026 (branch `section-counts`, not yet deployed): one Share with counts for each section.** Make `/api/me` return separate counts for sentences, words, sayings (proverbs) and meanings. Put those counts on the Nampuan Liangbat Gat share card. Show a small "You: N" count, with no button, in each box: Translate, Proverbs & Idioms, Give the Meaning, Add a Word, and `/proverbs`. The old score share (`#share` in `index.html`, driven by `app.js`) is hidden by CSS since `cbd668c`+1; remove it together with its `app.js` code.
 1. **Hear it**: record audio for verified sentences, reviewed like text. Needs R2 storage, a migration, and a review step. Biggest long-term value (no Paite speech data exists).
 2. **Is this spelled right?**: lookup that checks a word against verified sentences and suggests attested spellings. Seed of the first Paite spellchecker.
 3. **Swipe review on phone** for reviewers, with answer differences highlighted; keyboard shortcuts on desktop.

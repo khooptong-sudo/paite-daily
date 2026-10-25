@@ -51,7 +51,6 @@
     </ul>
     <canvas id="mypuan-c" role="img" aria-label="Your woven shawl"></canvas>
     <p class="mypuan-note" id="mypuan-note"></p>
-    <button type="button" class="share-chip" id="share" hidden><img src="/whatsapp.png" alt="" width="16" height="16" decoding="async"><span data-s="share"></span></button>
   </section>
   <section class="card" id="feedback" aria-labelledby="fb-title" hidden>
     <h2 id="fb-title" data-s="feedbackTitle"></h2>
@@ -81,6 +80,7 @@
   </section>
   <section class="card">
     <div class="label" id="label" data-s="translate"></div>
+    <p class="you" data-you="sentences" hidden></p>
     <p class="sentence" id="sentence" aria-live="polite"></p>
     <button type="button" id="retry" data-s="tryAgain" hidden></button>
     <form id="form" novalidate>
@@ -113,6 +113,7 @@
   <section class="card" aria-labelledby="saying-h">
     <div class="card-h">
       <h2 id="saying-h" data-s="sayingsTitle">Paunakte leh Pau Upa / Pau Kulmut</h2>
+      <span class="you" data-you="sayings" hidden></span>
       <a class="more" href="/proverbs" aria-label="See all proverbs and idioms"><span aria-hidden="true">&rarr;</span></a>
     </div>
     <p class="licence" data-s="sayingsNote">Proverbs and idioms, either direction. A reviewer checks each one.</p>
@@ -147,6 +148,7 @@
   </section>
   <section class="card" aria-labelledby="meaning-h">
     <h2 id="meaning-h" data-s="giveMeaning">Give the Meaning</h2>
+    <p class="you" data-you="meanings" hidden></p>
     <p class="licence" data-s="giveMeaningNote"></p>
     <form id="meaning-form" novalidate>
       <p class="word-prompt" id="m-word" aria-live="polite"></p>
@@ -160,6 +162,7 @@
   </section>
   <section class="card" aria-labelledby="word-h">
     <h2 id="word-h" data-s="addWord"></h2>
+    <p class="you" data-you="words" hidden></p>
     <p class="licence" data-s="addWordNote"></p>
     <form id="word-form" novalidate>
       <label for="w-paite">Paite</label>
