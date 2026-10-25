@@ -251,6 +251,9 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 .mypuan-how b { color: var(--fg); }
 /* The About link sits in the header, beside the score, so people find it. */
 .about-chip { text-decoration: none; }
+/* Reviewer on top, About This Project under it, both held to the right edge. */
+.hdr-links { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; margin-left: auto; }
+.hdr-links .about-chip { margin-left: 0; }
 /* "You: N" in each box: a quiet count, not a button. */
 .you { margin: 0; font: 700 .78rem/1.2 var(--body); color: var(--muted); }
 .you[hidden] { display: none; }
