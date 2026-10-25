@@ -1,3 +1,4 @@
+import { finalPaite } from "./final";
 import { publicReviewerNames } from "./access";
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
@@ -53,7 +54,7 @@ async function extract(env: Env, fetcher: typeof fetch, p: Pending): Promise<num
 export async function runGlossary(env: Env, fetcher: typeof fetch): Promise<{ entries: number; failed: number } | null> {
   if (!env.DEEPSEEK_API_KEY) return null;
   const { results } = await env.DB.prepare(
-    `SELECT a.id, a.sentence_id, a.paite, s.english, a.explanation FROM answers a JOIN sentences s ON s.id = a.sentence_id
+    `SELECT a.id, a.sentence_id, ${finalPaite("a")} AS paite, s.english, a.explanation FROM answers a JOIN sentences s ON s.id = a.sentence_id
      WHERE a.status IN ('accepted', 'also_correct') AND s.direction = 'en2pai' AND a.gloss_done = 0 AND a.gloss_attempts < 3
        AND TRIM(COALESCE(a.explanation, '')) <> '' ORDER BY a.gloss_attempts, a.id LIMIT ${MAX_PER_RUN}`,
   ).all<Pending>();
@@ -69,7 +70,7 @@ export type Entry = { id: number; paite: string; english: string; note: string |
 
 export async function getGlossary(env: Env, limit = -1): Promise<Entry[]> {
   const { results } = await env.DB.prepare(
-    `SELECT g.id, g.paite, g.english, g.note, g.source, g.contributor_name AS by, g.reviewed_by, a.paite AS ex_paite, s.english AS ex_english FROM glossary g
+    `SELECT g.id, g.paite, g.english, g.note, g.source, g.contributor_name AS by, g.reviewed_by, ${finalPaite("a")} AS ex_paite, s.english AS ex_english FROM glossary g
      LEFT JOIN answers a ON a.id = g.answer_id LEFT JOIN sentences s ON s.id = g.sentence_id WHERE g.hidden = 0 ORDER BY g.id DESC LIMIT ?1`,
   ).bind(limit).all<{ id: number; paite: string; english: string; note: string | null; source: string; by: string | null; reviewed_by: string | null; ex_paite: string | null; ex_english: string | null }>();
   // Public: the page, glossary.json and the corpus repo show the reviewer's name, never the email.
@@ -83,7 +84,7 @@ export type ReviewEntry = Entry & { hidden: number; edited_by: string | null; ed
 export async function getGlossaryForReview(env: Env, limit = 500): Promise<ReviewEntry[]> {
   const { results } = await env.DB.prepare(
     `SELECT g.id, g.paite, g.english, g.note, g.hidden, g.source, g.contributor_name AS by, g.reviewed_by, g.edited_by, g.edited_at,
-            a.paite AS ex_paite, s.english AS ex_english
+            ${finalPaite("a")} AS ex_paite, s.english AS ex_english
      FROM glossary g LEFT JOIN answers a ON a.id = g.answer_id LEFT JOIN sentences s ON s.id = g.sentence_id
      ORDER BY lower(g.paite) LIMIT ?1`,
   ).bind(limit).all<{ id: number; paite: string; english: string; note: string | null; hidden: number; source: string; by: string | null; reviewed_by: string | null; edited_by: string | null; edited_at: string | null; ex_paite: string | null; ex_english: string | null }>();

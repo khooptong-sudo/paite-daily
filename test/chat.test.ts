@@ -107,4 +107,11 @@ describe("chat endpoints", () => {
     expect((await call("/api/chat/want", { method: "POST", body: JSON.stringify({ q: "Where is the market?" }) })).status).toBe(200);
     expect((await call("/api/chat/want", { method: "POST", body: JSON.stringify({ q: "" }) })).status).toBe(400);
   });
+  it("shows the reviewer's correction, not the contributor's original", async () => {
+    const [sid] = await addSentences("Where is the school?");
+    const a = await env.DB.prepare("INSERT INTO answers (sentence_id, phone_id, paite, register, status) VALUES (?1, 'p', 'Sikul koiah a om', 'both', 'accepted') RETURNING id").bind(sid).first<{ id: number }>();
+    await env.DB.prepare("INSERT INTO reviews (sentence_id, reviewer_email, decision, accepted_answer_id, final_paite) VALUES (?1, 'rev@example.org', 'accept', ?2, 'Sikul koiah a om ahia?')").bind(sid, a!.id).run();
+    await env.DB.prepare("UPDATE sentences SET status = 'verified' WHERE id = ?1").bind(sid).run();
+    expect((await matchChat(env, "where is the school"))?.paite).toBe("Sikul koiah a om ahia?");
+  });
 });

@@ -1,3 +1,4 @@
+import { finalPaite } from "./final";
 import { cap, cleanText, normaliseEnglish } from "./text";
 import type { Env } from "./types";
 
@@ -35,7 +36,7 @@ const tokens = (s: string) => key(s).split(" ").filter((w) => w && !STOP.has(w))
  * The reviewed pairs a visitor may see: an accepted answer on a verified sentence,
  * no untranslated leftovers, no "either/or" strings.
  */
-const PAIRS = `SELECT s.english, a.paite FROM sentences s
+const PAIRS = `SELECT s.english, ${finalPaite("a")} AS paite FROM sentences s
   JOIN answers a ON a.id = (SELECT r.accepted_answer_id FROM reviews r
                               WHERE r.sentence_id = s.id AND r.undone_at IS NULL AND r.accepted_answer_id IS NOT NULL
                               ORDER BY r.id DESC LIMIT 1)
