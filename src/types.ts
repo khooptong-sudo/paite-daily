@@ -1,5 +1,6 @@
 export interface Env {
   DB: D1Database;
+  AUDIO: R2Bucket;
   ASSETS: Fetcher;
   TURNSTILE_SECRET: string;
   SESSION_SECRET: string;

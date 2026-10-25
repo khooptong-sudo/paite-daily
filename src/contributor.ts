@@ -8,6 +8,7 @@ import { cleanText, isId, isPhoneId } from "./text";
 import { refillOnDemand } from "./refill";
 import { nextWordToTranslate, submitMeaning, submitWord } from "./words";
 import { submitProverbAnswer, submitProverbPair } from "./proverbs";
+import { nextLine, submitRecording, verifiedCount } from "./recordings";
 import { json, type Deps, type Env } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -82,11 +83,20 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
               (SELECT COALESCE(SUM(status IN ('accepted', 'also_correct')), 0) FROM answers WHERE phone_id = ?1) AS verified,
               (SELECT count(*) FROM word_submissions WHERE phone_id = ?1 AND source = 'word') AS words,
               (SELECT count(*) FROM word_submissions WHERE phone_id = ?1 AND source = 'meaning') AS meanings,
-              (SELECT count(*) FROM proverb_answers WHERE phone_id = ?1) + (SELECT count(*) FROM proverbs WHERE submitted_by = ?1) AS sayings`,
-    ).bind(phoneId).first<{ total: number; verified: number; words: number; meanings: number; sayings: number }>();
+              (SELECT count(*) FROM proverb_answers WHERE phone_id = ?1) + (SELECT count(*) FROM proverbs WHERE submitted_by = ?1) AS sayings,
+              (SELECT count(*) FROM recordings WHERE phone_id = ?1) AS recordings`,
+    ).bind(phoneId).first<{ total: number; verified: number; words: number; meanings: number; sayings: number; recordings: number }>();
     // One count per section: the puan's share card and each box's "You: N" read these.
-    return json({ total: r!.total, verified: r!.verified, words: r!.words, meanings: r!.meanings, sayings: r!.sayings, badge: badgeFor(r!.verified) });
+    return json({ total: r!.total, verified: r!.verified, words: r!.words, meanings: r!.meanings, sayings: r!.sayings, recordings: r!.recordings, badge: badgeFor(r!.verified) });
   }
+
+  // Hear it: only a phone with a verified sentence gets a line to read aloud.
+  if (pathname === "/api/record/next" && req.method === "GET") {
+    if ((await verifiedCount(env, phoneId)) < 1) return json({ error: "not_eligible" }, 403);
+    const line = await nextLine(env, phoneId);
+    return line ? json(line) : new Response(null, { status: 204 });
+  }
+  if (pathname === "/api/record" && req.method === "POST") return submitRecording(req, env, phoneId, deps.now());
 
   if (pathname === "/api/word" && req.method === "POST") return submitWord(env, phoneId, await body(req));
 

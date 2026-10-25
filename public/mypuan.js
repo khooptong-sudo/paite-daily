@@ -14,11 +14,11 @@
   ];
   const setFor = (name) => { const r = seed(name || "Paite"); return SETS[Math.floor(r() * SETS.length)]; };
   let me = null;
-  // Every section counts as thread: sentences, words, sayings and meanings.
-  const threads = (m) => (m.total || 0) + (m.words || 0) + (m.meanings || 0) + (m.sayings || 0);
+  // Every section counts as thread: sentences, words, sayings, meanings and recordings.
+  const threads = (m) => (m.total || 0) + (m.words || 0) + (m.meanings || 0) + (m.sayings || 0) + (m.recordings || 0);
   const plural = (n, one) => `${n} ${one}${n === 1 ? "" : "s"}`;
   // The share card names each section the person gave to, e.g. "12 sentences · 3 words".
-  const sections = (m) => [[m.total, "sentence"], [m.words, "word"], [m.sayings, "saying"], [m.meanings, "meaning"]]
+  const sections = (m) => [[m.total, "sentence"], [m.words, "word"], [m.sayings, "saying"], [m.meanings, "meaning"], [m.recordings, "recording"]]
     .filter(([v]) => v > 0).map(([v, one]) => plural(v, one)).join(" · ");
   const seed = (s) => { let h = 2166136261; for (const ch of s) h = Math.imul(h ^ ch.charCodeAt(0), 16777619); return () => ((h = Math.imul(h ^ (h >>> 15), 2246822507) >>> 0) / 4294967296); };
   // Draw `n` threads (horizontal weft rows) across a black ground, with yellow warp

@@ -110,6 +110,24 @@
       </div>
     </div>
   </section>
+  <section class="card hear" id="hear" aria-labelledby="hear-h" hidden>
+    <h2 id="hear-h">Hear it</h2>
+    <p class="you" data-you="recordings" hidden></p>
+    <p class="licence">Read a verified Paite line aloud. A reviewer listens before anyone else hears it.</p>
+    <p class="sentence" id="h-line" aria-live="polite"></p>
+    <p class="licence" id="h-en"></p>
+    <label class="consent"><input type="checkbox" id="h-consent"> I agree my voice reading this line is published under CC BY 4.0, with my name if I gave one.</label>
+    <audio id="h-audio" hidden></audio>
+    <div class="actions">
+      <button type="button" class="primary" id="h-rec">Record</button>
+      <button type="button" class="primary" id="h-stop" hidden>Stop</button>
+      <button type="button" id="h-play" hidden>Play back</button>
+      <button type="button" class="primary" id="h-send" hidden>Send</button>
+      <button type="button" id="h-again" hidden>Record again</button>
+      <button type="button" id="h-next">Another line</button>
+    </div>
+    <p class="status" id="h-status" role="status"></p>
+  </section>
   <section class="card" aria-labelledby="saying-h">
     <div class="card-h">
       <h2 id="saying-h" data-s="sayingsTitle">Paunakte leh Pau Upa / Pau Kulmut</h2>
@@ -210,6 +228,7 @@
 <script src="/chat.js"></script>
 <script src="/footer.js"></script>
 <script src="/mypuan.js"></script>
+<script src="/hear.js"></script>
 <script src="/pwa.js"></script>
 <script src="/track.js"></script>
 </body>

@@ -63,10 +63,13 @@
       if (!sessionP) sessionP = getSession().finally(() => { sessionP = null; });
       session = await sessionP;
     }
-    const r = await fetch(path, { ...opts, headers: { "content-type": "application/json", "X-Session": session } });
+    const r = await fetch(path, { ...opts, headers: { "content-type": "application/json", ...opts.headers, "X-Session": session } });
     if (r.status === 401 && !retried) { session = null; return api(path, opts, true); }
     return r;
   }
+
+  // hear.js records through the same session.
+  window.paiteApi = api;
 
   // Empty pool with a refill running: poll every 5 s for up to 60 s, then show the empty text and Retry.
   let pollTimer = null, pollUntil = 0;
@@ -258,7 +261,7 @@
 
   // "You: N" in each box. The counts are also kept for /proverbs, which has no session of its own.
   function showCounts(me) {
-    const n = { sentences: me.total || 0, words: me.words || 0, meanings: me.meanings || 0, sayings: me.sayings || 0 };
+    const n = { sentences: me.total || 0, words: me.words || 0, meanings: me.meanings || 0, sayings: me.sayings || 0, recordings: me.recordings || 0 };
     store.set("me", n);
     document.querySelectorAll("[data-you]").forEach((el) => { const v = n[el.dataset.you]; el.textContent = "You: " + v; el.hidden = !v; });
   }
@@ -291,4 +294,5 @@
   next();
   refreshMe();
   feedback();
+  document.addEventListener("paite:refresh", refreshMe);
 })();

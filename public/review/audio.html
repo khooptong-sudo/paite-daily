@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paite Review: Recordings</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+<style>
+  .clip { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: rgba(0,0,0,.035); }
+  .clip p { margin: 0; }
+  .clip .pai { font-size: 1.2rem; }
+  .meta { color: var(--muted); font-size: .85rem; }
+  .clip audio { width: 100%; }
+  .clip input { width: 100%; }
+  .row3 { display: flex; gap: 8px; flex-wrap: wrap; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<main>
+  <header><h1>Recordings</h1><a href="/review" style="align-self:center;font-size:.86rem;color:#b3253c;text-decoration:none;border-bottom:1px solid currentColor">&larr; Sentences</a></header>
+  <p class="meta" id="queue" aria-live="polite">Loading…</p>
+  <p class="meta">Listen to the whole clip. Accept only when it reads the Paite line exactly, clearly, with nothing else audible that identifies someone. One accept publishes it.</p>
+  <div id="list" style="display:grid;gap:12px"></div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+  <button type="button" id="undo" hidden>↶ Undo last</button>
+</main>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var last = null;
+  function post(path, body) {
+    return fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  }
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+  function load() {
+    fetch("/review/api/recordings").then(function (r) {
+      if (r.status === 401 || r.status === 403) throw new Error("auth");
+      return r.json();
+    }).then(function (j) {
+      $("queue").textContent = j.waiting ? j.waiting + " waiting" : "Nothing waiting. Thank you.";
+      var list = $("list"); list.textContent = "";
+      j.items.forEach(function (it) {
+        var c = el("section", "clip");
+        c.append(el("p", "pai", it.paite), el("p", "meta", it.english),
+          el("p", "meta", (it.contributor || "Anonymous") + " · " + (it.durationMs / 1000).toFixed(1) + " s · " + it.createdAt));
+        var a = el("audio"); a.controls = true; a.preload = "none"; a.src = "/review/api/recordings/audio?id=" + it.id; c.append(a);
+        var note = el("input"); note.maxLength = 300; note.placeholder = "Note (optional)"; c.append(note);
+        var row = el("div", "row3"), ok = el("button", "primary", "Accept"), no = el("button", "", "Reject");
+        ok.type = no.type = "button";
+        function decide(decision) {
+          ok.disabled = no.disabled = true;
+          post("/review/api/recordings/decide", { id: it.id, decision: decision, note: note.value }).then(function (r) {
+            if (!r.ok) throw new Error();
+            last = it.id; $("undo").hidden = false;
+            $("status").textContent = decision === "accept" ? "Published." : "Rejected.";
+            c.remove();
+          }).catch(function () { ok.disabled = no.disabled = false; $("status").textContent = "Could not save. Try again."; });
+        }
+        ok.onclick = function () { decide("accept"); }; no.onclick = function () { decide("reject"); };
+        row.append(ok, no); c.append(row); list.append(c);
+      });
+    }).catch(function (e) { $("queue").textContent = e.message === "auth" ? "Sign in as a reviewer to see recordings." : "Could not load recordings."; });
+  }
+  $("undo").onclick = function () {
+    if (!last) return;
+    post("/review/api/recordings/undo", { id: last }).then(function (r) {
+      $("status").textContent = r.ok ? "Undone. The clip is back in the queue." : "Nothing to undo.";
+      last = null; $("undo").hidden = true; load();
+    });
+  };
+  load();
+})();
+</script>
+<script src="/back.js"></script>
+</body>
+</html>

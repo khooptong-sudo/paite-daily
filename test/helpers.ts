@@ -7,7 +7,7 @@ import type { Deps } from "../src/types";
 
 // Storage is not isolated between tests in this pool version; wipe all tables (children first).
 beforeEach(async () => {
-  await env.DB.batch(["chat_wants", "job_locks", "word_submissions", "reviewer_applications", "reviewers", "proverb_answers", "proverbs", "glossary", "locks", "skips", "reviewer_phones", "reviews", "exports", "job_runs", "seen", "answers", "sentences", "errors", "events"].map((t) => env.DB.prepare(`DELETE FROM ${t}`)));
+  await env.DB.batch(["recordings", "chat_wants", "job_locks", "word_submissions", "reviewer_applications", "reviewers", "proverb_answers", "proverbs", "glossary", "locks", "skips", "reviewer_phones", "reviews", "exports", "job_runs", "seen", "answers", "sentences", "errors", "events"].map((t) => env.DB.prepare(`DELETE FROM ${t}`)));
 });
 
 export const PHONE_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -42,6 +42,6 @@ export function session(phoneId: string): Promise<string> {
 export async function call(path: string, init: RequestInit & { session?: string } = {}, deps = fakeDeps()) {
   const headers = new Headers(init.headers);
   if (init.session) headers.set("X-Session", init.session);
-  if (init.body) headers.set("content-type", "application/json");
+  if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json");
   return createApp(deps)(new Request(`https://paite.lamkalabs.com${path}`, { ...init, headers }), env);
 }

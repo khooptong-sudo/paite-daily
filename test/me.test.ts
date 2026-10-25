@@ -17,7 +17,7 @@ describe("/api/me", () => {
     await env.DB.prepare("UPDATE answers SET status = 'also_correct' WHERE phone_id = ?1 AND sentence_id = ?2").bind(PHONE_A, ids[1]).run();
     await env.DB.prepare("UPDATE answers SET status = 'rejected' WHERE phone_id = ?1 AND sentence_id = ?2").bind(PHONE_A, ids[2]).run();
     const r = await call("/api/me", { session: await session(PHONE_A) });
-    expect(await r.json()).toEqual({ total: 3, verified: 2, words: 0, meanings: 0, sayings: 0, badge: null });
+    expect(await r.json()).toEqual({ total: 3, verified: 2, words: 0, meanings: 0, sayings: 0, recordings: 0, badge: null });
   });
 
 

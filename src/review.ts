@@ -31,6 +31,7 @@ import { getGlossaryForReview } from "./glossary";
 import { cap, cleanText, isId, isIdList, isPhoneId } from "./text";
 import { analytics, recentErrors } from "./observability";
 import { handleWords } from "./words";
+import { handleRecordingReview } from "./recordings";
 import { claimNext, decide, skipCard, undo, type Decision } from "./reviewdb";
 import { json, type Deps, type Env } from "./types";
 
@@ -44,6 +45,9 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
 
   const owned = await handleOwnerReview(pathname, req.method, b, env, email);
   if (owned) return owned;
+
+  const heard = await handleRecordingReview(req, pathname, b, env, email);
+  if (heard) return heard;
 
   const words = await handleWords(pathname, req.method, b, env, email);
   if (words) return words;
