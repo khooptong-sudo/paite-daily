@@ -24,7 +24,7 @@
       btn.disabled = true; out.hidden = false; out.textContent = "Checking…";
       try {
         const r = await check(text);
-        if (!r) { out.hidden = true; return; }
+        if (!r) { out.textContent = "Could not check right now."; return; }
         if (r.status === 429) { out.textContent = "Too many checks for now. Try again in a minute."; return; }
         if (!r.ok) { out.textContent = "The check is not available right now."; return; }
         const j = await r.json();
@@ -35,7 +35,7 @@
         out.append(make("span", "gram-label", "Suggested"), make("p", "gram-text", j.suggestion), use, keep);
         use.onclick = () => { el.value = j.suggestion; el.dispatchEvent(new Event("input", { bubbles: true })); out.hidden = true; el.focus(); };
         keep.onclick = () => { out.hidden = true; el.focus(); };
-      } catch { out.textContent = "Could not check. Check your connection."; }
+      } catch { out.textContent = "Could not check right now."; }
       finally { btn.disabled = false; }
     });
     // A new answer means an old suggestion no longer applies.
