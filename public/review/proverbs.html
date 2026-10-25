@@ -93,14 +93,37 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
       .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); });
   }
 
+  // The eyebrow names the kind and lets the reviewer change it: proverb or idiom.
+  function kindSwitch(id, kind, prefix) {
+    var row = h("p", "eyebrow", prefix + " ");
+    var sel = document.createElement("select");
+    sel.setAttribute("aria-label", "Proverb or idiom");
+    sel.style.cssText = "width:auto;padding:2px 6px;font:inherit;border-radius:8px";
+    [["proverb", "proverb"], ["idiom", "idiom"]].forEach(function (o) {
+      var opt = document.createElement("option"); opt.value = o[0]; opt.textContent = o[1]; sel.appendChild(opt);
+    });
+    sel.value = kind === "idiom" ? "idiom" : "proverb";
+    sel.onchange = function () {
+      var was = sel.value === "idiom" ? "proverb" : "idiom";
+      post("/review/api/proverbs/kind", { proverbId: id, kind: sel.value }).then(function (res) {
+        if (res.ok) say("Saved as " + (sel.value === "idiom" ? "an idiom." : "a proverb."));
+        else { sel.value = was; say("Could not change it. Try again."); }
+      });
+    };
+    row.appendChild(sel);
+    return row;
+  }
+
   // ---- a saying with candidate lines -------------------------------------
   function answerCard(a, secondPass) {
     var card = h("section", "card");
-    card.appendChild(h("p", "eyebrow", a.kind === "idiom" ? "English idiom" : "English proverb"));
+    card.appendChild(kindSwitch(a.proverb_id, a.kind, "English"));
     card.appendChild(h("p", "prompt", a.english || "(no English line)"));
     card.appendChild(h("p", "help", secondPass
       ? "One reviewer has approved a line for this saying. Check it and confirm, or correct it first."
       : "Pick the line that reads best. Correct it in the box if it needs it."));
+
+    var blocks = [];
 
     // What is already on the page, if anything. The reviewer compares against it
     // and may correct it in place.
@@ -226,7 +249,7 @@ h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
   // ---- a whole submitted saying, no candidates ---------------------------
   function pairCard(p) {
     var card = h("section", "card");
-    card.appendChild(h("p", "eyebrow", p.kind === "idiom" ? "Submitted idiom" : "Submitted proverb"));
+    card.appendChild(kindSwitch(p.id, p.kind, "Submitted"));
     card.appendChild(h("p", "prompt", p.english));
     card.appendChild(h("p", "txt", p.paite));
     card.appendChild(h("p", "meta", (p.contributor_name || "an unnamed contributor") + " \u00b7 " + p.created_at));
