@@ -255,6 +255,9 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 .you { margin: 0; font: 700 .78rem/1.2 var(--body); color: var(--muted); }
 .you[hidden] { display: none; }
 .card-h .you { margin-left: auto; }
+/* Ask a relative: its own row under Send and Skip, a pill with a short how and why. */
+.ask { display: grid; justify-items: start; gap: 6px; }
+.ask .share-chip { margin-left: 0; padding: 6px 12px; font-size: .85rem; }
 /* Hear it: the consent line reads as a sentence with its box, not a form row. */
 .hear .consent { display: flex; align-items: flex-start; gap: 8px; font: 400 .9rem/1.4 var(--body); }
 .hear .consent input { width: auto; margin: 3px 0 0; }
