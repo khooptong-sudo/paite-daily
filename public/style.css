@@ -468,3 +468,6 @@ button:not(.play):not(.news-close):not(.ms-close):not(.share-chip):not(.chip):no
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
 }
+/* The close buttons are a plain ×, no ring (owner, 27 Oct); the tap area stays 44px. */
+.news-close, .ms-close { border: 0 !important; background: transparent; box-shadow: none; }
+.news-close:hover, .ms-close:hover { color: var(--fg); }

@@ -1,6 +1,6 @@
 // What's New, above the shawl on the front page. Each item shows for three days from its
-// date, the box folds open and shut, and the × hides what is showing now for good on this
-// phone (a later item still appears). Add new items at the top of NEWS.
+// own date, newest first; the box folds open and shut, and the × closes it until a new
+// item is added. Add new items at the top of NEWS.
 (() => {
   const NEWS = [
     { id: "2026-10-27-streaks", date: "2026-10-27", title: "Streaks and milestones", text: "See how many days in a row you have written Paite, and a small celebration at 10, 50, 100 and more verified lines." },
@@ -25,10 +25,14 @@
   if (!box) return;
   const get = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch { return d; } };
   const set = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
-  const hidden = new Set(get(KEY, []));
+  // Every item stays for its own three days, newest first; a newer item never pushes an
+  // older one out. The x only closes the box until something new arrives: KEY holds the
+  // items it was showing when closed, and the box returns, with all live items, once
+  // there is one it has not shown.
+  const closedOn = new Set(get(KEY, []));
   const now = Date.now();
-  const live = NEWS.filter((n) => !hidden.has(n.id) && now < Date.parse(n.date + "T00:00:00") + DAYS * 86400000);
-  if (!live.length) return;
+  const live = NEWS.filter((n) => now < Date.parse(n.date + "T00:00:00") + DAYS * 86400000);
+  if (!live.length || live.every((n) => closedOn.has(n.id))) return;
 
   const details = box.querySelector("details"), list = box.querySelector("ul");
   box.querySelector(".news-count").textContent = live.length;
@@ -42,8 +46,7 @@
   details.open = get(OPEN, false); // starts folded, with the count showing, so the sentence stays near the top
   details.addEventListener("toggle", () => set(OPEN, details.open));
   box.querySelector(".news-close").addEventListener("click", () => {
-    live.forEach((n) => hidden.add(n.id));
-    set(KEY, [...hidden]);
+    set(KEY, live.map((n) => n.id));
     box.hidden = true;
   });
   box.hidden = false;
