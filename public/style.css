@@ -341,11 +341,33 @@ img.puan.puan-under { position: absolute; width: 1px; height: 1px; opacity: 0; p
 canvas.puan-ripple { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; cursor: pointer; touch-action: pan-y; }
 .hero canvas.puan-ripple { margin-bottom: 36px; }
 
-/* Seasons (theme.js sets data-season). Chavang Kut: the harvest, amber into gold.
-   Christmas: evergreen with a red main action. */
-[data-season=kut] body.blue { --g1: #5a2d00; --g2: #b86a00; --g3: #f2c14e; --end: #fbf6ea; --blue: #b45309; --blue-hover: #92400e; --ring: #b45309; }
-[data-season=christmas] body.blue { --g1: #063d1f; --g2: #0b6b34; --g3: #8fd1a6; --end: #f1f8f3; --blue: #c8102e; --blue-hover: #a10d25; --ring: #c8102e; }
-.season-pill { order: -1; width: 100%; margin: 0 0 6px; font: 600 .8rem/1.2 var(--body); letter-spacing: .06em; text-transform: uppercase; color: #ffe27a; }
+/* Christmas, all of December (theme.js sets data-season, christmas.js adds the rest).
+   Reds from the dark top down to a snowy white, a red main action, a snow cap on each
+   card, falling snow, lights under the band and a sleigh across the top. */
+[data-season=christmas] body.blue { --top: #120306; --g1: #4a0a12; --g2: #a50f26; --g3: #e7a1a9; --end: #fdf6f4; --blue: #c8102e; --blue-hover: #a10d25; --ring: #c8102e; }
+.season-pill { order: -1; width: 100%; margin: 0 0 6px; font: 600 .8rem/1.2 var(--body); letter-spacing: .08em; text-transform: uppercase; color: #ffe27a; }
 .hero .season-pill { text-align: center; margin: 0 0 12px; }
-[data-season=christmas] .season-pill { color: #ffd1d8; }
-
+[data-season=christmas] .blue .card, [data-season=christmas] .blue.cp main { position: relative; }
+[data-season=christmas] .blue .card::before, [data-season=christmas] .blue.cp main::before {
+  content: ""; position: absolute; top: -7px; left: 14px; right: 14px; height: 14px; pointer-events: none;
+  background: radial-gradient(circle at 7px 9px, #fff 7px, transparent 7.5px) 0 0 / 15px 14px repeat-x;
+  filter: drop-shadow(0 2px 1px rgba(80, 10, 20, .18));
+}
+.xmas-lights { display: flex; justify-content: space-between; max-width: 560px; margin: 6px auto 0; padding: 0 6px; height: 16px;
+  background: linear-gradient(transparent 3px, rgba(255, 255, 255, .25) 3px 4px, transparent 4px); }
+.xmas-lights i { width: 8px; height: 12px; margin-top: 3px; border-radius: 50% 50% 50% 50% / 40% 40% 60% 60%; background: var(--c, #ff3b3b); box-shadow: 0 0 8px 2px var(--c, #ff3b3b); animation: twinkle 1.6s ease-in-out var(--d) infinite; }
+.xmas-lights i:nth-child(4n+2) { --c: #33d17a; }
+.xmas-lights i:nth-child(4n+3) { --c: #ffd23f; }
+.xmas-lights i:nth-child(4n+4) { --c: #ffffff; }
+@keyframes twinkle { 50% { opacity: .35; box-shadow: none; } }
+.xmas-snow { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+.xmas-sleigh { position: fixed; top: 58px; left: -240px; z-index: 51; pointer-events: none; font-size: 26px; white-space: nowrap; letter-spacing: -2px; filter: drop-shadow(0 0 6px rgba(255, 226, 122, .6)); visibility: hidden; }
+.xmas-sleigh.go { visibility: visible; animation: sleigh 9s linear forwards; }
+@keyframes sleigh {
+  0% { transform: translate(0, 0); }
+  25% { transform: translate(35vw, -14px); }
+  50% { transform: translate(70vw, 6px); }
+  75% { transform: translate(105vw, -10px); }
+  100% { transform: translate(calc(100vw + 260px), 0); }
+}
+@media (prefers-reduced-motion: reduce) { .xmas-lights i { animation: none; } }
