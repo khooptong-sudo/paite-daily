@@ -1,12 +1,17 @@
 import { env } from "cloudflare:test";
 import { beforeEach } from "vitest";
 import { createApp } from "../src/index";
+import { clearGapCache } from "../src/gaps";
+import { clearRulesCache } from "../src/rules";
+import { clearSpellingCache } from "../src/spelling";
 import { signSession } from "../src/session";
 import { normaliseEnglish } from "../src/text";
 import type { Deps } from "../src/types";
 
 // Storage is not isolated between tests in this pool version; wipe all tables (children first).
 beforeEach(async () => {
+  // Per-worker caches would carry one test's words into the next.
+  clearGapCache(); clearRulesCache(); clearSpellingCache();
   await env.DB.batch(["grammar_checks", "recordings", "chat_wants", "job_locks", "word_submissions", "reviewer_applications", "reviewers", "proverb_answers", "proverbs", "glossary", "locks", "skips", "reviewer_phones", "reviews", "exports", "job_runs", "seen", "answers", "sentences", "errors", "events"].map((t) => env.DB.prepare(`DELETE FROM ${t}`)));
 });
 

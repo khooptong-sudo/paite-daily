@@ -1,4 +1,5 @@
 import { normaliseEnglish } from "./text";
+import { gapWords } from "./gaps";
 import type { Env } from "./types";
 
 export const TOPICS = ["home", "market", "church", "farming", "school", "health", "weather", "travel", "family", "feelings", "food and cooking", "animals", "festivals", "work", "money", "sports", "the village", "the city", "phone and internet", "children", "elders", "greetings", "time and days", "clothes", "the body", "nature and forest", "rain and seasons", "friendship", "shopping", "the road and transport"];
@@ -42,7 +43,11 @@ export async function runRefill(env: Env, fetcher: typeof fetch, now: number, to
   if (!env.DEEPSEEK_API_KEY) return null;
   const open = (await env.DB.prepare("SELECT count(*) AS n FROM sentences WHERE status = 'open' AND answer_count < 2 AND direction = 'en2pai'").first<{ n: number }>())!.n;
   if (!force && open >= 300) return null;
-  topic ??= TOPICS[Math.floor(Math.random() * TOPICS.length)];
+  // Every other unthemed refill asks for the common words that still have no verified
+  // Paite example, so new sentences close the gaps instead of repeating covered words.
+  const gaps = topic === undefined && Math.random() < .5 ? await gapWords(env.DB, now) : [];
+  topic ??= gaps.length ? "gaps" : TOPICS[Math.floor(Math.random() * TOPICS.length)];
+  const about = gaps.length ? `everyday life, each one using at least one of these words: ${gaps.join(", ")}` : `"${topic}"`;
   const res = await fetcher("https://api.deepseek.com/chat/completions", {
     method: "POST",
     headers: { authorization: `Bearer ${env.DEEPSEEK_API_KEY}`, "content-type": "application/json" },
@@ -51,7 +56,7 @@ export async function runRefill(env: Env, fetcher: typeof fetch, now: number, to
       response_format: { type: "json_object" },
       messages: [{
         role: "user",
-        content: `Write exactly ${count} short, simple, everyday English sentences about "${topic}" for native Paite speakers to translate. Each sentence has 4-12 words, in the present or simple past tense. Use no names of real people, no religious doctrine, no numbers above twenty and no slang. Reply with JSON only: {"sentences":["..."]}`,
+        content: `Write exactly ${count} short, simple, everyday English sentences about ${about} for native Paite speakers to translate. Each sentence has 4-12 words, in the present or simple past tense. Use no names of real people, no religious doctrine, no numbers above twenty and no slang. Reply with JSON only: {"sentences":["..."]}`,
       }],
     }),
     signal: AbortSignal.timeout(timeoutMs),

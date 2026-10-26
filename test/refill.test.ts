@@ -37,13 +37,23 @@ describe("refill", () => {
 
   it("topic is chosen per call", async () => {
     const bodies: string[] = [];
-    const spy = vi.spyOn(Math, "random").mockReturnValueOnce(0).mockReturnValueOnce(0.99);
+    // Each call draws twice: gap words or a theme (0.9 = theme), then which theme.
+    const spy = vi.spyOn(Math, "random").mockReturnValueOnce(0.9).mockReturnValueOnce(0).mockReturnValueOnce(0.9).mockReturnValueOnce(0.99);
     await runRefill(keyed, mock([], bodies), 10 * DAY);
     await runRefill(keyed, mock([], bodies), 10 * DAY);
     spy.mockRestore();
     expect(bodies[0]).toContain('about \\"home\\"');
     expect(bodies[1]).toContain('about \\"the road and transport\\"');
     expect(TOPICS).toHaveLength(30);
+  });
+
+  it("every other unthemed refill asks for the common words with no verified example", async () => {
+    const bodies: string[] = [];
+    const spy = vi.spyOn(Math, "random").mockReturnValueOnce(0);
+    const r = await runRefill(keyed, mock([], bodies), 10 * DAY);
+    spy.mockRestore();
+    expect(r!.topic).toBe("gaps");
+    expect(bodies[0]).toContain("using at least one of these words: go, come, see");
   });
 
   it("counts only servable sentences: full ones do not block the cron refill", async () => {

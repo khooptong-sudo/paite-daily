@@ -1,18 +1,27 @@
+import { coveredWords, gapScore } from "./gaps";
+
 type Next = { id: number; english: string; direction?: "pai2en" };
 
 // Every 5th card of a phone is a reverse (pai2en) prompt when one is free for it; otherwise, and when the other direction is empty, serve what exists.
 // For a pai2en card, `english` holds the Paite text to translate.
+// A forward card is the one of up to 40 random open sentences that fills the most gaps:
+// common English words with no verified Paite example yet (see gaps.ts).
+const SAMPLE = 40;
 export async function nextSentence(db: D1Database, phoneId: string, now: number): Promise<Next | null> {
-  const forward = () => db
-    .prepare(
+  const forward = async () => {
+    const { results } = await db.prepare(
       `SELECT s.id, s.english FROM sentences s
        WHERE s.status = 'open' AND s.answer_count < 2 AND s.direction = 'en2pai'
          AND NOT EXISTS (SELECT 1 FROM seen WHERE seen.phone_id = ?1 AND seen.sentence_id = s.id)
          AND NOT EXISTS (SELECT 1 FROM locks WHERE sentence_id = s.id AND expires_at > ?2)
-       ORDER BY random() LIMIT 1`,
-    )
-    .bind(phoneId, now)
-    .first<Next>();
+       ORDER BY random() LIMIT ${SAMPLE}`,
+    ).bind(phoneId, now).all<Next>();
+    if (results.length < 2) return results[0] ?? null;
+    const covered = await coveredWords(db, now);
+    let best = results[0], top = -1;
+    for (const s of results) { const g = gapScore(s.english, covered); if (g > top) { best = s; top = g; } }
+    return best;
+  };
   const reverse = () => db
     .prepare(
       `SELECT s.id, s.paite_prompt AS english, 'pai2en' AS direction FROM sentences s
