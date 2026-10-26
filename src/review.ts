@@ -2,6 +2,7 @@ import { isOwner, reviewerName } from "./access";
 import { handleOwnerReview } from "./apply";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
+import { reviewDashboard } from "./dashboard";
 import { REQUIRED_REVIEWERS, decideProverbAnswer, decideProverbPair, getProverbReviewList, skipProverbSaying, undoProverbReview } from "./proverbreview";
 import { saveProverbReview } from "./proverbcard";
 
@@ -64,6 +65,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     return card ? json(card) : new Response(null, { status: 204 });
   }
   if (pathname === "/review/api/queue" && req.method === "GET") return json({ waiting: (await waitingCounts(env.DB, email, deps.now())).answers });
+  if (pathname === "/review/api/dashboard" && req.method === "GET") return json(await reviewDashboard(env.DB, email, deps.now()));
   // Pass on this sentence without deciding it: it stays in the queue for others.
   if (pathname === "/review/api/skip" && req.method === "POST") {
     if (!isId(b.sentenceId)) return json({ error: "bad_request" }, 400);

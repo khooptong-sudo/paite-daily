@@ -156,6 +156,25 @@
     } catch {}
   }
 
+  // Every queue at a glance: how many wait and how long the oldest has waited.
+  function since(t) {
+    const days = Math.floor((Date.now() - new Date(t.replace(" ", "T") + "Z")) / 864e5);
+    return days < 1 ? "today" : days === 1 ? "1 day ago" : days + " days ago";
+  }
+  async function dashboard() {
+    try {
+      const r = await fetch("/review/api/dashboard");
+      if (!r.ok) return;
+      const d = await r.json();
+      for (const k of ["sentences", "words", "pauUpa", "recordings"]) {
+        const t = $("dash-" + k), q = d[k];
+        t.querySelector(".n").textContent = q.waiting;
+        t.querySelector(".old").textContent = q.waiting && q.oldest ? "oldest: " + since(q.oldest) : "nothing waiting";
+        t.classList.toggle("zero", !q.waiting);
+      }
+    } catch {}
+  }
+
   // Keyboard: J and K (or the arrows, or 1 to 9) move between answers, and every key
   // acts on the answer that has focus.
   const boxes = () => [...document.querySelectorAll("#answers .answer")];
@@ -189,6 +208,7 @@
 
   async function next(keepStatus = false) {
     queue();
+    dashboard();
     $("english").textContent = "Loading…";
     try {
       const r = await fetch("/review/api/next");
@@ -341,6 +361,7 @@
 
   // New words: pending contributor submissions, oldest first.
   async function newWords() {
+    dashboard();
     try {
       const r = await fetch("/review/api/words/pending");
       if (!r.ok) return;
@@ -446,5 +467,5 @@
 
   // Link this browser's contributor phone id to the signed-in reviewer (for the badge on /contributors).
   const linkPhone = () => { try { const id = JSON.parse(localStorage.getItem("pd:phone")); if (id) post("/review/api/link-phone", { phoneId: id }).catch(() => {}); } catch {} };
-  me().then((ok) => { if (ok) { linkPhone(); loadRules().then(next).then(() => { if (lastUndo !== null) showUndo(lastUndo); }); words(); newWords(); if (isOwner) { health(); people(); insights(); } } });
+  me().then((ok) => { if (ok) { linkPhone(); loadRules().then(next).then(() => { if (lastUndo !== null) showUndo(lastUndo); }); words(); newWords(); dashboard(); if (isOwner) { health(); people(); insights(); } } });
 })();

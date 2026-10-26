@@ -7,7 +7,7 @@
 // later deploy. Do not go back to that order. Raise CACHE when the shell
 // changes, so the old store is dropped on activate.
 
-const CACHE = "paite-daily-v54";
+const CACHE = "paite-daily-v55";
 
 const SHELL = [
   "/",

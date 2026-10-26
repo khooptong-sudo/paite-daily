@@ -29,7 +29,8 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - Owner's Paite: **Aw in Aw** (Hear it) with its line, **Na sungte/lawmte kuahiam khat dong mah** (Ask a relative or friend). Reviewer pages say Pau Upa. WhatsApp icon is white on the dark top.
 - **Your Week** (27 Oct, value-add 1 of 7; built by a Sonnet subagent, reviewed here). `GET /api/week` (`src/week.ts`): sent, verified (accepting review in the last 7 days, not undone), words and rank by sent, ties sharing a place. Front-page card `#week` under What's New, shown once something was sent; Share draws a blue 1080x1920 status image (`public/week.js`). "Your Week" is English only.
 - **Working method for value-adds 2 to 7:** a Sonnet `frugal:builder` builds each from a written brief, never commits; the main session reviews the diff, fixes what is off, checks it in the browser, then ships.
-- Cache **`v54`**. 295 tests.
+- **Reviewer dashboard** (value-add 2). `GET /review/api/dashboard` (`src/dashboard.ts`): waiting count and oldest date for sentences (the same count as the queue badge, via `waitingCounts`), words, Pau Upa (new answers on collecting sayings plus whole sayings pending) and recordings. Four tiles at the top of `/review`, each a link to its queue, refreshed after each decision.
+- Cache **`v55`**. 299 tests.
 
 ## Shipped 25 and 26 October
 - **Counts for each section.** `/api/me` returns `total` (sentences), `words`, `meanings`, `sayings`, `recordings`, `verified`, `badge`. Each front-page box shows a quiet "You: N"; `/proverbs` reads the stored copy (`localStorage pd:me`). The shawl weaves a thread per item in every section, and its share card lists each section. The old score share and its `app.js` code are gone.

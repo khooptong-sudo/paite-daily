@@ -42,11 +42,28 @@
   .wgroup ul { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 10px; }
   .edit { display: grid; gap: 8px; }
   .edit input { width: 100%; }
+  .dash h2 { margin-top: 0; }
+  .dash .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .dash .tile { display: grid; gap: 2px; padding: 12px; border: 1px solid #0002; border-radius: 12px; color: inherit; text-decoration: none; overflow-wrap: normal; word-break: normal; min-width: 0; }
+  .dash .tile:hover, .dash .tile:focus-visible { border-color: var(--blue, #0b4bff); }
+  .dash .n { font-family: var(--display); font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .dash .old { font-size: .8rem; color: var(--muted); }
+  .dash .tile.zero { opacity: .55; }
+  @media (min-width: 700px) { .dash .tiles { grid-template-columns: repeat(4, 1fr); } }
 </style>
 </head>
 <body class="blue">
 <main>
   <header><h1>Paite Review</h1><a href="/review/proverbs" style="align-self:center;font-size:.86rem;color:#b3253c;text-decoration:none;border-bottom:1px solid currentColor">Pau Upa queue &rarr;</a><a href="/rules" style="align-self:center;font-size:.86rem;color:#b3253c;text-decoration:none;border-bottom:1px solid currentColor">Spelling Danbu &rarr;</a><a href="/review/audio" style="align-self:center;font-size:.86rem;color:#b3253c;text-decoration:none;border-bottom:1px solid currentColor">Recordings &rarr;</a><div class="streak" id="who"></div></header>
+  <section class="card dash" id="dash" aria-labelledby="dash-h">
+    <h2 id="dash-h">Waiting for review</h2>
+    <div class="tiles">
+      <a class="tile" id="dash-sentences" href="#card"><span class="n">–</span><span>Sentences</span><span class="old"></span></a>
+      <a class="tile" id="dash-words" href="#newwords-h"><span class="n">–</span><span>Words</span><span class="old"></span></a>
+      <a class="tile" id="dash-pauUpa" href="/review/proverbs"><span class="n">–</span><span>Pau Upa</span><span class="old"></span></a>
+      <a class="tile" id="dash-recordings" href="/review/audio"><span class="n">–</span><span>Recordings</span><span class="old"></span></a>
+    </div>
+  </section>
   <p class="queue" id="queue" aria-live="polite"></p>
   <section class="card" id="card">
     <div class="label" id="dir">English</div>

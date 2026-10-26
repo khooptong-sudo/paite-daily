@@ -3,6 +3,7 @@
 // phone (a later item still appears). Add new items at the top of NEWS.
 (() => {
   const NEWS = [
+    { id: "2026-10-27-dash", date: "2026-10-27", title: "For reviewers: one dashboard", text: "The reviewer page now opens with every waiting queue in one place: sentences, words, Pau Upa and recordings, and how long the oldest has waited.", href: "/review" },
     { id: "2026-10-27-week", date: "2026-10-27", title: "Your Week", text: "A weekly note of what you sent and what was verified, ready to share as your WhatsApp status." },
     { id: "2026-10-26-look", date: "2026-10-26", title: "A new look", text: "Blue from top to bottom, sharper text and clearer buttons on every page." },
     { id: "2026-10-26-spell", date: "2026-10-26", title: "Check spelling", text: "Every Paite box has a Check spelling button. It looks each word up in verified Paite and shows the spellings people have used.", href: null },
