@@ -34,7 +34,7 @@
         bub.className = "bub";
         const pai = document.createElement("div");
         pai.className = "pai";
-        pai.textContent = turn.paite;
+        pai.textContent = turn.paite; pai.lang = "pck";
         const eng = document.createElement("div");
         eng.className = "eng";
         eng.textContent = turn.english;
@@ -77,7 +77,7 @@
   let voice = null;
   function play(id) {
     const b = document.createElement("button");
-    b.type = "button"; b.className = "play"; b.textContent = "▶"; b.setAttribute("aria-label", "Hear it read aloud");
+    b.type = "button"; b.className = "play"; b.lang = "en"; b.textContent = "▶"; b.setAttribute("aria-label", "Hear it read aloud");
     b.addEventListener("click", () => {
       if (voice && !voice.paused && voice.dataset.id === String(id)) { voice.pause(); return; }
       if (voice) voice.pause();

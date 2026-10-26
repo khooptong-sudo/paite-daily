@@ -58,7 +58,7 @@
 .p2 { order: 1; }
 .p3 { order: 3; }
 .ring {
-  order: 9; justify-self: stretch; position: relative; display: grid; place-items: center; margin: 8px -6px 0; height: var(--h);
+  order: 9; justify-self: stretch; position: relative; display: grid; place-items: center; margin: 8px -6px 0; min-height: var(--h);
   border: 0; border-radius: 0; color: #fff; font: 400 2rem/1 var(--display); padding-bottom: 6px;
 }
 .ring::after { content: ""; position: absolute; inset: auto 0 0; height: 6px; background: linear-gradient(90deg, #d71920 0 25%, #f6ff00 25% 50%, #00a651 50% 75%, #000 75%); }
@@ -216,8 +216,8 @@
 .gl .st.err { text-decoration: underline; text-underline-offset: 3px; }
 
 /* Word list A to Z rail: sticky above the list, one tap per letter. */
-.gl .az { position: sticky; top: 0; z-index: 2; display: flex; gap: 4px; overflow-x: auto; padding: 10px 0; background: rgba(255, 255, 255, .92); border-bottom: 1px solid var(--line); scrollbar-width: none; }
-.gl .az a { flex: none; display: grid; place-items: center; min-width: 32px; height: 32px; border-radius: 8px; font: 400 1rem var(--display); color: #000; text-decoration: none; }
+.gl .az { position: sticky; top: 0; z-index: 2; display: flex; gap: 4px; overflow-x: auto; padding: 4px 0; background: rgba(255, 255, 255, .92); border-bottom: 1px solid var(--line); scrollbar-width: none; }
+.gl .az a { flex: none; display: grid; place-items: center; min-width: 44px; min-height: 44px; border-radius: 8px; font: 400 1rem var(--display); color: #000; text-decoration: none; }
 .gl .az a:hover, .gl .az a:focus-visible { background: #111; color: #fff; }
 .gl details.rows { scroll-margin-top: 60px; }
 /* Sayings status: green dot for verified, yellow for still collecting versions. */
