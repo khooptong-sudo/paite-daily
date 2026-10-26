@@ -1,14 +1,30 @@
-# Handoff, 26 October 2026 (blue look, Check spelling, counts, Hear it, Check English)
+# Handoff, 27 October 2026 (blue look, nine value additions, seven more, Christmas, What's New)
 
-Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or pick from the loose ends: every value addition on the list is done.**
+Start a new session with: **Read this top section, then do "First thing next session" below, then ask the owner what to work on.**
 
 ## Where things stand
-- Live version `4673df25`, from `main` at `1615a62`, pushed. Live site, GitHub and `main` all match. Service worker cache **`v35`**.
-- Remote D1 has every migration through **`0027_grammar_checks.sql`**. Nothing pending.
-- R2 bucket **`paite-daily-audio`** exists, bound as `AUDIO` in `wrangler.jsonc`.
-- 268 tests pass, `tsc` clean.
+- Live version `88e2bc1a`, from `main` at the latest commit, pushed. Live site, GitHub and `main` all match. Service worker cache **`v60`**.
+- Remote D1 has every migration through **`0028_answer_place.sql`**. Nothing pending.
+- R2 bucket **`paite-daily-audio`** (bound as `AUDIO`) holds recordings and, from 27 Oct, nightly backups under `backups/`.
+- 308 tests pass (full suite, twice in a row), `tsc` clean.
+- Publishing chain: site to GitHub `khooptong-sudo/paite-open-language-data` nightly; that repo's Action to Hugging Face `LamkaLabs/paite-open-language-data` every Monday (its `HF_TOKEN` secret is set, first run succeeded); Zenodo only on a GitHub release (v1.1.0, DOI `10.5281/zenodo.23664981`).
 
-## Shipped 26 October, later
+## First thing next session
+1. **Confirm the first nightly backup ran:** `CI=1 node_modules/.bin/wrangler d1 execute paite-daily --remote --command "SELECT * FROM job_runs WHERE job = 'backup' ORDER BY id DESC LIMIT 3"`, and that `backups/` in the `AUDIO` bucket has a file for today.
+2. Ask the owner about the checks below and for any Paite they have sent.
+
+## Open items
+- **Paite wording still English only:** What's New title; Your Week title; streak line and milestone message; offline messages; Check spelling button and messages; Spelling Danbu intro; place hint; Ask a relative help line (its Paite is out of date: it still says the reply is not saved) and its two notes; Aw in Aw consent line. Use the owner's words exactly; never invent Paite.
+- **Owner checks on their phone:** Your Week Share picture; Gboard word list import; swipe review and the reviewer dashboard with real counts; Ask a relative from WhatsApp; Christmas look at `/?season=christmas` (reindeer direction, bells).
+- **Owner's two recordings** wait at `/review/audio`; once accepted, their play buttons show in the chat only if those sentences are in a chat scene.
+- **Optional:** map dots for villages contributors type (list them with the query under "Where you learned it"); a fuller listening page; more same-person spellings for `SAME` in `getContributors`.
+
+## How we worked on 27 Oct
+- Value-adds were built by a Sonnet `frugal:builder` subagent from a written brief (never committing), then reviewed here: diff read, fixes made, checked in the browser pane, then shipped. Review caught three real problems (Turnstile order would have blocked sign-in; a one-hour script/style cache let old styles meet new scripts; an off-brand share image). Keep doing this: never ship a subagent's work unreviewed.
+- The browser pane cannot pass Turnstile live and cannot sign in as a reviewer; test contributor and reviewer screens locally (`wrangler-dev` in `.claude/launch.json`) with stubbed `fetch` where needed. After a deploy, clear its service worker and caches before judging styles.
+- Every change contributors would notice gets an item at the top of `NEWS` in `public/whatsnew.js`.
+
+## Shipped 26 and 27 October
 - **Blue look on every page.** `body.blue` (front page, 404, 500, reviewer pages) and `body.cp.blue` (About, Panlate, word list, sayings) in `public/style.css`; `public/review/proverbs.html` carries its own copy. Near-black top fading through blue to pale `#eef2fb` over a fixed 1500px. Type on the dark top is solid white; cards are frosted white glass with solid ink text; the main action of each form is **solid blue** (owner approved, replaces the outlined-only rule). Body text is **Inter** everywhere; titles stay Young Serif. Owner wants text crisp: no faded or see-through type.
 - **Check spelling** (value addition 2). Paite fields (`data-lang="pai"`) get a Check spelling pill (`public/grammar.js`). `POST /api/spelling` and `/review/api/spelling` (`src/spelling.ts`) look each word up in verified answers (through `finalPaite`) and the visible word list; an unseen word gets up to three nearest seen spellings (edit distance 1 for short words, 2 otherwise, swaps count as one), most used first. Tapping one swaps it into the field. No AI, no rate limit; the word table is cached per worker for ten minutes. **Pill text is English only: ask the owner for Paite.**
 - **Swipe review and shortcuts** (value addition 3), in `public/review/review.js`. With several answers, words not in every answer are marked yellow. On a phone (`pointer: coarse`) an answer swipes right to accept, left to reject that answer only (30% of its width; scrolling wins when the finger moves more vertically). Desktop: J/K, arrows or 1 to 9 move between answers; A or Enter accepts the highlighted one, X rejects it, E edits it (Esc back), V ticks it as a variant; S, N, R, U and ? as before. Checked with stand-in data only; the owner should try it on the real queue.
@@ -49,13 +65,12 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - **Look and words.** Every card title is Young Serif at regular weight with its English as a small uppercase caption (`.card h2`, `.card h2 small`). The owner kept Young Serif after previewing Morenn and Rosehot. Contributor-facing "sayings" are now **Pau Upa** (proverbs & idioms). "About This Project" sits right-aligned under Reviewer and matches the footer link. Ask a relative is a WhatsApp pill on its own row with the owner's Paite how-to above the English. The Paite licence line opens "A utteng".
 
 ## Value additions
-All nine on the list are shipped (26 Oct). Ask the owner what comes next.
+All nine on the list are shipped (26 Oct), and seven more on 27 Oct (Your Week, reviewer dashboard, offline answering, faster load, nightly backup, streaks and milestones, accessibility). Ask the owner what comes next.
 Concepts for several are in the private artifact "Paite Daily Rewoven": https://claude.ai/artifact/2Edbcjuqmzyx4hqD11n1hv
 
 ## Loose ends
 - **Hear it player is only in the chat.** Accepted clips play beside chat lines; a fuller listening page is still to come. Rejected clips stay in R2.
-- **The Hear it consent line is English only.**
-- The owner has not yet seen the Hear it card on their phone. Their three linked phones have verified sentences, so it is most likely a different browser. Ask whether it shows now.
+- The owner has recorded two clips in Aw in Aw (so the card shows for them); they still need accepting.
 - Word-list entries extracted before 25 Oct may carry uncorrected Paite; reviewers fix them with Edit.
 
 ## How to work in this repo
@@ -71,6 +86,14 @@ Concepts for several are in the private artifact "Paite Daily Rewoven": https://
 - House rules: no em dashes in copy, the main action solid blue and the small chips outlined, never classify Paite with a colonial exonym.
 
 Newest first. Each session prepends one section directly under this line.
+
+## ✅ 27102026 EoS: blue look, sixteen value additions, Christmas, What's New
+
+- **Look:** blue gradient on every page (no dark mode, by the owner's decision), frosted white cards, solid blue main buttons, Inter body text; water ripple on the shawl band; podium number one sparkles; Christmas in December only (`?season=christmas` previews).
+- **Handoff jobs 2 to 9:** Check spelling, swipe review and shortcuts, Spelling Danbu (`/rules`), gap-driven prompts, keyboard word lists, Hugging Face via the corpus repo's weekly Action plus Zenodo 1.1.0, Where you learned it (`/places`), Ask a relative opens the exact sentence.
+- **Seven more (Sonnet built, reviewed here):** Your Week, reviewer dashboard, offline answering, faster first load, nightly backup to R2, streaks and milestones, accessibility pass.
+- **Also:** What's New box (three days per item, never pushed out), recordings play in the chat, About page says where AI helps, old-style sentence endings flagged, owner's Paite for several labels, Pau Upa on reviewer pages, one Panlate row per person (`SAME` for confirmed spellings), flaky export test fixed.
+- 308 tests, cache `v60`, migration `0028`.
 
 ## ✅ 22102026 EoS: About, footer, podium, Nampuan Liangbat Gat
 
