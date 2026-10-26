@@ -4,7 +4,7 @@
     --bg: #fff; --surface: rgba(0, 0, 0, .035); --fg: #000; --muted: rgba(0, 0, 0, .65);
     --accent: #000; --accent-fg: #fff; --line: rgba(0, 0, 0, .12); --hair: rgba(0, 0, 0, .5); --ring: #000;
     --display: "Young Serif", Georgia, "Times New Roman", serif;
-    --body: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+    --body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
     --glass: blur(20px) saturate(140%);
     color-scheme: light;
   }
@@ -273,3 +273,40 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 /* Hear it: the consent line reads as a sentence with its box, not a form row. */
 .hear .consent { display: flex; align-items: flex-start; gap: 8px; font: 400 .9rem/1.4 var(--body); }
 .hear .consent input { width: auto; margin: 3px 0 0; }
+
+/* Blue front page (26 Oct): near-black at the top deepening to blue, then fading to a pale
+   blue-white. Cards are frosted white glass with solid ink text, so type stays crisp on the
+   colour; the main action is solid blue. Scoped to body.blue so the other pages keep their look. */
+body.blue {
+  --bg: #eef2fb; --fg: #0b1430; --muted: #4a5578; --line: rgba(11, 20, 48, .12); --hair: rgba(11, 20, 48, .4);
+  --blue: #0b4bff; --ring: #0b4bff;
+  background: linear-gradient(180deg, #020617 0, #020617 160px, #0a2a8a 420px, #0b4bff 760px, #7aa7ff 1150px, #eef2fb 1500px) no-repeat, #eef2fb;
+  -webkit-font-smoothing: antialiased;
+}
+body.blue::before { display: none; }
+html:has(body.blue) { background: #eef2fb; }
+/* Header, goal and shawl sit on the dark top: solid white type. */
+.blue header, .blue header a, .blue header h1, .blue .goal, .blue .goal b, .blue .mypuan h2, .blue .mypuan-how, .blue .mypuan-how b, .blue .mypuan-note { color: #fff; }
+.blue header .streak, .blue .goal, .blue .mypuan h2 small, .blue .mypuan-how, .blue .mypuan-note { color: #c9d6ff; }
+.blue header h1 { letter-spacing: -.01em; }
+.blue header .badge { background: #fff; color: #0b1430; }
+.blue header .share-chip, .blue .mypuan .share-chip { color: #fff; border: 1.5px solid rgba(255, 255, 255, .85); }
+.blue header .share-chip:hover, .blue .mypuan .share-chip:hover { background: rgba(255, 255, 255, .12); }
+.blue .mypuan .share-chip img { filter: brightness(10); }
+.blue .goal-bar { background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .3); }
+.blue :focus-visible { outline-color: #7aa7ff; }
+/* Frosted white cards. */
+.blue .card { background: rgba(255, 255, 255, .86); border: 1px solid #fff; box-shadow: 0 10px 32px rgba(2, 6, 23, .18), inset 0 1px 0 #fff; }
+.blue .card h2, .blue .sentence, .blue .word-prompt { color: var(--fg); }
+.blue textarea, .blue input:not([type=radio]):not([type=checkbox]), .blue select { border: 1px solid rgba(11, 20, 48, .22); border-radius: 12px; color: var(--fg); }
+.blue textarea:focus, .blue input:not([type=radio]):not([type=checkbox]):focus, .blue select:focus { outline: 3px solid rgba(11, 75, 255, .3); border-color: var(--blue); }
+.blue input[type=radio]:checked { background: radial-gradient(var(--blue) 0 45%, transparent 50%); border-color: var(--blue); }
+.blue input[type=checkbox] { accent-color: var(--blue); }
+/* One solid blue action per form; Skip stays a text link, the small chips stay outlined. */
+.blue button.primary, .blue .seg button[aria-pressed="true"] { background: var(--blue); color: #fff; border: 0; border-radius: 12px; font-weight: 600; box-shadow: 0 1px 2px rgba(11, 75, 255, .35); }
+.blue button.primary:hover:not(:disabled) { background: #0a3fd6; }
+.blue button.primary small { color: rgba(255, 255, 255, .85); }
+.blue .actions button:not(.primary) { color: var(--fg); font-weight: 600; }
+.blue .card .share-chip { color: var(--fg); border-color: rgba(11, 20, 48, .35); }
+.blue .chip[aria-pressed="true"], .blue .turn.me .bub { background: var(--blue); border-color: var(--blue); color: #fff; }
+.blue .pan { border-bottom-color: var(--line); }
