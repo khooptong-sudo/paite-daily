@@ -80,13 +80,19 @@
   document.addEventListener("visibilitychange", () => { if (document.hidden && pollTimer) giveUp(); });
   $("retry").addEventListener("click", () => next());
 
+  // Ask a relative: /?s=<id> opens that sentence; the address is tidied so a reload is a normal visit.
+  let sharedId = Number(new URLSearchParams(location.search).get("s")) || null;
+  if (sharedId) { const u = new URL(location.href); u.searchParams.delete("s"); history.replaceState(null, "", u); }
+
   async function next(polling = false) {
     clearTimeout(pollTimer); pollTimer = null; $("retry").hidden = true;
     if (!polling) $("sentence").innerHTML = tBoth("loading");
     $("send").disabled = true;
     $("skip").disabled = true;
     try {
-      const r = await api("/api/next");
+      // A link from Ask a relative (/?s=<id>) asks for that sentence once.
+      const r = await api(sharedId ? `/api/next?s=${sharedId}` : "/api/next");
+      sharedId = null;
       if (r.status === 202) {
         current = null;
         if (!polling) pollUntil = Date.now() + 60000;
@@ -102,6 +108,9 @@
       if (window.pdLang) window.pdLang($("paite"), rev ? "en" : "pai");
       document.querySelector(".register").hidden = rev;
       $("sentence").textContent = current.english;
+      $("sentence").dataset.id = current.id;
+      $("shared-note").hidden = !(current.shared || current.sharedGone);
+      $("shared-note").innerHTML = current.shared ? tBoth("sharedHello") : current.sharedGone ? tBoth("sharedGone") : "";
       $("send").disabled = false;
       $("paite").focus();
       if (window.pdTrack) window.pdTrack("card");

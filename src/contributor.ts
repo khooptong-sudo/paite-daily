@@ -2,7 +2,7 @@ import { buildScenes, matchChat, recordWant } from "./chat";
 import { handleApply } from "./apply";
 import { getGoal } from "./goal";
 import { badgeFor, getContributors } from "./contributors";
-import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, skipSentence, type Register } from "./db";
+import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, sharedSentence, skipSentence, type Register } from "./db";
 import { readSession, signSession } from "./session";
 import { cleanText, isId, isPhoneId } from "./text";
 import { refillOnDemand } from "./refill";
@@ -70,8 +70,15 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   if (!phoneId) return json({ error: "no_session" }, 401);
 
   if (pathname === "/api/next" && req.method === "GET") {
+    // ?s=<id>: a sentence shared by Ask a relative. Served when this phone may answer it;
+    // otherwise the usual next one, marked so the page can say why.
+    const shared = Number(new URL(req.url).searchParams.get("s"));
+    if (isId(shared)) {
+      const one = await sharedSentence(env.DB, phoneId, shared, deps.now());
+      if (one) return json({ ...one, shared: true });
+    }
     const s = await nextSentence(env.DB, phoneId, deps.now());
-    if (s) return json(s);
+    if (s) return json(isId(shared) ? { ...s, sharedGone: true } : s);
     return (await refillOnDemand(env, deps.now(), ctx)) ? json({ refilling: true }, 202) : new Response(null, { status: 204 });
   }
 

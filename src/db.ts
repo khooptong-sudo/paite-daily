@@ -41,6 +41,23 @@ export async function nextSentence(db: D1Database, phoneId: string, now: number)
   return null;
 }
 
+/**
+ * Ask a relative: the exact sentence a contributor shared (/?s=<id>), when this phone may
+ * still answer it (open, a slot free, not seen, not locked by someone else). Null otherwise,
+ * and the page falls back to the usual next sentence.
+ */
+export async function sharedSentence(db: D1Database, phoneId: string, id: number, now: number): Promise<Next | null> {
+  return db.prepare(
+    `SELECT s.id, CASE WHEN s.direction = 'pai2en' THEN s.paite_prompt ELSE s.english END AS english,
+            CASE WHEN s.direction = 'pai2en' THEN 'pai2en' END AS direction
+     FROM sentences s
+     WHERE s.id = ?3 AND s.status = 'open' AND s.answer_count < 2
+       AND NOT EXISTS (SELECT 1 FROM seen WHERE seen.phone_id = ?1 AND seen.sentence_id = s.id)
+       AND NOT EXISTS (SELECT 1 FROM locks WHERE sentence_id = s.id AND expires_at > ?2)
+       AND NOT EXISTS (SELECT 1 FROM answers a JOIN seen sn ON sn.sentence_id = a.sentence_id AND sn.phone_id = ?1 WHERE a.id = s.source_answer_id)`,
+  ).bind(phoneId, now, id).first<Next>().then((r) => (r ? (r.direction ? r : { id: r.id, english: r.english }) : null));
+}
+
 export async function skipSentence(db: D1Database, phoneId: string, sentenceId: number): Promise<void> {
   await db.prepare("INSERT OR IGNORE INTO seen (phone_id, sentence_id, action) SELECT ?1, id, 'skipped' FROM sentences WHERE id = ?2").bind(phoneId, sentenceId).run();
 }

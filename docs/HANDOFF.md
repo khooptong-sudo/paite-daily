@@ -1,6 +1,6 @@
 # Handoff, 26 October 2026 (blue look, Check spelling, counts, Hear it, Check English)
 
-Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or start on value addition 9.**
+Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or pick from the loose ends: every value addition on the list is done.**
 
 ## Where things stand
 - Live version `4673df25`, from `main` at `1615a62`, pushed. Live site, GitHub and `main` all match. Service worker cache **`v35`**.
@@ -21,7 +21,8 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - **Hugging Face sync confirmed** 26 Oct: the GitHub `HF_TOKEN` secret is set and the first run uploaded `community/` (12 files), `glossary.json`, `CONTRIBUTORS.md` and `LICENSE`. The worker's `HF_TOKEN` secret is deleted.
 - **Where you learned it** (value addition 7). Optional `place` on each answer (migration `0028`), typed under the translate form (datalist of known places, remembered on the phone). `src/places.ts` tidies it (known names and other spellings such as Churachandpur, Tiddim; else title case). Public **`/places`**: a self-drawn SVG map (no map tiles, no outside requests) with a dot per `KNOWN` place sized by verified answers, and a list of every place with its count. Only verified answers count, and a place is never shown beside a name; it is not in the corpus export. To put a new village on the map, add it with coordinates to `KNOWN`. **Form label and hint are English only.**
 - **Christmas, the one season** (value addition 8). Blue all year; **1 Dec 00:00 to 31 Dec 23:59 (phone time)** turns to Christmas, then back to blue (owner's decision; Chavang Kut colours were tried and removed). `public/theme.js` (in every page head) sets `data-season="christmas"` and loads `public/christmas.js`: reds from the dark top to a snowy white, red main buttons, a big gold **"Christmas Chibai!"** (owner's Paite) with ringing bells, a Santa hat on the title, twinkling stars in the dark sky, falling snow, two strings of lights (under the shawl band, along the footer), holly and a snow cap on each card, trees, presents and a snowman above the footer,, bells that play `public/jingle-bells.mp3` ("Jingle Bells (Bells Only)" by VoiceBosch on Pixabay, Pixabay Content License: free on a site, no credit needed, the file itself must not be resold; trimmed to 11 s with a fade) at the first touch anywhere and on every tap of a bell, a 🔊/🔇 mute button in the bottom-right corner remembered as `pd:xmas-muted`, and Santa's sleigh drawn as SVG (reindeer face the way they fly on every phone, Rudolph's nose blinks) every 20 s. Reduced motion keeps everything still and drops snow and sleigh. **`?season=christmas` previews it any day**, `?season=none` forces blue. **No dark mode**, by the owner's decision.
-- Cache **`v50`**. 288 tests.
+- **Ask a relative, version 2** (value addition 9). The WhatsApp message now carries `https://paite.lamkalabs.com/?s=<sentence id>` (`public/mypuan.js`). Opening it asks `/api/next?s=<id>` once (`public/app.js`, which then tidies the address); `sharedSentence` in `src/db.ts` serves that sentence when the relative's phone may answer it, with a note above it saying their answer is saved with their name, so the relative is credited as a contributor in their own right. A full, seen or missing sentence falls back to the usual next one with a "here is another" note. **The two notes (`sharedHello`, `sharedGone`) are English only, and the Paite of `askHelp` still says the reply is not saved: the owner should send new Paite for it** (the English was updated).
+- Cache **`v51`**. 291 tests.
 
 ## Shipped 25 and 26 October
 - **Counts for each section.** `/api/me` returns `total` (sentences), `words`, `meanings`, `sayings`, `recordings`, `verified`, `badge`. Each front-page box shows a quiet "You: N"; `/proverbs` reads the stored copy (`localStorage pd:me`). The shawl weaves a thread per item in every section, and its share card lists each section. The old score share and its `app.js` code are gone.
@@ -31,8 +32,8 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - **Sayings reviewer**: a proverb/idiom dropdown on every card (`/review/api/proverbs/kind`), and the missing `var blocks = []` fix. `public/review/proverbs.html` is committed again; the old never-commit rule is retired.
 - **Look and words.** Every card title is Young Serif at regular weight with its English as a small uppercase caption (`.card h2`, `.card h2 small`). The owner kept Young Serif after previewing Morenn and Rosehot. Contributor-facing "sayings" are now **Pau Upa** (proverbs & idioms). "About This Project" sits right-aligned under Reviewer and matches the footer link. Ask a relative is a WhatsApp pill on its own row with the owner's Paite how-to above the English. The Paite licence line opens "A utteng".
 
-## Value additions still to do (suggested order)
-9. **Ask a relative, version 2**: deep link to the exact sentence (`/?s=<id>`), credited to the relative.
+## Value additions
+All nine on the list are shipped (26 Oct). Ask the owner what comes next.
 Concepts for several are in the private artifact "Paite Daily Rewoven": https://claude.ai/artifact/2Edbcjuqmzyx4hqD11n1hv
 
 ## Loose ends

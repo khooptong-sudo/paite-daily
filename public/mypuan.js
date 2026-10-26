@@ -71,9 +71,11 @@
   // Ask a relative: the current sentence and the link, ready to send on WhatsApp.
   const ask = document.getElementById("ask-relative");
   if (ask) ask.addEventListener("click", () => {
-    const line = (document.getElementById("sentence")?.textContent || "").trim();
+    const el = document.getElementById("sentence"), line = (el?.textContent || "").trim();
     if (!line) return;
-    const msg = `Hiai Paite in bang chih ding? / How do you say this in Paite?\n\n"${line}"\n\nHelp us write Paite into the future: https://paite.lamkalabs.com`;
+    // The link opens this exact sentence on their phone, so they answer it themselves, with their own name.
+    const link = "https://paite.lamkalabs.com/" + (el.dataset.id ? `?s=${el.dataset.id}` : "");
+    const msg = `Hiai Paite in bang chih ding? / How do you say this in Paite?\n\n"${line}"\n\nAnswer it yourself here, and your name goes with it: ${link}`;
     open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener");
   });
 })();

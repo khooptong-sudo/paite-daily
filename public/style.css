@@ -402,3 +402,5 @@ canvas.puan-ripple { display: block; width: 100%; max-width: 560px; height: auto
   100% { transform: translate(calc(100vw + 340px), 0); }
 }
 @media (prefers-reduced-motion: reduce) { .xmas-lights i, .xmas-stars i, .xmas-greet .bell { animation: none; } }
+/* Ask a relative: the note above a sentence someone shared with you. */
+.shared-note { margin: 0; padding: 8px 12px; border-radius: 10px; background: rgba(11, 75, 255, .08); border: 1px solid rgba(11, 75, 255, .25); font-size: .9rem; line-height: 1.45; color: var(--fg); }
