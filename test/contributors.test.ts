@@ -21,6 +21,15 @@ describe("contributors", () => {
     expect(list.filter((c) => c.name.toLowerCase().includes("khooptong"))).toEqual([expect.objectContaining({ name: "Min Khooptong", sentences: 3 })]);
     expect(list.find((c) => c.name === "Mang")).toMatchObject({ sentences: 1 });
   });
+
+  it("joins spellings the owner confirmed are one person", async () => {
+    const ids = await addSentences("Six.", "Seven.");
+    await ans(PHONE_A, "George Thangmuansang", "accepted", ids[0]);
+    await ans(PHONE_B, "George Thangmuansang Tonsing", "accepted", ids[1]);
+    const list = (await getContributors(env)).contributors.filter((c) => c.name.startsWith("George"));
+    expect(list).toHaveLength(1);
+    expect(list[0].sentences).toBe(2);
+  });
   it("lists named phones with verified answers only, newest name, badge, no ids or emails", async () => {
     await env.DB.prepare("DELETE FROM reviewer_phones").run();
     const [s1, s2, s3] = await addSentences("One.", "Two.", "Three.");

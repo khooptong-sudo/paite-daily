@@ -48,10 +48,12 @@ export async function getContributors(env: Env): Promise<Contributors> {
   // One person often uses several phones or browsers, each its own phone id. Rows with the
   // same name (ignoring case and extra spaces) are one contributor: counts add up, and the
   // name is shown as written on the busiest phone.
+  // Different spellings the owner has confirmed are one person, all lower case.
+  const SAME: Record<string, string> = { "george thangmuansang tonsing": "george thangmuansang" };
   type R = (typeof c.results)[number];
   const people = new Map<string, R & { top: number }>();
   for (const r of c.results) {
-    const key = r.name.trim().replace(/\s+/g, " ").toLowerCase(), size = (r.sentences ?? 0) + (r.words ?? 0);
+    const plain = r.name.trim().replace(/\s+/g, " ").toLowerCase(), key = SAME[plain] ?? plain, size = (r.sentences ?? 0) + (r.words ?? 0);
     const p = people.get(key);
     if (!p) { people.set(key, { ...r, name: r.name.trim().replace(/\s+/g, " "), top: size }); continue; }
     p.sentences = (p.sentences ?? 0) + (r.sentences ?? 0); p.words = (p.words ?? 0) + (r.words ?? 0);
