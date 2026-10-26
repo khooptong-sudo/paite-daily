@@ -119,7 +119,7 @@ export function renderAbout(): string {
 <link rel="stylesheet" href="/contributors.css">
 ${STYLE}
 </head>
-<body class="cp">
+<body class="cp blue">
 <header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1>About Paite Daily</h1><p>A free, volunteer-reviewed corpus of Paite.</p></header>
 <main class="gl about">
 

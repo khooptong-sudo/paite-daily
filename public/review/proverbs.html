@@ -43,9 +43,17 @@ h2{font:400 1.1rem/1.3 var(--head);margin:2rem 0 .3rem}
 h2 span{font:400 .78rem var(--body);color:var(--muted);margin-left:.4rem}
 .status{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;background:var(--ink);color:var(--paper);padding:9px 16px;border-radius:99px;font-size:.86rem;opacity:0;transition:opacity .2s;z-index:9}
 .status.on{opacity:1}
+/* Blue look, as on the front page: dark top, white type on it, white cards, solid blue Accept. */
+body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420px,#0b4bff 760px,#7aa7ff 1150px,#eef2fb 1500px) top/100% 1500px no-repeat,#eef2fb;min-height:100vh;-webkit-font-smoothing:antialiased}
+.blue .top h1,.blue>main>h2{color:#fff}
+.blue .back{color:#dfe7ff;border-bottom-color:rgba(255,255,255,.5)}
+.blue .count,.blue>main>h2 span,.blue>main>.empty,.blue>main>.help{color:#c9d6ff}
+.blue .card{background:rgba(255,255,255,.92);border-color:#fff;box-shadow:0 10px 32px rgba(2,6,23,.18)}
+.blue button.accept{background:#0b4bff;color:#fff;border:0;font-weight:600}
+.blue button.accept:hover{background:#0a3fd6}
 </style>
 </head>
-<body>
+<body class="blue">
 <main>
   <div class="top">
     <h1>Sayings review</h1>

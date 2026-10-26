@@ -280,11 +280,12 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 body.blue {
   --bg: #eef2fb; --fg: #0b1430; --muted: #4a5578; --line: rgba(11, 20, 48, .12); --hair: rgba(11, 20, 48, .4);
   --blue: #0b4bff; --ring: #0b4bff;
-  background: linear-gradient(180deg, #020617 0, #020617 160px, #0a2a8a 420px, #0b4bff 760px, #7aa7ff 1150px, #eef2fb 1500px) no-repeat, #eef2fb;
+  background: linear-gradient(180deg, #020617 0, #020617 160px, #0a2a8a 420px, #0b4bff 760px, #7aa7ff 1150px, #eef2fb 1500px) top / 100% 1500px no-repeat, #eef2fb;
   -webkit-font-smoothing: antialiased;
 }
 body.blue::before { display: none; }
-html:has(body.blue) { background: #eef2fb; }
+html:has(body.blue) { background: #eef2fb; min-height: 100%; }
+body.blue { min-height: 100vh; }
 /* Header, goal and shawl sit on the dark top: solid white type. */
 .blue header, .blue header a, .blue header h1, .blue .goal, .blue .goal b, .blue .mypuan h2, .blue .mypuan-how, .blue .mypuan-how b, .blue .mypuan-note { color: #fff; }
 .blue header .streak, .blue .goal, .blue .mypuan h2 small, .blue .mypuan-how, .blue .mypuan-note { color: #c9d6ff; }
@@ -310,3 +311,18 @@ html:has(body.blue) { background: #eef2fb; }
 .blue .card .share-chip { color: var(--fg); border-color: rgba(11, 20, 48, .35); }
 .blue .chip[aria-pressed="true"], .blue .turn.me .bub { background: var(--blue); border-color: var(--blue); color: #fff; }
 .blue .pan { border-bottom-color: var(--line); }
+/* About, Panlate and the reviewer pages: the hero sits on the dark top in white, and the
+   page body is one frosted white panel so long text stays dark on light. */
+.blue.cp .hero { background: transparent; border-bottom: 0; color: #fff; }
+.blue.cp .hero h1, .blue .hero .back { color: #fff; }
+.blue.cp .hero p { color: #dfe7ff; }
+.blue.cp .hero h1 small, .blue.cp .hero p small { color: #c9d6ff; }
+.blue.cp main { width: calc(100% - 32px); background: rgba(255, 255, 255, .9); border: 1px solid #fff; border-radius: 20px; box-shadow: 0 10px 32px rgba(2, 6, 23, .18); -webkit-backdrop-filter: var(--glass); backdrop-filter: var(--glass); margin-bottom: 32px; }
+.blue.cp > .goal { color: #c9d6ff; }
+/* Reviewer queue: the header links were crimson inline; on the dark top they read white. */
+.blue header a[style] { color: #fff !important; }
+.blue main > .queue, .blue main > .meta, .blue main > .status { color: #dfe7ff; }
+.blue .clip { background: rgba(255, 255, 255, .9); border: 1px solid #fff; box-shadow: 0 10px 32px rgba(2, 6, 23, .18); }
+.blue .answer { background: #fff; }
+.blue .answer.variant { border-color: var(--blue); }
+.blue .seg button[aria-pressed="true"], .blue .seg button[aria-pressed="true"] small { color: #fff; }
