@@ -120,7 +120,9 @@
       $("send").disabled = false;
       // The challenge and the session are not the visitor's connection. Say so, so a reload is the obvious next step.
       const blocked = e && (e.message === "turnstile" || e.message === "session");
-      status(tBoth(blocked ? "verifyFailed" : "offline"));
+      // Offline keeps whatever status is showing, so "Saved on this phone" is not wiped.
+      if (blocked || navigator.onLine !== false) status(tBoth(blocked ? "verifyFailed" : "offline"));
+      if (!blocked) $("sentence").textContent = "You are offline. Answers you already sent are saved and will go when you are back.";
     } finally {
       $("skip").disabled = false;
     }
@@ -138,6 +140,39 @@
     box.hidden = false;
   }
 
+  // Answers typed with no network wait in localStorage and go one by one, oldest first.
+  const showOutbox = () => {
+    const n = store.get("outbox", []).length;
+    $("outbox-note").hidden = !n;
+    $("outbox-note").textContent = n ? `${n} waiting to send` : "";
+  };
+  function queueAnswer(body) {
+    store.set("outbox", [...store.get("outbox", []), { body, at: Date.now() }].slice(-50));
+    showOutbox();
+  }
+  let flushing = false;
+  async function flushOutbox() {
+    if (flushing) return;
+    flushing = true;
+    let sent = 0;
+    try {
+      for (;;) {
+        const item = store.get("outbox", [])[0];
+        if (!item || navigator.onLine === false) break;
+        const r = await api("/api/answer", { method: "POST", body: item.body });
+        // 400 and 409 will never succeed (bad or closed sentence); 429 and the rest can wait.
+        if (!r.ok && r.status !== 400 && r.status !== 409) break;
+        store.set("outbox", store.get("outbox", []).slice(1));
+        if (r.ok) sent++;
+        showOutbox();
+      }
+    } catch {}
+    flushing = false;
+    if (sent) { status(`${sent} saved answer${sent === 1 ? "" : "s"} sent.`, true); refreshMe(); }
+  }
+  window.addEventListener("online", flushOutbox);
+  showOutbox();
+
   $("form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const paite = $("paite").value.trim();
@@ -145,9 +180,17 @@
     if (!paite) { $("paite").focus(); return; }
     $("send").disabled = true; $("skip").disabled = true;
     const register = new FormData($("form")).get("register");
+    const body = JSON.stringify({ sentenceId: current.id, paite, register, name: store.get("name", ""), explanation: $("explanation").value.trim(), place: $("place").value.trim() });
+    // No network: keep the answer on the phone and carry on as if it had gone.
+    const saveOffline = () => {
+      queueAnswer(body);
+      status("Saved on this phone. It will send by itself when you are back online.", true);
+      $("paite").value = ""; $("explanation").value = "";
+      next();
+    };
+    if (navigator.onLine === false) { saveOffline(); return; }
     try {
-      const r = await api("/api/answer", { method: "POST",
-        body: JSON.stringify({ sentenceId: current.id, paite, register, name: store.get("name", ""), explanation: $("explanation").value.trim(), place: $("place").value.trim() }) });
+      const r = await api("/api/answer", { method: "POST", body });
       if (r.status === 429) { status(tBoth("tooFast")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (!r.ok && r.status !== 409) { status(tBoth("offline")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (r.ok) {
@@ -159,7 +202,10 @@
       }
       $("paite").value = ""; $("explanation").value = "";
       next();
-    } catch {
+      if (r.ok) flushOutbox();
+    } catch (err) {
+      // fetch throws only when the network fails; a failed challenge or session is not that.
+      if (!(err && (err.message === "turnstile" || err.message === "session"))) { saveOffline(); return; }
       status(tBoth("offline"));
       if (window.pdTrack) window.pdTrack("blocked", { path: "answer" });
       $("send").disabled = false; $("skip").disabled = false;
@@ -307,5 +353,6 @@
   next();
   refreshMe();
   feedback();
+  flushOutbox();
   document.addEventListener("paite:refresh", refreshMe);
 })();

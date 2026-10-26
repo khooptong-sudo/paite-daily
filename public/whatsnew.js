@@ -3,6 +3,7 @@
 // phone (a later item still appears). Add new items at the top of NEWS.
 (() => {
   const NEWS = [
+    { id: "2026-10-27-offline", date: "2026-10-27", title: "No signal? No problem", text: "If the network drops when you tap Send, your answer waits on your phone and sends by itself when you are back online." },
     { id: "2026-10-27-dash", date: "2026-10-27", title: "For reviewers: one dashboard", text: "The reviewer page now opens with every waiting queue in one place: sentences, words, Pau Upa and recordings, and how long the oldest has waited.", href: "/review" },
     { id: "2026-10-27-week", date: "2026-10-27", title: "Your Week", text: "A weekly note of what you sent and what was verified, ready to share as your WhatsApp status." },
     { id: "2026-10-26-look", date: "2026-10-26", title: "A new look", text: "Blue from top to bottom, sharper text and clearer buttons on every page." },
