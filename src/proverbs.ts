@@ -252,7 +252,7 @@ export function renderProverbs(xs: Proverb[], siteKey = ""): string {
 <link rel="stylesheet" href="/contributors.css">
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 </head>
-<body class="cp">
+<body class="cp blue">
 <header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="proverbsTitle">Proverbs &amp; Idioms</h1><p data-s="proverbsLine">Pau Upa: the proverbs and idioms our elders use, and what each one means.</p><p class="you" id="you" hidden></p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">

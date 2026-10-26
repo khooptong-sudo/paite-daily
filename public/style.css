@@ -326,3 +326,8 @@ body.blue { min-height: 100vh; }
 .blue .answer { background: #fff; }
 .blue .answer.variant { border-color: var(--blue); }
 .blue .seg button[aria-pressed="true"], .blue .seg button[aria-pressed="true"] small { color: #fff; }
+/* Long hero titles (Paite Kammal Kaihkhawm) fit a phone; the error pages' way home is the solid blue action. */
+.blue.cp .hero h1 { font-size: clamp(2.4rem, 12.5vw, 4.75rem); text-wrap: balance; }
+.blue .cta { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; background: var(--blue); color: #fff; border: 0; box-shadow: 0 1px 2px rgba(11, 75, 255, .35); text-decoration: none; font-weight: 600; }
+.blue .cta small { color: rgba(255, 255, 255, .85); }
+.blue .cta:hover { background: #0a3fd6; }
