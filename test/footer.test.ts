@@ -32,7 +32,7 @@ describe("shared footer", () => {
       expect(b).toContain('<canvas class="wave" aria-hidden="true"></canvas>');
       expect(b).toContain('<p class="contact">');
       expect(b).toContain('<p class="built">Built and maintained by');
-      expect(html).toContain('<script src="/footer.js"></script>');
+      expect(html).toMatch(/<script src="\/footer\.js"( defer)?><\/script>/);
     });
   }
 

@@ -28,7 +28,8 @@
   const showToday = () => { const n = store.get(todayKey(), 0); $("today").textContent = n ? `🔥 ${n} ${t("today")}` : ""; };
 
   // Defined before the deferred Turnstile script runs (this file is a plain script at the end of <body>).
-  const turnstileReady = new Promise((res) => { window.onTurnstileLoad = res; });
+  // Both scripts are deferred and Turnstile comes first, so it may already be here.
+  const turnstileReady = new Promise((res) => { if (window.turnstile) res(); else window.onTurnstileLoad = res; });
   let widgetId = null, waiter = null;
 
   function turnstileToken() {

@@ -431,3 +431,7 @@ canvas.puan-ripple { display: block; width: 100%; max-width: 560px; height: auto
 /* Your Week (week.js): a short progress line and a share chip, only once something was sent. */
 .week { gap: 8px; justify-items: start; }
 .week p { margin: 0; color: var(--fg); font-weight: 600; }
+/* The band is a <picture> (WebP, PNG fallback); the box is the image's own. */
+.puan-pic { display: contents; }
+.share-chip { white-space: nowrap; flex: none; }
+#ask-relative { white-space: normal; }

@@ -10,3 +10,18 @@
 
 /.well-known/assetlinks.json
   Content-Type: application/json
+
+/*.js
+  Cache-Control: public, max-age=3600
+
+/*.css
+  Cache-Control: public, max-age=3600
+
+/*.png
+  Cache-Control: public, max-age=3600
+
+/*.html
+  Cache-Control: no-cache
+
+/*.webp
+  Cache-Control: public, max-age=3600

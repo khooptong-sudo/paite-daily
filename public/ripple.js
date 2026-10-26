@@ -24,7 +24,7 @@
     const gw = Math.ceil(w / CELL) + 2, gh = Math.ceil(h / CELL) + 2;
     let cur = new Float32Array(gw * gh), prev = new Float32Array(gw * gh);
 
-    img.after(cv);
+    (img.closest("picture") || img).after(cv); // after the <picture>, so it sits where the band was
     img.classList.add("puan-under");
 
     let running = false, visible = true;
