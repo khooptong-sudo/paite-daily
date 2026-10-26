@@ -346,7 +346,10 @@ canvas.puan-ripple { display: block; width: 100%; max-width: 560px; height: auto
    on each card, stars, snow, lights, trees and Santa's sleigh. */
 [data-season=christmas] body.blue { --top: #120306; --g1: #4a0a12; --g2: #a50f26; --g3: #e7a1a9; --end: #fdf6f4; --blue: #c8102e; --blue-hover: #a10d25; --ring: #c8102e; }
 .xmas-greet { margin: 4px 0 2px; text-align: center; font: 400 clamp(1.9rem, 9vw, 2.6rem)/1.15 var(--display); color: #ffe27a; text-shadow: 0 0 18px rgba(255, 210, 63, .55), 0 2px 0 rgba(0, 0, 0, .35); }
-.xmas-greet .bell { display: inline-block; font-size: .7em; vertical-align: .15em; transform-origin: 50% 10%; animation: ring 2.4s ease-in-out infinite; }
+.xmas-greet .bell { display: inline-block; font-size: .7em; vertical-align: .15em; transform-origin: 50% 10%; animation: ring 2.4s ease-in-out infinite;
+  background: none; border: 0; box-shadow: none; padding: 4px; margin: 0; cursor: pointer; -webkit-backdrop-filter: none; backdrop-filter: none; line-height: 1; }
+.xmas-greet .bell.shake { animation: shake .9s ease-in-out; }
+@keyframes shake { 15% { transform: rotate(28deg); } 30% { transform: rotate(-26deg); } 45% { transform: rotate(20deg); } 60% { transform: rotate(-14deg); } 75% { transform: rotate(8deg); } 100% { transform: rotate(0); } }
 .xmas-greet .bell:last-child { animation-delay: .3s; }
 @keyframes ring { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(18deg); } 80% { transform: rotate(-16deg); } 90% { transform: rotate(8deg); } }
 .hero .xmas-greet { margin: 0 0 14px; }

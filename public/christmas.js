@@ -31,10 +31,40 @@
   </svg>`;
   const HAT = `<svg viewBox="0 0 64 48" width="64" height="48"><path d="M8 38 Q20 4 50 8 Q58 9 60 22 L54 24 Q50 16 44 18 Q34 26 30 38 Z" fill="#d4142f"/><circle cx="58" cy="25" r="5.5" fill="#fff"/><rect x="2" y="34" width="34" height="10" rx="5" fill="#fff" transform="rotate(-6 19 39)"/></svg>`;
 
+  // Sleigh bells, made in the browser (no sound file): a quick run of bright, slightly
+  // out-of-tune metal strikes. Phones only allow sound after a touch, so the page jingles
+  // at the first touch anywhere, and again every time a bell is tapped.
+  let audio = null;
+  function jingle() {
+    try {
+      audio ??= new (window.AudioContext || window.webkitAudioContext)();
+      if (audio.state === "suspended") audio.resume();
+      const t0 = audio.currentTime, out = audio.createGain();
+      out.gain.value = 0.18; out.connect(audio.destination);
+      for (let k = 0; k < 9; k++) {
+        const t = t0 + k * 0.07 + Math.random() * 0.03, base = 2200 + Math.random() * 1400;
+        for (const ratio of [1, 1.51, 2.37]) {
+          const o = audio.createOscillator(), g = audio.createGain();
+          o.type = "sine"; o.frequency.value = base * ratio;
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.35 / ratio, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35 / ratio);
+          o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.4);
+        }
+      }
+    } catch {}
+  }
+  function swing(bells) { bells.forEach((b) => { b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); }); }
+
   function greeting() {
-    const g = hidden(make("p", "xmas-greet", '<span class="bell">🔔</span> Christmas Chibai! <span class="bell">🔔</span>'));
-    g.removeAttribute("aria-hidden"); // the words are real; only the bells are decoration
-    g.querySelectorAll(".bell").forEach(hidden);
+    const g = make("p", "xmas-greet", '<button type="button" class="bell" aria-label="Ring the bells">🔔</button> Christmas Chibai! <button type="button" class="bell" tabindex="-1" aria-hidden="true">🔔</button>');
+    const bells = [...g.querySelectorAll(".bell")];
+    bells.forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); jingle(); swing(bells); }));
+    // The first touch anywhere on the page rings them once (a first tap on a bell rings on its own).
+    let first = true;
+    addEventListener("pointerdown", (e) => {
+      if (!first) return;
+      first = false;
+      if (!e.target.closest?.(".bell")) { jingle(); swing(bells); }
+    }, { capture: true });
     const cpTitle = document.querySelector("body.blue .hero h1");
     if (cpTitle) cpTitle.before(g);
     else document.querySelector("body.blue main")?.prepend(g);
