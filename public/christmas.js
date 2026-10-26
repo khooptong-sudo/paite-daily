@@ -31,46 +31,34 @@
   </svg>`;
   const HAT = `<svg viewBox="0 0 64 48" width="64" height="48"><path d="M8 38 Q20 4 50 8 Q58 9 60 22 L54 24 Q50 16 44 18 Q34 26 30 38 Z" fill="#d4142f"/><circle cx="58" cy="25" r="5.5" fill="#fff"/><rect x="2" y="34" width="34" height="10" rx="5" fill="#fff" transform="rotate(-6 19 39)"/></svg>`;
 
-  // The bells play the opening of "Jingle Bells" (1857, public domain) in a soft bell tone,
-  // with a light sleigh-bell shimmer on the beat. Made in the browser, no sound file.
+  // The bells play "Jingle Bells (Bells Only)" by VoiceBosch (Pixabay Content License, free
+  // to use on a site), trimmed to its first 11 seconds with a fade in public/jingle-bells.mp3.
   // Phones only allow sound after a touch, so it plays at the first touch anywhere, and
-  // again every time a bell is tapped (a tap while it plays starts it over).
-  let audio = null, playing = null;
-  const NOTE = { C: 523.25, D: 587.33, E: 659.25, G: 783.99 };
-  // E E E- | E E E- | E G C D | E---
-  const TUNE = [["E", 1], ["E", 1], ["E", 2], ["E", 1], ["E", 1], ["E", 2], ["E", 1], ["G", 1], ["C", 1.5], ["D", .5], ["E", 4]];
-  const BEAT = 0.24;
-  function tone(out, t, f, len, vol) {
-    // A bell: the note plus two quieter overtones, struck and ringing away.
-    for (const [ratio, v] of [[1, 1], [2, .35], [3.01, .12]]) {
-      const o = audio.createOscillator(), g = audio.createGain();
-      o.type = "sine"; o.frequency.value = f * ratio;
-      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol * v, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.5, len * 1.6) / ratio);
-      o.connect(g); g.connect(out); o.start(t); o.stop(t + 2);
-    }
-  }
-  function shimmer(out, t) {
-    for (let k = 0; k < 3; k++) {
-      const o = audio.createOscillator(), g = audio.createGain(), s = t + k * 0.025;
-      o.type = "sine"; o.frequency.value = 3800 + Math.random() * 1600;
-      g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.05, s + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, s + 0.12);
-      o.connect(g); g.connect(out); o.start(s); o.stop(s + 0.15);
-    }
-  }
+  // again every time a bell is tapped (a tap while it plays starts it over). The speaker
+  // button in the corner mutes it at once, and the choice is remembered on the phone.
+  const KEY = "pd:xmas-muted";
+  let muted = false, sound = null, mute = null;
+  try { muted = localStorage.getItem(KEY) === "1"; } catch {}
   function jingle() {
-    try {
-      audio ??= new (window.AudioContext || window.webkitAudioContext)();
-      if (audio.state === "suspended") audio.resume();
-      if (playing) { playing.gain.setTargetAtTime(0, audio.currentTime, 0.02); setTimeout(((p) => () => p.disconnect())(playing), 200); }
-      const out = audio.createGain();
-      out.gain.value = 0.22; out.connect(audio.destination); playing = out;
-      let t = audio.currentTime + 0.03;
-      for (const [n, beats] of TUNE) {
-        tone(out, t, NOTE[n], beats * BEAT, 0.5);
-        shimmer(out, t);
-        t += beats * BEAT;
-      }
-    } catch {}
+    if (muted) return;
+    sound ??= Object.assign(new Audio("/jingle-bells.mp3"), { volume: 0.6, preload: "auto" });
+    sound.currentTime = 0;
+    sound.play().catch(() => {});
+  }
+  function setMuted(m) {
+    muted = m;
+    try { localStorage.setItem(KEY, m ? "1" : "0"); } catch {}
+    if (m && sound) sound.pause();
+    mute.textContent = m ? "🔇" : "🔊";
+    mute.setAttribute("aria-pressed", String(m));
+    mute.setAttribute("aria-label", m ? "Turn the Christmas bells on" : "Mute the Christmas bells");
+  }
+  function muteButton() {
+    mute = make("button", "xmas-mute");
+    mute.type = "button";
+    mute.addEventListener("click", (e) => { e.stopPropagation(); setMuted(!muted); });
+    document.body.append(mute);
+    setMuted(muted);
   }
   function swing(bells) { bells.forEach((b) => { b.classList.remove("shake"); void b.offsetWidth; b.classList.add("shake"); }); }
 
@@ -83,7 +71,7 @@
     addEventListener("pointerdown", (e) => {
       if (!first) return;
       first = false;
-      if (!e.target.closest?.(".bell")) { jingle(); swing(bells); }
+      if (!e.target.closest?.(".bell, .xmas-mute")) { jingle(); swing(bells); }
     }, { capture: true });
     const cpTitle = document.querySelector("body.blue .hero h1");
     if (cpTitle) cpTitle.before(g);
@@ -162,7 +150,7 @@
   }
 
   const start = () => {
-    greeting(); hat(); stars(); trees();
+    muteButton(); greeting(); hat(); stars(); trees();
     setTimeout(lights, 60); // after ripple.js has put its canvas in
     if (!still) { snow(); sleigh(); }
   };
