@@ -10,6 +10,7 @@ import { nextWordToTranslate, submitMeaning, submitWord } from "./words";
 import { submitProverbAnswer, submitProverbPair } from "./proverbs";
 import { nextLine, submitRecording, verifiedCount } from "./recordings";
 import { checkGrammar } from "./grammar";
+import { checkSpelling } from "./spelling";
 import { json, type Deps, type Env } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -99,6 +100,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   }
   if (pathname === "/api/record" && req.method === "POST") return submitRecording(req, env, phoneId, deps.now());
 
+  if (pathname === "/api/spelling" && req.method === "POST") return checkSpelling(env, await body(req), deps.now());
   if (pathname === "/api/grammar" && req.method === "POST") return checkGrammar(env, phoneId, await body(req), deps.now(), deps.fetch ?? ((u, i) => fetch(u, i)));
 
   if (pathname === "/api/word" && req.method === "POST") return submitWord(env, phoneId, await body(req));

@@ -6,11 +6,12 @@
 (() => {
   // The page decides how to reach the check: the front page through its session, the
   // reviewer pages through Cloudflare Access. /proverbs has neither, so no pill there.
-  const check = (text) => {
-    if (window.paiteApi) return window.paiteApi("/api/grammar", { method: "POST", body: JSON.stringify({ text }) });
-    if (location.pathname.startsWith("/review")) return fetch("/review/api/grammar", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
+  const call = (what, text) => {
+    if (window.paiteApi) return window.paiteApi(`/api/${what}`, { method: "POST", body: JSON.stringify({ text }) });
+    if (location.pathname.startsWith("/review")) return fetch(`/review/api/${what}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });
     return null;
   };
+  const check = (text) => call("grammar", text);
   const make = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text) e.textContent = text; return e; };
 
   function pill(el) {
@@ -44,6 +45,52 @@
     return wrap;
   }
 
+  // Check spelling, for Paite fields: every word is looked up in verified Paite. An unseen
+  // word shows the nearest spellings people have used; tapping one swaps it in. Nothing is
+  // generated, and an unseen word may simply be new.
+  // A word is letters and apostrophes only, so it needs no escaping inside the pattern.
+  const swap = (text, from, to) => text.replace(new RegExp(`(^|[^\\p{L}'’])(${from.replace(/'/g, "['’]")})(?=$|[^\\p{L}'’])`, "giu"),
+    (_, pre, w) => pre + (w[0] === w[0].toUpperCase() && w[0] !== w[0].toLowerCase() ? to[0].toUpperCase() + to.slice(1) : to));
+  function spellPill(el) {
+    if (el._spell) return el._spell;
+    const wrap = make("div", "gram"), btn = make("button", "share-chip", "Check spelling"), out = make("div", "gram-out");
+    btn.type = "button"; out.hidden = true; out.setAttribute("role", "status");
+    wrap.append(btn, out); el.after(wrap);
+    const run = async () => {
+      const text = el.value.trim();
+      if (!text) { el.focus(); return; }
+      btn.disabled = true; out.hidden = false; out.textContent = "Checking…";
+      try {
+        const r = await call("spelling", text);
+        if (!r || !r.ok) { out.textContent = "Could not check right now."; return; }
+        const j = await r.json();
+        out.textContent = "";
+        const unseen = j.words.filter((w) => !w.count);
+        if (!unseen.length) { out.append(make("span", "", "Every word is in verified Paite.")); return; }
+        out.append(make("span", "gram-label", "Not in verified Paite yet"));
+        for (const w of unseen) {
+          const row = make("div", "spell-row");
+          row.append(make("b", "", w.word));
+          if (w.suggestions.length) {
+            row.append(make("span", "", "Seen:"));
+            for (const s of w.suggestions) {
+              const b = make("button", "share-chip", `${s.word} (${s.count})`);
+              b.type = "button";
+              b.onclick = () => { el.value = swap(el.value, w.word, s.word); el.dispatchEvent(new Event("input", { bubbles: true })); run(); };
+              row.append(b);
+            }
+          } else row.append(make("span", "", "No close spelling yet. It may be a new word, which is fine."));
+          out.append(row);
+        }
+      } catch { out.textContent = "Could not check right now."; }
+      finally { btn.disabled = false; }
+    };
+    btn.addEventListener("click", run);
+    el.addEventListener("input", () => { if (!out.contains(document.activeElement)) out.hidden = true; });
+    el._spell = wrap;
+    return wrap;
+  }
+
   window.pdLang = (el, lang) => {
     if (!el) return;
     el.dataset.lang = lang;
@@ -52,6 +99,9 @@
     const canCheck = lang === "en" && el.dataset.check !== "off" && (window.paiteApi || location.pathname.startsWith("/review"));
     if (canCheck) pill(el).hidden = false;
     else if (el._gram) el._gram.hidden = true;
+    const canSpell = lang === "pai" && el.dataset.check !== "off" && (window.paiteApi || location.pathname.startsWith("/review"));
+    if (canSpell) spellPill(el).hidden = false;
+    else if (el._spell) el._spell.hidden = true;
   };
   const init = () => document.querySelectorAll("[data-lang]").forEach((el) => window.pdLang(el, el.dataset.lang));
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();

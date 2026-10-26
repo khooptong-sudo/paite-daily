@@ -1,12 +1,17 @@
-# Handoff, 26 October 2026 (counts, Hear it, Check English, title styles)
+# Handoff, 26 October 2026 (blue look, Check spelling, counts, Hear it, Check English)
 
-Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or start on value addition 2.**
+Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or start on value addition 3.**
 
 ## Where things stand
 - Live version `4673df25`, from `main` at `1615a62`, pushed. Live site, GitHub and `main` all match. Service worker cache **`v35`**.
 - Remote D1 has every migration through **`0027_grammar_checks.sql`**. Nothing pending.
 - R2 bucket **`paite-daily-audio`** exists, bound as `AUDIO` in `wrangler.jsonc`.
 - 268 tests pass, `tsc` clean.
+
+## Shipped 26 October, later
+- **Blue look on every page.** `body.blue` (front page, 404, 500, reviewer pages) and `body.cp.blue` (About, Panlate, word list, sayings) in `public/style.css`; `public/review/proverbs.html` carries its own copy. Near-black top fading through blue to pale `#eef2fb` over a fixed 1500px. Type on the dark top is solid white; cards are frosted white glass with solid ink text; the main action of each form is **solid blue** (owner approved, replaces the outlined-only rule). Body text is **Inter** everywhere; titles stay Young Serif. Owner wants text crisp: no faded or see-through type.
+- **Check spelling** (value addition 2). Paite fields (`data-lang="pai"`) get a Check spelling pill (`public/grammar.js`). `POST /api/spelling` and `/review/api/spelling` (`src/spelling.ts`) look each word up in verified answers (through `finalPaite`) and the visible word list; an unseen word gets up to three nearest seen spellings (edit distance 1 for short words, 2 otherwise, swaps count as one), most used first. Tapping one swaps it into the field. No AI, no rate limit; the word table is cached per worker for ten minutes. **Pill text is English only: ask the owner for Paite.**
+- Cache **`v39`**. 274 tests.
 
 ## Shipped 25 and 26 October
 - **Counts for each section.** `/api/me` returns `total` (sentences), `words`, `meanings`, `sayings`, `recordings`, `verified`, `badge`. Each front-page box shows a quiet "You: N"; `/proverbs` reads the stored copy (`localStorage pd:me`). The shawl weaves a thread per item in every section, and its share card lists each section. The old score share and its `app.js` code are gone.
@@ -17,7 +22,6 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - **Look and words.** Every card title is Young Serif at regular weight with its English as a small uppercase caption (`.card h2`, `.card h2 small`). The owner kept Young Serif after previewing Morenn and Rosehot. Contributor-facing "sayings" are now **Pau Upa** (proverbs & idioms). "About This Project" sits right-aligned under Reviewer and matches the footer link. Ask a relative is a WhatsApp pill on its own row with the owner's Paite how-to above the English. The Paite licence line opens "A utteng".
 
 ## Value additions still to do (suggested order)
-2. **Is this spelled right?**: check a word against verified sentences and suggest attested spellings. Seed of the first Paite spellchecker.
 3. **Swipe review on phone** for reviewers, with answer differences highlighted; keyboard shortcuts on desktop.
 4. **Self-writing spelling rulebook**: save reviewer corrections as rules, show them at review time, publish as a page.
 5. **Gap-driven prompts**: serve sentences for common English words with no Paite example first.
@@ -31,7 +35,6 @@ Concepts for several are in the private artifact "Paite Daily Rewoven": https://
 - **Hear it has no public player.** Accepted clips play at `/audio/<id>` but no page shows them yet; the chat demo or the corpus export are the obvious places. Rejected clips stay in R2.
 - **Hear it card text is English only.** The owner can supply Paite for "Hear it" and the consent line.
 - The owner has not yet seen the Hear it card on their phone. Their three linked phones have verified sentences, so it is most likely a different browser. Ask whether it shows now.
-- `/about`, `/glossary` and `/contributors` keep their own heading styles; match them to the new card titles if the owner asks.
 - Word-list entries extracted before 25 Oct may carry uncorrected Paite; reviewers fix them with Edit.
 - Reviewer pages still say "saying"; only contributor-facing text became Pau Upa.
 - Open decisions from before: the footer coffee note says "AI and server costs" while /about says nothing is machine-generated.
@@ -46,7 +49,7 @@ Concepts for several are in the private artifact "Paite Daily Rewoven": https://
 - **Cloudflare login:** `wrangler login` alone fails in Firefox (it reaches `localhost` over IPv6). Run `npx wrangler login --callback-host 127.0.0.1 --callback-port 8976` in a terminal tab that stays open; if the browser still says "Unable to connect", change `localhost` to `127.0.0.1` in the address bar.
 - **Browser pane:** it fails the site's Turnstile check, so it never gets a contributor session. Hear it, Check English and anything behind `/api/*` must be tried on the owner's phone. Layout checks work by injecting CSS on the live page.
 - Raise the service worker `CACHE` in `public/sw.js` with every shell change.
-- House rules: no em dashes in copy, buttons outlined never filled, never classify Paite with a colonial exonym.
+- House rules: no em dashes in copy, the main action solid blue and the small chips outlined, never classify Paite with a colonial exonym.
 
 Newest first. Each session prepends one section directly under this line.
 

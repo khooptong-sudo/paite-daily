@@ -331,3 +331,6 @@ body.blue { min-height: 100vh; }
 .blue .cta { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; background: var(--blue); color: #fff; border: 0; box-shadow: 0 1px 2px rgba(11, 75, 255, .35); text-decoration: none; font-weight: 600; }
 .blue .cta small { color: rgba(255, 255, 255, .85); }
 .blue .cta:hover { background: #0a3fd6; }
+/* Check spelling: one row per unseen word, its nearest seen spellings as pills. */
+.spell-row { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.spell-row b { color: var(--fg); }

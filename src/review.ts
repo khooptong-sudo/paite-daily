@@ -33,6 +33,7 @@ import { analytics, recentErrors } from "./observability";
 import { handleWords } from "./words";
 import { handleRecordingReview } from "./recordings";
 import { checkGrammar } from "./grammar";
+import { checkSpelling } from "./spelling";
 import { claimNext, decide, skipCard, undo, type Decision } from "./reviewdb";
 import { json, type Deps, type Env } from "./types";
 
@@ -47,6 +48,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
   const owned = await handleOwnerReview(pathname, req.method, b, env, email);
   if (owned) return owned;
 
+  if (pathname === "/review/api/spelling" && req.method === "POST") return checkSpelling(env, b, deps.now());
   if (pathname === "/review/api/grammar" && req.method === "POST") return checkGrammar(env, email.toLowerCase(), b, deps.now(), deps.fetch ?? ((u, i) => fetch(u, i)));
 
   const heard = await handleRecordingReview(req, pathname, b, env, email);
