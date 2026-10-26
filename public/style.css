@@ -427,3 +427,7 @@ canvas.puan-ripple { display: block; width: 100%; max-width: 560px; height: auto
 .news a { justify-self: start; font-weight: 600; font-size: .9rem; color: var(--blue, #0b4bff); }
 .news-close { position: absolute; top: 10px; right: 10px; width: 34px; height: 34px; padding: 0; border-radius: 50%; display: grid; place-items: center; font: 400 1.4rem/1 var(--body); color: var(--muted); background: transparent; border: 1px solid var(--line); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 .news-close:hover { color: var(--fg); border-color: var(--hair); }
+
+/* Your Week (week.js): a short progress line and a share chip, only once something was sent. */
+.week { gap: 8px; justify-items: start; }
+.week p { margin: 0; color: var(--fg); font-weight: 600; }

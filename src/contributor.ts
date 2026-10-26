@@ -12,6 +12,7 @@ import { nextLine, submitRecording, verifiedCount } from "./recordings";
 import { checkGrammar } from "./grammar";
 import { checkSpelling } from "./spelling";
 import { cleanPlace } from "./places";
+import { weekFor } from "./week";
 import { json, type Deps, type Env } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -99,6 +100,8 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
     // One count per section: the puan's share card and each box's "You: N" read these.
     return json({ total: r!.total, verified: r!.verified, words: r!.words, meanings: r!.meanings, sayings: r!.sayings, recordings: r!.recordings, badge: badgeFor(r!.verified) });
   }
+
+  if (pathname === "/api/week" && req.method === "GET") return json(await weekFor(env, phoneId, deps.now()));
 
   // Hear it: only a phone with a verified sentence gets a line to read aloud.
   if (pathname === "/api/record/next" && req.method === "GET") {

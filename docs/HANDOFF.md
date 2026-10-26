@@ -27,7 +27,9 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - **House style: no old-style endings.** The owner: uh, uhi, ahi or hi at the end of a sentence is an older style that is dying out. The Spelling Danbu says so at the top, and at review time an answer ending that way gets a "Drop" pill (`OLD_END` in `review.js`).
 - **About page** now says where AI helps (sentence suggestions, the advisory reviewer note, Check English, word-list extraction) and that it never writes, corrects or approves Paite; the coffee note keeps "AI and server costs". It also no longer claims two reviewers approve each Pau Upa (one does).
 - Owner's Paite: **Aw in Aw** (Hear it) with its line, **Na sungte/lawmte kuahiam khat dong mah** (Ask a relative or friend). Reviewer pages say Pau Upa. WhatsApp icon is white on the dark top.
-- Cache **`v53`**. 292 tests.
+- **Your Week** (27 Oct, value-add 1 of 7; built by a Sonnet subagent, reviewed here). `GET /api/week` (`src/week.ts`): sent, verified (accepting review in the last 7 days, not undone), words and rank by sent, ties sharing a place. Front-page card `#week` under What's New, shown once something was sent; Share draws a blue 1080x1920 status image (`public/week.js`). "Your Week" is English only.
+- **Working method for value-adds 2 to 7:** a Sonnet `frugal:builder` builds each from a written brief, never commits; the main session reviews the diff, fixes what is off, checks it in the browser, then ships.
+- Cache **`v54`**. 295 tests.
 
 ## Shipped 25 and 26 October
 - **Counts for each section.** `/api/me` returns `total` (sentences), `words`, `meanings`, `sayings`, `recordings`, `verified`, `badge`. Each front-page box shows a quiet "You: N"; `/proverbs` reads the stored copy (`localStorage pd:me`). The shawl weaves a thread per item in every section, and its share card lists each section. The old score share and its `app.js` code are gone.
