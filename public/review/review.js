@@ -59,6 +59,35 @@
     });
   }
 
+  // The rulebook at review time: a word in an answer that reviewers have corrected before
+  // shows what it became and how often, with a tap to make the same change in the edit box.
+  let rules = new Map();
+  async function loadRules() {
+    try {
+      const r = await fetch("/review/api/rules");
+      if (!r.ok) return;
+      for (const x of (await r.json()).rules) { if (!rules.has(x.from)) rules.set(x.from, []); rules.get(x.from).push(x); }
+    } catch {}
+  }
+  const swapWord = (text, from, to) => text.replace(new RegExp(`(^|[^\p{L}'’])(${from.replace(/'/g, "['’]")})(?=$|[^\p{L}'’])`, "giu"),
+    (_, pre, w) => pre + (w[0] !== w[0].toLowerCase() ? to[0].toUpperCase() + to.slice(1) : to));
+  function ruleHints(text, edit) {
+    const seen = new Set(), wrap = document.createElement("div"); wrap.className = "rulehints";
+    for (const w of wordsOf(text)) {
+      const w2 = w.replace(/’/g, "'");
+      if (seen.has(w2) || !rules.has(w2)) continue;
+      seen.add(w2);
+      for (const x of rules.get(w2)) {
+        const row = document.createElement("div"); row.className = "meta rulehint";
+        const t = document.createElement("span"); t.textContent = `Reviewers changed ${x.from} to ${x.to} ${x.count === 1 ? "once" : x.count + " times"}.`;
+        const use = document.createElement("button"); use.type = "button"; use.className = "share-chip"; use.textContent = `Use ${x.to}`;
+        use.addEventListener("click", () => { edit.value = swapWord(edit.value, x.from, x.to); edit.focus(); });
+        row.append(t, use); wrap.append(row);
+      }
+    }
+    return wrap.childNodes.length ? wrap : null;
+  }
+
   function render() {
     const rev = card.sentence.direction === "pai2en";
     $("dir").textContent = rev ? "Paite to English: translate into English" : "English";
@@ -81,7 +110,8 @@
       box.append(p, meta);
       if (a.explanation) { const ex = document.createElement("div"); ex.className = "meta"; ex.textContent = a.explanation; box.append(ex); }
       if (a.ai_note) { const ai = document.createElement("div"); ai.className = "ai"; ai.textContent = "AI note (advisory)" + (a.ai_flag ? " [" + (rev && a.ai_flag === "english" ? "not_english" : a.ai_flag) + "]" : "") + ": " + a.ai_note; box.append(ai); }
-      const edit = document.createElement("textarea"); edit.value = a.paite; edit.maxLength = 300; edit.setAttribute("aria-label", "Edit before accepting: " + a.paite); edit.dataset.lang = rev ? "en" : "pai";
+      const edit = document.createElement("textarea"); edit.value = a.paite;
+      const hints = rev ? null : ruleHints(a.paite, edit); edit.maxLength = 300; edit.setAttribute("aria-label", "Edit before accepting: " + a.paite); edit.dataset.lang = rev ? "en" : "pai";
       const also = document.createElement("label"); also.hidden = !multi;
       const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.answerId = a.id; cb.setAttribute("aria-label", "Also correct (keep as variant): " + a.paite);
       cb.addEventListener("change", () => box.classList.toggle("variant", cb.checked));
@@ -96,7 +126,9 @@
       const reject = document.createElement("button"); reject.type = "button"; reject.textContent = "✕ Reject"; reject.setAttribute("aria-label", "Reject this answer only: " + a.paite);
       reject.addEventListener("click", () => send({ decision: "reject", answerIds: [a.id] }, "Answer rejected. The rest stay open."));
       const row = document.createElement("div"); row.className = "row3"; row.append(accept, reject);
-      box.append(edit, also, row);
+      box.append(edit);
+      if (hints) box.append(hints);
+      box.append(also, row);
       if (touch) swipeable(box, () => accept.click(), () => reject.click());
       box._accept = accept; box._reject = reject; box._edit = edit; box._also = cb;
       return box;
@@ -403,5 +435,5 @@
 
   // Link this browser's contributor phone id to the signed-in reviewer (for the badge on /contributors).
   const linkPhone = () => { try { const id = JSON.parse(localStorage.getItem("pd:phone")); if (id) post("/review/api/link-phone", { phoneId: id }).catch(() => {}); } catch {} };
-  me().then((ok) => { if (ok) { linkPhone(); next().then(() => { if (lastUndo !== null) showUndo(lastUndo); }); words(); newWords(); if (isOwner) { health(); people(); insights(); } } });
+  me().then((ok) => { if (ok) { linkPhone(); loadRules().then(next).then(() => { if (lastUndo !== null) showUndo(lastUndo); }); words(); newWords(); if (isOwner) { health(); people(); insights(); } } });
 })();

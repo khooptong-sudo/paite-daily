@@ -23,6 +23,9 @@
   .answer.go-yes { box-shadow: 0 0 0 3px #00a651; background: #eafaf0; }
   .answer.go-no { box-shadow: 0 0 0 3px #d71920; background: #fdecee; }
   .swipe-hint { margin: 0; }
+  .rulehints { display: grid; gap: 6px; }
+  .rulehint { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; }
+  .rulehint .share-chip { margin-left: 0; }
   .queue { color: var(--muted); font-size: .95rem; margin: 0; }
   .kbd { display: none; margin-left: 8px; padding: 0 6px; border: 1px solid var(--line); border-radius: 6px; font-size: .75rem; opacity: .8; }
   @media (min-width: 700px) { .kbd { display: inline-block; } }
@@ -42,7 +45,7 @@
 </head>
 <body class="blue">
 <main>
-  <header><h1>Paite Review</h1><a href="/review/proverbs" style="align-self:center;font-size:.86rem;color:#b3253c;text-decoration:none;border-bottom:1px solid currentColor">Sayings queue &rarr;</a><a href="/review/audio" style="align-self:center;font-size:.86rem;color:#b3253c;text-decoration:none;border-bottom:1px solid currentColor">Recordings &rarr;</a><div class="streak" id="who"></div></header>
+  <header><h1>Paite Review</h1><a href="/review/proverbs" style="align-self:center;font-size:.86rem;color:#b3253c;text-decoration:none;border-bottom:1px solid currentColor">Sayings queue &rarr;</a><a href="/rules" style="align-self:center;font-size:.86rem;color:#b3253c;text-decoration:none;border-bottom:1px solid currentColor">Rulebook &rarr;</a><a href="/review/audio" style="align-self:center;font-size:.86rem;color:#b3253c;text-decoration:none;border-bottom:1px solid currentColor">Recordings &rarr;</a><div class="streak" id="who"></div></header>
   <p class="queue" id="queue" aria-live="polite"></p>
   <section class="card" id="card">
     <div class="label" id="dir">English</div>

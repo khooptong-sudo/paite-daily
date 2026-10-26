@@ -34,6 +34,7 @@ import { handleWords } from "./words";
 import { handleRecordingReview } from "./recordings";
 import { checkGrammar } from "./grammar";
 import { checkSpelling } from "./spelling";
+import { getRules } from "./rules";
 import { claimNext, decide, skipCard, undo, type Decision } from "./reviewdb";
 import { json, type Deps, type Env } from "./types";
 
@@ -48,6 +49,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
   const owned = await handleOwnerReview(pathname, req.method, b, env, email);
   if (owned) return owned;
 
+  if (pathname === "/review/api/rules" && req.method === "GET") return json({ rules: await getRules(env, deps.now()) });
   if (pathname === "/review/api/spelling" && req.method === "POST") return checkSpelling(env, b, deps.now());
   if (pathname === "/review/api/grammar" && req.method === "POST") return checkGrammar(env, email.toLowerCase(), b, deps.now(), deps.fetch ?? ((u, i) => fetch(u, i)));
 
