@@ -279,12 +279,15 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
    colour; the main action is solid blue. Scoped to body.blue so the other pages keep their look. */
 body.blue {
   --bg: #eef2fb; --fg: #0b1430; --muted: #4a5578; --line: rgba(11, 20, 48, .12); --hair: rgba(11, 20, 48, .4);
-  --blue: #0b4bff; --ring: #0b4bff;
-  background: linear-gradient(180deg, #020617 0, #020617 160px, #0a2a8a 420px, #0b4bff 760px, #7aa7ff 1150px, #eef2fb 1500px) top / 100% 1500px no-repeat, #eef2fb;
+  --blue: #0b4bff; --blue-hover: #0a3fd6; --ring: #0b4bff;
+  /* The page colour, top to bottom; seasons and dark mode change these. */
+  --top: #020617; --g1: #0a2a8a; --g2: #0b4bff; --g3: #7aa7ff; --end: #eef2fb;
+  background: linear-gradient(180deg, var(--top) 0, var(--top) 160px, var(--g1) 420px, var(--g2) 760px, var(--g3) 1150px, var(--end) 1500px) top / 100% 1500px no-repeat, var(--end);
   -webkit-font-smoothing: antialiased;
 }
 body.blue::before { display: none; }
 html:has(body.blue) { background: #eef2fb; min-height: 100%; }
+[data-theme=dark]:has(body.blue) { background: #17181a; }
 body.blue { min-height: 100vh; }
 /* Header, goal and shawl sit on the dark top: solid white type. */
 .blue header, .blue header a, .blue header h1, .blue .goal, .blue .goal b, .blue .mypuan h2, .blue .mypuan-how, .blue .mypuan-how b, .blue .mypuan-note { color: #fff; }
@@ -305,7 +308,7 @@ body.blue { min-height: 100vh; }
 .blue input[type=checkbox] { accent-color: var(--blue); }
 /* One solid blue action per form; Skip stays a text link, the small chips stay outlined. */
 .blue button.primary, .blue .seg button[aria-pressed="true"] { background: var(--blue); color: #fff; border: 0; border-radius: 12px; font-weight: 600; box-shadow: 0 1px 2px rgba(11, 75, 255, .35); }
-.blue button.primary:hover:not(:disabled) { background: #0a3fd6; }
+.blue button.primary:hover:not(:disabled) { background: var(--blue-hover); }
 .blue button.primary small { color: rgba(255, 255, 255, .85); }
 .blue .actions button:not(.primary) { color: var(--fg); font-weight: 600; }
 .blue .card .share-chip { color: var(--fg); border-color: rgba(11, 20, 48, .35); }
@@ -330,7 +333,7 @@ body.blue { min-height: 100vh; }
 .blue.cp .hero h1 { font-size: clamp(2.4rem, 12.5vw, 4.75rem); text-wrap: balance; }
 .blue .cta { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 12px; background: var(--blue); color: #fff; border: 0; box-shadow: 0 1px 2px rgba(11, 75, 255, .35); text-decoration: none; font-weight: 600; }
 .blue .cta small { color: rgba(255, 255, 255, .85); }
-.blue .cta:hover { background: #0a3fd6; }
+.blue .cta:hover { background: var(--blue-hover); }
 /* Check spelling: one row per unseen word, its nearest seen spellings as pills. */
 .spell-row { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .spell-row b { color: var(--fg); }
@@ -338,3 +341,36 @@ body.blue { min-height: 100vh; }
 img.puan.puan-under { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 canvas.puan-ripple { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; cursor: pointer; touch-action: pan-y; }
 .hero canvas.puan-ripple { margin-bottom: 36px; }
+
+/* Charcoal dark mode (theme.js sets data-theme on <html>). The top stays near-black and the
+   colour band stays; the page settles into charcoal instead of pale, and cards turn to
+   charcoal glass with light type. */
+[data-theme=dark] body.blue {
+  --fg: #eef0f3; --muted: #a9b0bf; --line: rgba(255, 255, 255, .12); --hair: rgba(255, 255, 255, .4);
+  --g3: #1f3f9e; --end: #17181a; color-scheme: dark; color: var(--fg);
+}
+[data-theme=dark] .blue .card, [data-theme=dark] .blue.cp main, [data-theme=dark] .blue .clip { background: rgba(32, 34, 35, .9); border-color: rgba(255, 255, 255, .1); box-shadow: 0 10px 32px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .06); }
+[data-theme=dark] .blue textarea, [data-theme=dark] .blue input:not([type=radio]):not([type=checkbox]), [data-theme=dark] .blue select { background: #111214; border-color: rgba(255, 255, 255, .22); color: var(--fg); }
+[data-theme=dark] .blue textarea::placeholder, [data-theme=dark] .blue input::placeholder { color: #7d8495; }
+[data-theme=dark] .blue input[type=radio] { border-color: rgba(255, 255, 255, .7); }
+[data-theme=dark] .blue .answer, [data-theme=dark] .blue .bub, [data-theme=dark] .blue .chat-note .answer { background: #111214; color: var(--fg); }
+[data-theme=dark] .blue .card .share-chip, [data-theme=dark] .blue .share-chip { color: var(--fg); border-color: rgba(255, 255, 255, .4); background: transparent; }
+[data-theme=dark] .blue .share-chip img { filter: invert(1); }
+[data-theme=dark] .blue .actions button:not(.primary), [data-theme=dark] .blue .want, [data-theme=dark] .blue a:not(.cta):not(.back):not(.lab) { color: var(--fg); }
+[data-theme=dark] .blue .lab { color: #fff; }
+[data-theme=dark] .blue .status.err { color: #ff7b81; }
+[data-theme=dark] .blue .goal-bar { background: rgba(255, 255, 255, .12); }
+[data-theme=dark] .blue code { background: rgba(255, 255, 255, .06); }
+
+/* Seasons (theme.js sets data-season). Chavang Kut: the harvest, amber into gold.
+   Christmas: evergreen with a red main action. Dark mode keeps its charcoal end. */
+[data-season=kut] body.blue { --g1: #5a2d00; --g2: #b86a00; --g3: #f2c14e; --end: #fbf6ea; --blue: #b45309; --blue-hover: #92400e; --ring: #b45309; }
+[data-season=christmas] body.blue { --g1: #063d1f; --g2: #0b6b34; --g3: #8fd1a6; --end: #f1f8f3; --blue: #c8102e; --blue-hover: #a10d25; --ring: #c8102e; }
+[data-theme=dark][data-season] body.blue { --g3: color-mix(in srgb, var(--g2) 45%, #17181a); --end: #17181a; }
+.season-pill { order: -1; width: 100%; margin: 0 0 6px; font: 600 .8rem/1.2 var(--body); letter-spacing: .06em; text-transform: uppercase; color: #ffe27a; }
+.hero .season-pill { text-align: center; margin: 0 0 12px; }
+[data-season=christmas] .season-pill { color: #ffd1d8; }
+
+/* The light/dark switch in the footer, styled as a link. */
+.theme-toggle { background: none; border: 0; box-shadow: none; padding: 6px 2px; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.foot .reach .theme-toggle { color: #fff; }

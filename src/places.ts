@@ -60,6 +60,7 @@ export function renderPlaces(ps: PlaceCount[]): string {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/style.css">
+<script src="/theme.js"></script>
 <link rel="stylesheet" href="/contributors.css">
 <style>
 .map{width:100%;height:auto;display:block;background:linear-gradient(180deg,#eef3ff,#f7f9ff);border:1px solid var(--line);border-radius:16px}

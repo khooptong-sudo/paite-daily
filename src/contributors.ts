@@ -172,6 +172,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/style.css">
+<script src="/theme.js"></script>
 ${css}</head>
 <body class="cp blue" data-sitekey="${esc(siteKey)}">
 <header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="contributorsTitle">Contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>

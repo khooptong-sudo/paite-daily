@@ -80,6 +80,7 @@ export function renderRules(rules: Rule[]): string {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="/style.css">
+<script src="/theme.js"></script>
 <link rel="stylesheet" href="/contributors.css">
 <style>
 .rules{list-style:none;margin:0;padding:0;display:grid;gap:14px}

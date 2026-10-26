@@ -269,3 +269,11 @@
   100% { transform: translate(var(--x), var(--y)) scale(1) rotate(160deg); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) { .p1 .rk.pop, .spark { animation: none; } .spark { display: none; } }
+
+/* Charcoal dark mode for Panlate, the word list and the sayings page. */
+[data-theme=dark] .blue .p, [data-theme=dark] .blue .rows, [data-theme=dark] .blue .empty, [data-theme=dark] .blue .seg { background: #232527; border-color: rgba(255, 255, 255, .1); color: var(--fg); box-shadow: none; }
+[data-theme=dark] .blue .p1 { background: linear-gradient(180deg, #2a2c2e, #232527) padding-box, linear-gradient(160deg, #f6ff00, #3a3c3e 45%, #00a651 80%, #d71920) border-box; }
+[data-theme=dark] .blue .seg button { color: var(--fg); }
+[data-theme=dark] .blue .p .pod-share { background: #111214; color: var(--fg); border-color: rgba(255, 255, 255, .3); }
+[data-theme=dark] .blue .pack .sc, [data-theme=dark] .blue .gl .az a, [data-theme=dark] .blue .gl input[type=search], [data-theme=dark] .blue .gl textarea { color: var(--fg); }
+[data-theme=dark] .blue .gl .az { background: #232527; }
