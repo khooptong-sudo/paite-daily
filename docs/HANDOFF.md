@@ -1,6 +1,6 @@
 # Handoff, 26 October 2026 (blue look, Check spelling, counts, Hear it, Check English)
 
-Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or start on value addition 3.**
+Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or start on value addition 4.**
 
 ## Where things stand
 - Live version `4673df25`, from `main` at `1615a62`, pushed. Live site, GitHub and `main` all match. Service worker cache **`v35`**.
@@ -11,7 +11,8 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 ## Shipped 26 October, later
 - **Blue look on every page.** `body.blue` (front page, 404, 500, reviewer pages) and `body.cp.blue` (About, Panlate, word list, sayings) in `public/style.css`; `public/review/proverbs.html` carries its own copy. Near-black top fading through blue to pale `#eef2fb` over a fixed 1500px. Type on the dark top is solid white; cards are frosted white glass with solid ink text; the main action of each form is **solid blue** (owner approved, replaces the outlined-only rule). Body text is **Inter** everywhere; titles stay Young Serif. Owner wants text crisp: no faded or see-through type.
 - **Check spelling** (value addition 2). Paite fields (`data-lang="pai"`) get a Check spelling pill (`public/grammar.js`). `POST /api/spelling` and `/review/api/spelling` (`src/spelling.ts`) look each word up in verified answers (through `finalPaite`) and the visible word list; an unseen word gets up to three nearest seen spellings (edit distance 1 for short words, 2 otherwise, swaps count as one), most used first. Tapping one swaps it into the field. No AI, no rate limit; the word table is cached per worker for ten minutes. **Pill text is English only: ask the owner for Paite.**
-- Cache **`v39`**. 274 tests.
+- **Swipe review and shortcuts** (value addition 3), in `public/review/review.js`. With several answers, words not in every answer are marked yellow. On a phone (`pointer: coarse`) an answer swipes right to accept, left to reject that answer only (30% of its width; scrolling wins when the finger moves more vertically). Desktop: J/K, arrows or 1 to 9 move between answers; A or Enter accepts the highlighted one, X rejects it, E edits it (Esc back), V ticks it as a variant; S, N, R, U and ? as before. Checked with stand-in data only; the owner should try it on the real queue.
+- Cache **`v40`**. 274 tests.
 
 ## Shipped 25 and 26 October
 - **Counts for each section.** `/api/me` returns `total` (sentences), `words`, `meanings`, `sayings`, `recordings`, `verified`, `badge`. Each front-page box shows a quiet "You: N"; `/proverbs` reads the stored copy (`localStorage pd:me`). The shawl weaves a thread per item in every section, and its share card lists each section. The old score share and its `app.js` code are gone.
@@ -22,7 +23,6 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - **Look and words.** Every card title is Young Serif at regular weight with its English as a small uppercase caption (`.card h2`, `.card h2 small`). The owner kept Young Serif after previewing Morenn and Rosehot. Contributor-facing "sayings" are now **Pau Upa** (proverbs & idioms). "About This Project" sits right-aligned under Reviewer and matches the footer link. Ask a relative is a WhatsApp pill on its own row with the owner's Paite how-to above the English. The Paite licence line opens "A utteng".
 
 ## Value additions still to do (suggested order)
-3. **Swipe review on phone** for reviewers, with answer differences highlighted; keyboard shortcuts on desktop.
 4. **Self-writing spelling rulebook**: save reviewer corrections as rules, show them at review time, publish as a page.
 5. **Gap-driven prompts**: serve sentences for common English words with no Paite example first.
 6. **Keyboard and dataset exports**: weekly word-frequency list for Gboard / AnySoftKeyboard; Hugging Face mirror with a dataset card.

@@ -20,6 +20,45 @@
   function hideUndo() { undoId = null; $("undo").hidden = true; }
   function showUndo(id) { undoId = id; $("undo").hidden = false; }
 
+  // Differences: when there are several answers, a word that is not in every answer is
+  // marked, so the reviewer sees at a glance where the answers part ways.
+  const wordsOf = (t) => (t.toLowerCase().match(/\p{L}[\p{L}'’]*/gu) || []);
+  function marked(text, common) {
+    const p = document.createElement("p");
+    for (const part of text.split(/(\p{L}[\p{L}'’]*)/u)) {
+      if (common && /^\p{L}/u.test(part) && !common.has(part.toLowerCase())) { const m = document.createElement("mark"); m.className = "diff"; m.textContent = part; p.append(m); }
+      else p.append(part);
+    }
+    return p;
+  }
+
+  // Swipe on a phone: right accepts this answer, left rejects this answer only. The box
+  // follows the finger; let go before the threshold and it slides back. Scrolling wins
+  // when the finger moves more up or down than sideways.
+  const touch = matchMedia("(pointer: coarse)").matches;
+  function swipeable(box, onRight, onLeft) {
+    let x0 = 0, y0 = 0, dx = 0, live = false, dead = false;
+    box.addEventListener("touchstart", (e) => {
+      if (busy || e.touches.length > 1 || e.target.closest("textarea, input, button, select, label")) { dead = true; return; }
+      dead = live = false; dx = 0; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY;
+    }, { passive: true });
+    box.addEventListener("touchmove", (e) => {
+      if (dead) return;
+      const mx = e.touches[0].clientX - x0, my = e.touches[0].clientY - y0;
+      if (!live) { if (Math.abs(my) > 10 && Math.abs(my) > Math.abs(mx)) { dead = true; return; } if (Math.abs(mx) < 10) return; live = true; }
+      dx = mx; box.style.transition = "none"; box.style.transform = `translateX(${dx}px) rotate(${dx / 40}deg)`;
+      box.classList.toggle("go-yes", dx > box.offsetWidth * .3); box.classList.toggle("go-no", dx < -box.offsetWidth * .3);
+    }, { passive: true });
+    box.addEventListener("touchend", () => {
+      if (dead || !live) return;
+      const far = Math.abs(dx) > box.offsetWidth * .3;
+      box.style.transition = "transform .2s"; box.style.transform = far ? `translateX(${Math.sign(dx) * 120}%)` : "";
+      box.classList.remove("go-yes", "go-no");
+      if (far) (dx > 0 ? onRight : onLeft)();
+      live = false;
+    });
+  }
+
   function render() {
     const rev = card.sentence.direction === "pai2en";
     $("dir").textContent = rev ? "Paite to English: translate into English" : "English";
@@ -29,10 +68,14 @@
     const multi = card.answers.length > 1;
     const hint = document.createElement("p"); hint.className = "meta"; hint.hidden = !multi;
     hint.textContent = "Press Accept this on the best answer. Tick any other correct answers to keep them as variants. Save keeps every answer as a variant when none is the exact answer. Reject removes one answer only; Reject all closes the whole sentence.";
-    $("answers").replaceChildren(hint, ...card.answers.map((a) => {
+    const sets = card.answers.map((a) => new Set(wordsOf(a.paite)));
+    const common = multi ? new Set([...sets[0]].filter((w) => sets.every((s) => s.has(w)))) : null;
+    const swipeHint = document.createElement("p"); swipeHint.className = "meta swipe-hint"; swipeHint.hidden = !touch;
+    swipeHint.textContent = multi ? "Swipe an answer right to accept it, left to reject that answer only. Marked words differ between the answers." : "Swipe the answer right to accept it, left to reject it.";
+    $("answers").replaceChildren(hint, swipeHint, ...card.answers.map((a) => {
       const box = document.createElement("div");
-      box.className = "answer";
-      const p = document.createElement("p"); p.textContent = a.paite;
+      box.className = "answer"; box.tabIndex = -1;
+      const p = marked(a.paite, common);
       const meta = document.createElement("div"); meta.className = "meta";
       meta.textContent = `${a.register}${a.contributor_name ? " · " + a.contributor_name : ""}`;
       box.append(p, meta);
@@ -54,11 +97,13 @@
       reject.addEventListener("click", () => send({ decision: "reject", answerIds: [a.id] }, "Answer rejected. The rest stay open."));
       const row = document.createElement("div"); row.className = "row3"; row.append(accept, reject);
       box.append(edit, also, row);
+      if (touch) swipeable(box, () => accept.click(), () => reject.click());
+      box._accept = accept; box._reject = reject; box._edit = edit; box._also = cb;
       return box;
     }));
     $("answers").querySelectorAll("textarea[data-lang]").forEach((t) => window.pdLang && window.pdLang(t, t.dataset.lang));
-    const first = $("answers").querySelector(".answer p");
-    if (first) { first.tabIndex = -1; first.focus(); } else $("english").focus();
+    const first = $("answers").querySelector(".answer");
+    if (first) focusBox(first); else $("english").focus();
   }
 
   async function queue() {
@@ -68,12 +113,29 @@
     } catch {}
   }
 
+  // Keyboard: J and K (or the arrows, or 1 to 9) move between answers, and every key
+  // acts on the answer that has focus.
+  const boxes = () => [...document.querySelectorAll("#answers .answer")];
+  function focusBox(box) {
+    boxes().forEach((b) => b.classList.toggle("on", b === box));
+    box.focus({ preventScroll: true }); box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  const current = (e) => (e.target.closest && e.target.closest(".answer")) || document.querySelector(".answer.on") || boxes()[0];
+  function step(by, e) { const all = boxes(), i = all.indexOf(current(e)); if (all.length) focusBox(all[Math.max(0, Math.min(all.length - 1, i + by))]); }
+
   document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && e.target.matches && e.target.matches("textarea") && e.target.closest(".answer")) { e.preventDefault(); focusBox(e.target.closest(".answer")); return; }
     if (e.repeat) return;
     if (e.ctrlKey || e.metaKey || e.altKey || e.target.isContentEditable || (e.target.matches && e.target.matches("textarea, select, input:not([type=checkbox])"))) return;
     const k = e.key.toLowerCase();
     if (k === "?") $("help").hidden = !$("help").hidden;
-    else if (k === "a") { const box = (e.target.closest && e.target.closest(".answer")) || document.querySelector(".answer"); if (box) box.querySelector("button.primary").click(); }
+    else if (k === "a" || (k === "enter" && e.target.classList && e.target.classList.contains("answer"))) { const box = current(e); if (box) box._accept.click(); else return; }
+    else if (k === "x") { const box = current(e); if (box) box._reject.click(); }
+    else if (k === "e") { const box = current(e); if (box) { box._edit.focus(); box._edit.select(); } }
+    else if (k === "v") { const box = current(e); if (box && !box._also.parentElement.hidden) box._also.click(); }
+    else if (k === "j" || k === "arrowdown") step(1, e);
+    else if (k === "k" || k === "arrowup") step(-1, e);
+    else if (/^[1-9]$/.test(k)) { const b = boxes()[Number(k) - 1]; if (b) focusBox(b); }
     else if (k === "s") $("save").click();
     else if (k === "n") $("skip").click();
     else if (k === "r") $("reject").click();

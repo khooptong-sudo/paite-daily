@@ -15,6 +15,14 @@
   .answer label { display: flex; align-items: center; justify-content: flex-start; gap: 8px; font-weight: 400; }
   .answer input[type=checkbox] { width: auto; margin: 0; }
   .answer.variant { border: 2px dashed #000; padding: 11px; }
+  /* Words that differ between answers, the answer the keys act on, and the swipe tint. */
+  .answer mark.diff { background: #ffe27a; color: inherit; padding: 0 2px; border-radius: 4px; }
+  .answer:focus { outline: none; }
+  .answer.on { box-shadow: 0 0 0 3px #0b4bff; }
+  .answer { touch-action: pan-y; }
+  .answer.go-yes { box-shadow: 0 0 0 3px #00a651; background: #eafaf0; }
+  .answer.go-no { box-shadow: 0 0 0 3px #d71920; background: #fdecee; }
+  .swipe-hint { margin: 0; }
   .queue { color: var(--muted); font-size: .95rem; margin: 0; }
   .kbd { display: none; margin-left: 8px; padding: 0 6px; border: 1px solid var(--line); border-radius: 6px; font-size: .75rem; opacity: .8; }
   @media (min-width: 700px) { .kbd { display: inline-block; } }
@@ -52,7 +60,7 @@
       <button type="button" id="retire">Retire sentence</button>
     </div>
     <p class="status" id="status" role="status" aria-live="polite"></p><button type="button" id="undo" hidden aria-keyshortcuts="U">↶ Undo last<span class="kbd" aria-hidden="true">U</span></button>
-    <p class="meta" id="help" hidden>Shortcuts: A accept the focused answer (or the first), S save every answer as a variant, N skip this sentence, R reject all, U undo your last decision, ? show or hide this help. Each answer also has its own Reject button, which leaves the other answers open. Skip leaves the sentence in the queue for another reviewer and does not show it to you again for two hours.</p>
+    <p class="meta" id="help" hidden>Shortcuts: J and K (or the arrow keys, or 1 to 9) move between answers. A or Enter accepts the highlighted answer, X rejects it only, E edits it before accepting (Esc to leave the box), V ticks it as a variant. S saves every answer as a variant, N skips this sentence, R rejects all, U undoes your last decision, ? shows or hides this help. On a phone, swipe an answer right to accept it, left to reject it. Each answer also has its own Reject button, which leaves the other answers open. Skip leaves the sentence in the queue for another reviewer and does not show it to you again for two hours.</p>
   </section>
 <section class="card" id="apps-card" aria-labelledby="apps-h" hidden><h2 id="apps-h">Applications</h2><ul id="apps" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
 <section class="card" id="funnel-card" aria-labelledby="funnel-h" hidden><h2 id="funnel-h">Where people drop off</h2><ul id="funnel" style="list-style:none;margin:0;padding:0;display:grid;gap:8px"></ul></section>
