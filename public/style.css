@@ -334,3 +334,7 @@ body.blue { min-height: 100vh; }
 /* Check spelling: one row per unseen word, its nearest seen spellings as pills. */
 .spell-row { width: 100%; display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .spell-row b { color: var(--fg); }
+/* Ripple on the liangbat band (ripple.js): the canvas takes the image's place; the image stays for its alt text. */
+img.puan.puan-under { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+canvas.puan-ripple { display: block; width: 100%; max-width: 560px; height: auto; margin: 0 auto; cursor: pointer; touch-action: pan-y; }
+.hero canvas.puan-ripple { margin-bottom: 36px; }

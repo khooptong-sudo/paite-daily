@@ -118,7 +118,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
     if (!xs.length) return `<p class="empty" data-s="${empty}">${empty === "emptyWeek" ? "No one yet this week. Be the first!" : "No one yet. Be the first!"}</p>`;
     // A phone counts once for the sentences a reviewer accepted and once for the words.
     const cnt = (x: Row) => `${x.sentences ? count(x.sentences, "sentences", "sentences") : ""}${x.words ? count(x.words, "words", "words") : ""}`;
-    const podium = xs.slice(0, 3).map((x, i) => `<li class="p p${i + 1}" style="--i:${i}"><span class="ring">${i + 1}</span><span class="nm">${esc(x.name)}</span><span class="bg">${pills(x)}</span>${cnt(x)}</li>`).join("");
+    const podium = xs.slice(0, 3).map((x, i) => `<li class="p p${i + 1}" style="--i:${i}"><span class="ring"><b class="rk">${i + 1}</b></span><span class="nm">${esc(x.name)}</span><span class="bg">${pills(x)}</span>${cnt(x)}</li>`).join("");
     const rest = xs.slice(3, TOP).map((x, i) => `<li style="--i:${i + 3}"><span class="rk">${i + 4}</span><span class="nm">${esc(x.name)}<span class="bg">${pills(x)}</span></span>${cnt(x)}</li>`).join("");
     // Past the top ten: one box, names and scores only, folded until asked for.
     const more = xs.slice(TOP);
@@ -198,6 +198,7 @@ ${APPLY_OPEN ? `<script src="https://challenges.cloudflare.com/turnstile/v0/api.
 <script src="/strings.js"></script>
 <script src="/back.js"></script>
 <script src="/podium-share.js"></script>
+<script src="/sparkle.js" defer></script>
 <script src="/pwa.js"></script>
 <script src="/track.js"></script>
 <script>${JS}</script>

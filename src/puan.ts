@@ -4,4 +4,4 @@
 // from public/liangbat.png at 3x. Kept identical to the inline copy in
 // public/index.html.
 export const PUAN =
-  '<img class="puan" src="/liangbat.png" width="560" height="120" alt="Paite liangbat, the woven shoulder shawl" decoding="async">';
+  '<img class="puan" src="/liangbat.png" width="560" height="120" alt="Paite liangbat, the woven shoulder shawl" decoding="async"><script src="/ripple.js" defer></script>';
