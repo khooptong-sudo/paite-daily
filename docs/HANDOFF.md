@@ -1,6 +1,6 @@
 # Handoff, 26 October 2026 (blue look, Check spelling, counts, Hear it, Check English)
 
-Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or start on value addition 7.**
+Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or start on value addition 8.**
 
 ## Where things stand
 - Live version `4673df25`, from `main` at `1615a62`, pushed. Live site, GitHub and `main` all match. Service worker cache **`v35`**.
@@ -19,7 +19,8 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - Fixed: the spelling word table counted English answers from Paite-to-English sentences; it now reads only answers into Paite.
 - **Motion.** `public/ripple.js`: a water ripple on the liangbat band (canvas over the `<img>`, which stays for alt text), from a touch or the pointer plus a drop every ~4 s while in view; loaded by the `PUAN` string and the inline copy in `index.html`. `public/sparkle.js`: on the podium the 1 (`.p1 .rk`) squashes, pops and bursts woven-colour stars every 3.6 s, untapped. Both off for reduced motion.
 - **Hugging Face sync confirmed** 26 Oct: the GitHub `HF_TOKEN` secret is set and the first run uploaded `community/` (12 files), `glossary.json`, `CONTRIBUTORS.md` and `LICENSE`. The worker's `HF_TOKEN` secret is deleted.
-- Cache **`v42`**. 285 tests.
+- **Where you learned it** (value addition 7). Optional `place` on each answer (migration `0028`), typed under the translate form (datalist of known places, remembered on the phone). `src/places.ts` tidies it (known names and other spellings such as Churachandpur, Tiddim; else title case). Public **`/places`**: a self-drawn SVG map (no map tiles, no outside requests) with a dot per `KNOWN` place sized by verified answers, and a list of every place with its count. Only verified answers count, and a place is never shown beside a name; it is not in the corpus export. To put a new village on the map, add it with coordinates to `KNOWN`. **Form label and hint are English only.**
+- Cache **`v43`**. 288 tests.
 
 ## Shipped 25 and 26 October
 - **Counts for each section.** `/api/me` returns `total` (sentences), `words`, `meanings`, `sayings`, `recordings`, `verified`, `badge`. Each front-page box shows a quiet "You: N"; `/proverbs` reads the stored copy (`localStorage pd:me`). The shawl weaves a thread per item in every section, and its share card lists each section. The old score share and its `app.js` code are gone.
@@ -30,7 +31,6 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - **Look and words.** Every card title is Young Serif at regular weight with its English as a small uppercase caption (`.card h2`, `.card h2 small`). The owner kept Young Serif after previewing Morenn and Rosehot. Contributor-facing "sayings" are now **Pau Upa** (proverbs & idioms). "About This Project" sits right-aligned under Reviewer and matches the footer link. Ask a relative is a WhatsApp pill on its own row with the owner's Paite how-to above the English. The Paite licence line opens "A utteng".
 
 ## Value additions still to do (suggested order)
-7. **Where you learned it**: optional village tag per answer, shown on a map.
 8. **Seasonal themes and a charcoal dark mode** (Chavang Kut, Christmas).
 9. **Ask a relative, version 2**: deep link to the exact sentence (`/?s=<id>`), credited to the relative.
 Concepts for several are in the private artifact "Paite Daily Rewoven": https://claude.ai/artifact/2Edbcjuqmzyx4hqD11n1hv

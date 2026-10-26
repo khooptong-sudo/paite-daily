@@ -96,6 +96,10 @@
         <label><input type="radio" name="register" value="spoken"> <span data-s="spoken"></span></label>
         <label><input type="radio" name="register" value="written"> <span data-s="written"></span></label>
       </fieldset>
+      <label for="place" data-s="placeLabel"></label>
+      <input id="place" list="places" maxlength="60" autocomplete="off" spellcheck="false" placeholder="e.g. Lamka">
+      <datalist id="places"><option value="Lamka"><option value="Imphal"><option value="Aizawl"><option value="Champhai"><option value="Tedim"><option value="Kalay"></datalist>
+      <p class="licence"><span data-s="placeHint"></span> <a href="/places">See the map</a></p>
       <div class="actions">
         <button type="submit" class="primary" id="send" data-s="send"></button>
         <button type="button" id="skip" data-s="skip"></button>

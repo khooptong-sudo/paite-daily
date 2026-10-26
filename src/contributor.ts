@@ -11,6 +11,7 @@ import { submitProverbAnswer, submitProverbPair } from "./proverbs";
 import { nextLine, submitRecording, verifiedCount } from "./recordings";
 import { checkGrammar } from "./grammar";
 import { checkSpelling } from "./spelling";
+import { cleanPlace } from "./places";
 import { json, type Deps, type Env } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -131,11 +132,12 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
     const name = b.name === undefined || b.name === "" ? null : cleanText(b.name, 60);
     const blank = b.explanation === undefined || b.explanation === null || (typeof b.explanation === "string" && !b.explanation.trim());
     const explanation = blank ? null : cleanText(b.explanation, 500);
-    if (!isId(b.sentenceId) || !paite || (!blank && !explanation) || !["spoken", "written", "both"].includes(register) || (b.name && !name)) {
+    const place = cleanPlace(b.place);
+    if (!isId(b.sentenceId) || !paite || (!blank && !explanation) || place === undefined || !["spoken", "written", "both"].includes(register) || (b.name && !name)) {
       return json({ error: "bad_request" }, 400);
     }
     if ((await answersInLastMinute(env.DB, phoneId)) >= 10) return json({ error: "slow_down" }, 429);
-    const result = await recordAnswer(env.DB, { phoneId, sentenceId: b.sentenceId as number, paite, register, name, explanation }, deps.now());
+    const result = await recordAnswer(env.DB, { phoneId, sentenceId: b.sentenceId as number, paite, register, name, explanation, place }, deps.now());
     return result === "ok" ? json({ ok: true }) : json({ error: "closed" }, 409);
   }
 

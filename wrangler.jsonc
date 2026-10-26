@@ -3,7 +3,7 @@
   "workers_dev": false,
   "main": "src/index.ts",
   "compatibility_date": "2026-09-01",
-  "assets": { "directory": "./public", "binding": "ASSETS", "not_found_handling": "404-page", "run_worker_first": ["/api/*", "/review/api/*", "/about", "/contributors", "/glossary", "/proverbs", "/proverbs.json", "/rules", "/rules.json", "/words.tsv", "/paite-wordlist.xml", "/paite-gboard.zip", "/audio/*", "/", "/index.html"] },
+  "assets": { "directory": "./public", "binding": "ASSETS", "not_found_handling": "404-page", "run_worker_first": ["/api/*", "/review/api/*", "/about", "/contributors", "/glossary", "/proverbs", "/proverbs.json", "/rules", "/rules.json", "/places", "/words.tsv", "/paite-wordlist.xml", "/paite-gboard.zip", "/audio/*", "/", "/index.html"] },
   "d1_databases": [
     { "binding": "DB", "database_name": "paite-daily", "database_id": "2f5a853a-51cb-4fe0-bf5a-29ebce3feb12", "migrations_dir": "migrations" }
   ],

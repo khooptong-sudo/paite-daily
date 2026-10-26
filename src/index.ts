@@ -9,6 +9,7 @@ import { getGlossary, renderGlossary } from "./glossary";
 import { getProverbs, proverbsJson, renderProverbs } from "./proverbs";
 import { getRules, renderRules, rulesJson } from "./rules";
 import { keyboardFile } from "./keyboard";
+import { getPlaces, renderPlaces } from "./places";
 import { errorPage, handleEvent, recordError } from "./observability";
 import { publicAudio } from "./recordings";
 import { handleReview } from "./review";
@@ -27,6 +28,7 @@ export function createApp(deps: Deps) {
       if (pathname === "/rules") return new Response(renderRules(await getRules(env, deps.now())), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/rules.json") { const r = rulesJson(await getRules(env, deps.now())); r.headers.set("cache-control", "public, max-age=300"); return r; }
       if (pathname === "/words.tsv" || pathname === "/paite-wordlist.xml" || pathname === "/paite-gboard.zip") return (await keyboardFile(env, pathname, deps.now()))!;
+      if (pathname === "/places") return new Response(renderPlaces(await getPlaces(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/about") return new Response(renderAbout(), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600" } });
       if (pathname.startsWith("/audio/") && req.method === "GET") return await publicAudio(env, pathname);
       if (pathname.startsWith("/api/")) return await handleContributor(req, env, deps, ctx);

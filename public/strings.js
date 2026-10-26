@@ -30,6 +30,8 @@ window.STRINGS = {
   retry: { pai: "Hih thak nawn", en: "Not quite. Other people will try this one again." },
   note: { pai: "Endiktu Note", en: "Reviewer Note" },
   explanationLabel: { pai: "Hilhchetna", en: "Explanation" },
+  placeLabel: { pai: "", en: "Where did you learn your Paite? (optional)" },
+  placeHint: { pai: "", en: "Your village or town. Only a count per place is shown, never your name." },
   explanationHint: { pai: "A gen ut. Gen dan dang in.", en: "Word meanings, other ways to say it (optional)" },
   sentences: { pai: "Thuvual", en: "Sentences" },
   words: { pai: "Thumal", en: "Words" },

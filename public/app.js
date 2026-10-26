@@ -10,6 +10,9 @@
 
   document.querySelectorAll("[data-s]").forEach((el) => { el.innerHTML = tBoth(el.dataset.s); });
   $("explanation").placeholder = t("explanationHint");
+  // Where you learned it: optional, kept on this phone so it is typed once.
+  $("place").value = store.get("place", "");
+  $("place").addEventListener("change", () => store.set("place", $("place").value.trim()));
 
   let phoneId = store.get("phone", null);
   // Older Android browsers have no crypto.randomUUID; the id only has to be unique enough.
@@ -135,7 +138,7 @@
     const register = new FormData($("form")).get("register");
     try {
       const r = await api("/api/answer", { method: "POST",
-        body: JSON.stringify({ sentenceId: current.id, paite, register, name: store.get("name", ""), explanation: $("explanation").value.trim() }) });
+        body: JSON.stringify({ sentenceId: current.id, paite, register, name: store.get("name", ""), explanation: $("explanation").value.trim(), place: $("place").value.trim() }) });
       if (r.status === 429) { status(tBoth("tooFast")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (!r.ok && r.status !== 409) { status(tBoth("offline")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (r.ok) {
