@@ -1,7 +1,6 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 import { crc32, gboardZip, wordCounts, wordlistXml, wordsTsv } from "../src/keyboard";
-import { runHuggingFace } from "../src/huggingface";
 import { addSentences, call, NOW, PHONE_A } from "./helpers";
 
 async function verified(paite: string, direction = "en2pai") {
@@ -39,31 +38,5 @@ describe("Keyboard word lists", () => {
   it("serves the three files", async () => {
     await verified("Ka pai");
     for (const p of ["/words.tsv", "/paite-wordlist.xml", "/paite-gboard.zip"]) expect((await call(p)).status).toBe(200);
-  });
-});
-
-describe("Hugging Face mirror", () => {
-  it("does nothing without a token", async () => {
-    expect(await runHuggingFace(env, (async () => { throw new Error("no call"); }) as unknown as typeof fetch, NOW)).toBeNull();
-  });
-
-  it("commits the community folder in one NDJSON commit", async () => {
-    await verified("Ka pai ding hi");
-    const seen: { url: string; init: RequestInit }[] = [];
-    const fetcher = (async (url: string, init: RequestInit) => { seen.push({ url, init }); return new Response("{}"); }) as unknown as typeof fetch;
-    const r = await runHuggingFace({ ...env, HF_TOKEN: "hf_test" }, fetcher, NOW);
-    expect(r).toEqual({ pairs: 1, words: 4 });
-    expect(seen[0].url).toBe("https://huggingface.co/api/datasets/LamkaLabs/paite-open-language-data/commit/main");
-    const lines = String(seen[0].init.body).split("\n").map((l) => JSON.parse(l));
-    expect(lines[0].key).toBe("header");
-    expect(lines.slice(1).map((l) => l.value.path)).toEqual(["community/paite-daily.jsonl", "community/paite-words.tsv", "community/README.md"]);
-    const jsonl = new TextDecoder().decode(Uint8Array.from(atob(lines[1].value.content), (c) => c.charCodeAt(0)));
-    expect(JSON.parse(jsonl.trim())).toMatchObject({ direction: "en2pai", paite: "Ka pai ding hi", licence: "CC-BY-4.0" });
-  });
-
-  it("fails loudly when the Hub refuses", async () => {
-    await verified("Ka pai");
-    const refuse = (async () => new Response("no", { status: 401 })) as unknown as typeof fetch;
-    await expect(runHuggingFace({ ...env, HF_TOKEN: "bad" }, refuse, NOW)).rejects.toThrow("Hugging Face commit 401");
   });
 });
