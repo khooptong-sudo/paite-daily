@@ -1,6 +1,6 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { badgeFor, renderPage } from "../src/contributors";
+import { badgeFor, getContributors, renderPage } from "../src/contributors";
 import { exportVerified } from "../src/export";
 import { addSentences, call, fakeDeps, PHONE_A, PHONE_B, PHONE_C } from "./helpers";
 
@@ -10,6 +10,17 @@ async function ans(phone: string, name: string | null, status: string, sentence:
 }
 
 describe("contributors", () => {
+
+  it("counts one person once across phones: same name, any case or spacing", async () => {
+    const ids = await addSentences("One.", "Two.", "Three.", "Four.", "Five.");
+    await ans(PHONE_A, "Min Khooptong", "accepted", ids[0]);
+    await ans(PHONE_A, "Min Khooptong", "accepted", ids[1]);
+    await ans(PHONE_B, "min  khooptong ", "accepted", ids[2]);
+    await ans(PHONE_C, "Mang", "accepted", ids[3]);
+    const list = (await getContributors(env)).contributors;
+    expect(list.filter((c) => c.name.toLowerCase().includes("khooptong"))).toEqual([expect.objectContaining({ name: "Min Khooptong", sentences: 3 })]);
+    expect(list.find((c) => c.name === "Mang")).toMatchObject({ sentences: 1 });
+  });
   it("lists named phones with verified answers only, newest name, badge, no ids or emails", async () => {
     await env.DB.prepare("DELETE FROM reviewer_phones").run();
     const [s1, s2, s3] = await addSentences("One.", "Two.", "Three.");
@@ -112,7 +123,7 @@ describe("contributors", () => {
     expect(page).not.toMatch(/PENDING/);
   });
 
-  it("reviewer badge follows the phone, not the typed name", async () => {
+  it("phones sharing a name are one contributor, and keep the reviewer badge if any phone has it", async () => {
     await env.DB.prepare("DELETE FROM reviewer_phones").run();
     const [s1] = await addSentences("One.");
     await ans(PHONE_A, "Same", "accepted", s1);
@@ -121,7 +132,7 @@ describe("contributors", () => {
     const d = await (await call("/api/contributors")).json<any>();
     expect(d.contributors.filter((c: any) => c.reviewer)).toHaveLength(1);
     expect(d.allTime.contributors.filter((c: any) => c.reviewer)).toHaveLength(1);
-    expect(d.allTime.contributors).toHaveLength(2);
+    expect(d.allTime.contributors).toHaveLength(1);
     const page = await (await call("/contributors")).text();
     const contribLi = page.split("<li").map((l) => l.split("</li>")[0]).filter((l) => l.includes("Same"));
     expect(contribLi.filter((l) => l.includes("reviewerBadge"))).toHaveLength(1 * 1);

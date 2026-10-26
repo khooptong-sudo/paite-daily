@@ -152,5 +152,5 @@ describe("export verified_by", () => {
       const by = new Set(lines.map((l) => l.verified_by));
       expect([...by].sort()).toEqual(["Owner", "Rev One", "Reviewer"]);
     } finally { env.REVIEWERS = saved; }
-  });
+  }, 30_000); // 55 rows seeded one by one: slow when the whole suite runs at once
 });

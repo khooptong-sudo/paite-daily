@@ -45,7 +45,21 @@ export async function getContributors(env: Env): Promise<Contributors> {
   const counts = await env.DB.prepare("SELECT lower(reviewer_email) AS email, COUNT(*) AS n, SUM(created_at >= datetime('now', '-7 days')) AS w FROM reviews WHERE undone_at IS NULL GROUP BY 1")
     .all<{ email: string; n: number; w: number }>();
   const done = new Map(counts.results.map((r) => [r.email, r]));
-  const contributors = c.results.map((r) => ({
+  // One person often uses several phones or browsers, each its own phone id. Rows with the
+  // same name (ignoring case and extra spaces) are one contributor: counts add up, and the
+  // name is shown as written on the busiest phone.
+  type R = (typeof c.results)[number];
+  const people = new Map<string, R & { top: number }>();
+  for (const r of c.results) {
+    const key = r.name.trim().replace(/\s+/g, " ").toLowerCase(), size = (r.sentences ?? 0) + (r.words ?? 0);
+    const p = people.get(key);
+    if (!p) { people.set(key, { ...r, name: r.name.trim().replace(/\s+/g, " "), top: size }); continue; }
+    p.sentences = (p.sentences ?? 0) + (r.sentences ?? 0); p.words = (p.words ?? 0) + (r.words ?? 0);
+    p.sentencesWeek = (p.sentencesWeek ?? 0) + (r.sentencesWeek ?? 0); p.wordsWeek = (p.wordsWeek ?? 0) + (r.wordsWeek ?? 0);
+    p.reviewer = p.reviewer || r.reviewer ? 1 : 0;
+    if (size > p.top) { p.top = size; p.name = r.name.trim().replace(/\s+/g, " "); }
+  }
+  const contributors = [...people.values()].map((r) => ({
     name: r.name,
     sentences: r.sentences ?? 0,
     words: r.words ?? 0,
