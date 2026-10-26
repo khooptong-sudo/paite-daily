@@ -92,12 +92,15 @@ export function renderRules(rules: Rule[]): string {
 .ex{margin:0;display:grid;gap:2px;font-size:.9rem;color:var(--muted)}
 .ex span{display:block}
 .ex span:last-child{color:var(--fg)}
+.style-note{padding:14px 16px;border-radius:14px;background:rgba(11,75,255,.06);border:1px solid rgba(11,75,255,.2);display:grid;gap:4px}
+.style-note p{margin:0}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 </style>
 </head>
 <body class="cp blue">
 <header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1>Spelling Danbu<small>Spelling Rulebook</small></h1><p>Every spelling a reviewer corrected, most common first. It writes itself as they work.</p></header>
 <main class="gl">
+<div class="style-note"><p class="rule">House style</p><p>Leave off <b>uh</b>, <b>uhi</b>, <b>ahi</b> or <b>hi</b> at the end of a sentence. It is an older way of writing that is dying out, and the sentence is complete without it.</p></div>
 ${body}
 <p class="licence">Each rule comes from a verified sentence: the line as written, then as the reviewer kept it. Download as <a href="/rules.json">JSON</a>.</p>
 ${FOOTER}

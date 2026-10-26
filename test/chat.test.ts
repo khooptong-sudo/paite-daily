@@ -49,6 +49,18 @@ describe("chat match", () => {
     expect(await matchChat(env, "how much does this cost")).toMatchObject({ paite: "Hiai bangzah man a?", score: 1 });
   });
 
+  it("carries the newest accepted recording of the line, and none while it is pending", async () => {
+    const id = await verified("Where is the market?", "Dawl koiah a om a?");
+    const review = (await env.DB.prepare("SELECT id FROM reviews WHERE sentence_id = ?1").bind(id).first<{ id: number }>())!.id;
+    const rec = (status: string, key: string) => env.DB.prepare(
+      "INSERT INTO recordings (review_id, sentence_id, paite, phone_id, r2_key, mime, bytes, duration_ms, consent, status) VALUES (?1, ?2, 'x', ?3, ?4, 'audio/webm', 1, 1000, 'cc-by-4.0', ?5) RETURNING id",
+    ).bind(review, id, PHONE_A, key, status).first<{ id: number }>();
+    await rec("pending", "a");
+    expect((await matchChat(env, "where is the market"))?.audio).toBeUndefined();
+    const accepted = (await rec("accepted", "b"))!.id;
+    expect((await matchChat(env, "where is the market"))?.audio).toBe(accepted);
+  });
+
   it("matches on the words that carry meaning", async () => {
     await verified("How much does this cost?", "Hiai bangzah man a?");
     await verified("How far is the town?", "Khua bangchi tuk a gamla ahia?");

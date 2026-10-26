@@ -126,7 +126,7 @@ ${STYLE}
 
 <div>
 <p class="lead"><strong>Paite Daily</strong> is a free, volunteer-run corpus of <strong>Paite</strong> (ISO 639-3: <code>pck</code>). Speakers send in Paite–English translations. A second person reviews each one. Only reviewed pairs appear on the site.</p>
-<p>Nothing here is machine-generated. One person wrote every line, and another person approved it.</p>
+<p>No Paite here is machine-generated. One person wrote every line, and another person approved it.</p>
 </div>
 
 <ul class="facts" aria-label="Paite at a glance">
@@ -182,7 +182,8 @@ ${STYLE}
 <li><h3>Review</h3><p>A reviewer checks the translation against the source. The site never shows an unreviewed submission as an answer.</p></li>
 <li><h3>Publish</h3><p>The approved pair joins the pool of verified sentences. Only then does it become a prompt for the next learner.</p></li>
 </ol>
-<p>Proverbs and idioms (<em>pau upa</em>) go through the same loop, in both directions, with a stricter rule: two reviewers must approve each one. Nothing is published without review. No model writes our data, and no model decides what counts as correct Paite.</p>
+<p>Proverbs and idioms (<em>pau upa</em>) go through the same loop, in both directions, under the same rule: a reviewer approves each one before it appears. Nothing is published without review. No model writes our data, and no model decides what counts as correct Paite.
+<p><strong>Where AI helps.</strong> We do use an AI model (DeepSeek) behind the scenes, and it is part of what the coffee button pays for. It suggests new everyday English sentences for people to translate. It leaves reviewers a short advisory note on each answer, which they are free to ignore. It powers the Check English button, which only suggests a fix and changes nothing until you tap Use this. And it lifts word-list entries out of the notes contributors write, keeping only words that appear in their verified Paite; reviewers correct or hide any that are wrong. It never writes, corrects or approves Paite.</p></p>
 </section>
 
 <section aria-labelledby="open">

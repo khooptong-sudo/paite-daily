@@ -46,6 +46,13 @@
     </nav>
   </header>
   <div class="goal" id="goal" hidden><div><b id="goal-n"></b> / <span id="goal-max"></span> <span data-s="goalLine"></span></div><div class="goal-bar" id="goal-bar" role="progressbar" aria-valuemin="0"><i></i></div></div>
+  <section class="card whatsnew" id="whatsnew" hidden aria-label="What's New">
+    <details>
+      <summary><span class="news-title">What's New <span class="news-count"></span></span><span class="news-chev" aria-hidden="true">&#8964;</span></summary>
+      <ul class="news"></ul>
+    </details>
+    <button type="button" class="news-close" aria-label="Hide these updates">&times;</button>
+  </section>
   <section class="mypuan" id="mypuan" hidden aria-labelledby="mypuan-h">
     <div class="mypuan-top"><h2 id="mypuan-h">Nampuan Liangbat Gat <small>Your woven shawl</small></h2><button type="button" class="share-chip" id="mypuan-share"><img src="/whatsapp.png" alt="" width="16" height="16" decoding="async">Share</button></div>
     <ul class="mypuan-how">
@@ -107,7 +114,7 @@
         <button type="button" id="skip" data-s="skip"></button>
       </div>
       <div class="ask">
-        <button type="button" class="share-chip" id="ask-relative"><img src="/whatsapp.png" alt="" width="16" height="16" decoding="async">Ask a relative</button>
+        <button type="button" class="share-chip" id="ask-relative"><img src="/whatsapp.png" alt="" width="16" height="16" decoding="async"><span>Na sungte/lawmte kuahiam khat dong mah <small>Ask a relative or friend</small></span></button>
         <p class="licence" data-s="askHelp"></p>
       </div>
       <p class="licence" data-s="licence"></p>
@@ -123,9 +130,9 @@
     </div>
   </section>
   <section class="card hear" id="hear" aria-labelledby="hear-h" hidden>
-    <h2 id="hear-h">Hear it</h2>
+    <h2 id="hear-h">Aw in Aw <small>Hear it</small></h2>
     <p class="you" data-you="recordings" hidden></p>
-    <p class="licence">Read a verified Paite line aloud. A reviewer listens before anyone else hears it.</p>
+    <p class="licence">Etdiksa thuvualte hon sim ging inla, hon khak lut suk lechin ana khumkhawm di kahi uh. <small>Read a verified Paite line aloud. A reviewer listens before anyone else hears it.</small></p>
     <p class="sentence" id="h-line" aria-live="polite"></p>
     <p class="licence" id="h-en"></p>
     <label class="consent"><input type="checkbox" id="h-consent"> I agree my voice reading this line is published under CC BY 4.0, with my name if I gave one.</label>
@@ -244,5 +251,6 @@
 <script src="/hear.js"></script>
 <script src="/pwa.js"></script>
 <script src="/track.js"></script>
+<script src="/whatsnew.js" defer></script>
 </body>
 </html>

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>Sayings review · Paite Review</title>
+<title>Pau Upa review · Paite Review</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;500;600;700&display=swap">
@@ -56,21 +56,21 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
 <body class="blue">
 <main>
   <div class="top">
-    <h1>Sayings review</h1>
+    <h1>Pau Upa review</h1>
     <a class="back" href="/review">&larr; Sentences</a>
   </div>
   <p class="count" id="count">Loading.</p>
   <p id="undoWrap" hidden><button id="undoLast" style="width:100%;padding:12px;border-radius:14px">&larr; Undo last decision</button></p>
 
   <h2>Comparing with a published line <span id="n-second"></span></h2>
-  <p class="help">This saying already has a line on the page. Correct it and accept it again, or accept the new submission to replace it. Tick the other to keep both.</p>
+  <p class="help">This Pau Upa already has a line on the page. Correct it and accept it again, or accept the new submission to replace it. Tick the other to keep both.</p>
   <div id="second"></div>
 
   <h2>Waiting for a first review <span id="n-first"></span></h2>
   <p class="help">Press Accept this on the best line. Correct the text in its box first if it needs it, and tick any other line worth keeping as a variant. One click saves and records you.</p>
   <div id="first"></div>
 
-  <h2>Whole sayings waiting <span id="n-pairs"></span></h2>
+  <h2>Whole Pau Upa waiting <span id="n-pairs"></span></h2>
   <p class="help">Pairs submitted from the front page, in either direction.</p>
   <div id="pairs"></div>
 </main>
@@ -129,7 +129,7 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
     card.appendChild(kindSwitch(a.proverb_id, a.kind, "English"));
     card.appendChild(h("p", "prompt", a.english || "(no English line)"));
     card.appendChild(h("p", "help", secondPass
-      ? "One reviewer has approved a line for this saying. Check it and confirm, or correct it first."
+      ? "One reviewer has approved a line for this Pau Upa. Check it and confirm, or correct it first."
       : "Pick the line that reads best. Correct it in the box if it needs it."));
 
     var blocks = [];
@@ -224,7 +224,7 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
     var actions = h("div", "actions");
     var skip = h("button", "reject", "Skip for now");
     var rejAll = h("button", "reject", "Reject all");
-    var retire = h("button", "danger", "Retire saying");
+    var retire = h("button", "danger", "Retire Pau Upa");
     actions.append(skip, rejAll, retire);
     card.appendChild(actions);
 
@@ -239,7 +239,7 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
     rejAll.addEventListener("click", function () {
       rejAll.disabled = true;
       post("/review/api/proverbs/save", { proverbId: a.proverb_id, rejectAll: true }).then(function (res) {
-        if (res.ok) { card.remove(); remember(a.proverb_id); say("Every line on this saying rejected."); }
+        if (res.ok) { card.remove(); remember(a.proverb_id); say("Every line on this Pau Upa rejected."); }
         else { rejAll.disabled = false; say("That did not go through."); }
       });
     });
@@ -247,7 +247,7 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
     retire.addEventListener("click", function () {
       retire.disabled = true;
       post("/review/api/proverbs/save", { proverbId: a.proverb_id, retire: true }).then(function (res) {
-        if (res.ok) { card.remove(); remember(a.proverb_id); say("Saying retired."); }
+        if (res.ok) { card.remove(); remember(a.proverb_id); say("Pau Upa retired."); }
         else { retire.disabled = false; say("That did not go through."); }
       });
     });

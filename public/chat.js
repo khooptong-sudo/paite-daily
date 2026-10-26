@@ -39,6 +39,7 @@
         eng.className = "eng";
         eng.textContent = turn.english;
         bub.append(pai, eng);
+        if (turn.audio) pai.append(play(turn.audio));
         row.append(who, bub);
         return row;
       }),
@@ -72,6 +73,24 @@
   chatBox.open = store.get("chatOpen", false);
   chatBox.addEventListener("toggle", () => store.set("chatOpen", chatBox.open));
 
+  // A line a contributor has read aloud, and a reviewer accepted, gets a play button.
+  let voice = null;
+  function play(id) {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "play"; b.textContent = "▶"; b.setAttribute("aria-label", "Hear it read aloud");
+    b.addEventListener("click", () => {
+      if (voice && !voice.paused && voice.dataset.id === String(id)) { voice.pause(); return; }
+      if (voice) voice.pause();
+      voice = new Audio(`/audio/${id}`); voice.dataset.id = id;
+      document.querySelectorAll(".play.on").forEach((x) => { x.classList.remove("on"); x.textContent = "▶"; });
+      b.classList.add("on"); b.textContent = "❚❚";
+      const done = () => { b.classList.remove("on"); b.textContent = "▶"; };
+      voice.addEventListener("ended", done); voice.addEventListener("pause", done);
+      voice.play().catch(done);
+    });
+    return b;
+  }
+
   function say(match) {
     const box = document.createElement("div");
     box.className = "answer";
@@ -82,6 +101,7 @@
     eng.className = "eng";
     eng.textContent = match.english + " · " + t("chatFromCorpus");
     box.append(pai, eng);
+    if (match.audio) pai.append(play(match.audio));
     note.replaceChildren(box);
   }
 

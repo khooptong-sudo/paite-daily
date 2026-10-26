@@ -10,7 +10,7 @@ import type { Env } from "./types";
  * reviewed, and it heals itself when a pair is corrected or retired.
  */
 
-export type Turn = { side: "they" | "me"; paite: string; english: string };
+export type Turn = { side: "they" | "me"; paite: string; english: string; audio?: number };
 export type Scene = { key: string; label: string; turns: Turn[] };
 
 const SCENES: { key: string; label: string; lines: string[] }[] = [
@@ -36,13 +36,16 @@ const tokens = (s: string) => key(s).split(" ").filter((w) => w && !STOP.has(w))
  * The reviewed pairs a visitor may see: an accepted answer on a verified sentence,
  * no untranslated leftovers, no "either/or" strings.
  */
-const PAIRS = `SELECT s.english, ${finalPaite("a")} AS paite FROM sentences s
+// audio: the newest accepted recording of the line, played from /audio/<id>.
+const PAIRS = `SELECT s.english, ${finalPaite("a")} AS paite,
+    (SELECT rc.id FROM recordings rc WHERE rc.sentence_id = s.id AND rc.status = 'accepted' ORDER BY rc.id DESC LIMIT 1) AS audio
+  FROM sentences s
   JOIN answers a ON a.id = (SELECT r.accepted_answer_id FROM reviews r
                               WHERE r.sentence_id = s.id AND r.undone_at IS NULL AND r.accepted_answer_id IS NOT NULL
                               ORDER BY r.id DESC LIMIT 1)
   WHERE s.status = 'verified'`;
 
-type Pair = { english: string; paite: string };
+type Pair = { english: string; paite: string; audio: number | null };
 
 async function pairs(env: Env): Promise<Pair[]> {
   const { results } = await env.DB.prepare(PAIRS).all<Pair>();
@@ -50,22 +53,22 @@ async function pairs(env: Env): Promise<Pair[]> {
   // means two alternatives were accepted at once. Neither belongs in a demo.
   return (results ?? [])
     .filter((p) => key(p.paite) !== key(p.english) && !p.paite.includes("/") && (p.paite.match(/\?/g) ?? []).length <= 1)
-    .map((p) => ({ english: cap(p.english), paite: cap(p.paite) }));
+    .map((p) => ({ english: cap(p.english), paite: cap(p.paite), audio: p.audio }));
 }
 
 export async function buildScenes(env: Env): Promise<Scene[]> {
-  const have = new Map((await pairs(env)).map((p) => [key(p.english), p.paite]));
+  const have = new Map((await pairs(env)).map((p) => [key(p.english), p]));
   return SCENES.map((s) => {
     const turns: Turn[] = [];
     for (const line of s.lines) {
-      const paite = have.get(key(line));
-      if (paite) turns.push({ side: turns.length % 2 === 0 ? "they" : "me", paite, english: line });
+      const p = have.get(key(line));
+      if (p) turns.push({ side: turns.length % 2 === 0 ? "they" : "me", paite: p.paite, english: line, ...(p.audio ? { audio: p.audio } : {}) });
     }
     return { key: s.key, label: s.label, turns };
   }).filter((s) => s.turns.length >= 3);
 }
 
-export type Match = { english: string; paite: string; score: number };
+export type Match = { english: string; paite: string; score: number; audio?: number };
 
 /**
  * Answer a typed line from the corpus, or nothing. Deliberately no generation:
@@ -82,7 +85,7 @@ export async function matchChat(env: Env, q: string): Promise<Match | null> {
     // F1 over the words that matter: a line with three extra words is a different
     // sentence, however many words it shares.
     const score = key(p.english) === asked ? 1 : (2 * shared) / (want.length + have.length);
-    if (score > (best?.score ?? 0)) best = { english: p.english, paite: p.paite, score };
+    if (score > (best?.score ?? 0)) best = { english: p.english, paite: p.paite, score, ...(p.audio ? { audio: p.audio } : {}) };
   }
   return best && best.score >= 0.7 ? best : null;
 }

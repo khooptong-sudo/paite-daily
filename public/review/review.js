@@ -71,8 +71,19 @@
   }
   const swapWord = (text, from, to) => text.replace(new RegExp(`(^|[^\p{L}'’])(${from.replace(/'/g, "['’]")})(?=$|[^\p{L}'’])`, "giu"),
     (_, pre, w) => pre + (w[0] !== w[0].toLowerCase() ? to[0].toUpperCase() + to.slice(1) : to));
+  // House style (owner, 26 Oct): ending a sentence with uh, uhi, ahi or hi is an older way
+  // of writing that is dying out. The hint offers to drop that last word, punctuation kept.
+  const OLD_END = /(\s+)(uh|uhi|ahi|hi)([.?!]*)\s*$/i;
   function ruleHints(text, edit) {
     const seen = new Set(), wrap = document.createElement("div"); wrap.className = "rulehints";
+    const end = text.match(OLD_END);
+    if (end) {
+      const row = document.createElement("div"); row.className = "meta rulehint";
+      const t = document.createElement("span"); t.textContent = `Ends with "${end[2]}": an older style that is dying out.`;
+      const drop = document.createElement("button"); drop.type = "button"; drop.className = "share-chip"; drop.textContent = `Drop "${end[2]}"`;
+      drop.addEventListener("click", () => { edit.value = edit.value.replace(OLD_END, "$3"); edit.focus(); });
+      row.append(t, drop); wrap.append(row);
+    }
     for (const w of wordsOf(text)) {
       const w2 = w.replace(/’/g, "'");
       if (seen.has(w2) || !rules.has(w2)) continue;
