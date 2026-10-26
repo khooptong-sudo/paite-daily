@@ -1,4 +1,5 @@
 import { activeReviewers } from "./access";
+import { runBackup } from "./backup";
 import { runDigest } from "./digest";
 import { getContributors, renderMarkdown } from "./contributors";
 import { glossaryJson, getGlossary, runGlossary } from "./glossary";
@@ -241,4 +242,5 @@ export async function runNightly(env: Env, fetcher: typeof fetch): Promise<void>
     return r || published ? { ...r, published } : null;
   });
   await logged(env, "digest", () => runDigest(env));
+  await logged(env, "backup", () => runBackup(env, Date.now()));
 }
