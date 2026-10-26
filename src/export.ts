@@ -2,6 +2,7 @@ import { activeReviewers } from "./access";
 import { runDigest } from "./digest";
 import { getContributors, renderMarkdown } from "./contributors";
 import { glossaryJson, getGlossary, runGlossary } from "./glossary";
+import { runHuggingFace } from "./huggingface";
 import { runReverse } from "./reverse";
 import { normaliseEnglish } from "./text";
 import type { Env } from "./types";
@@ -41,6 +42,25 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
     return { n: 0, path };
   }
 
+  const lines = await toLines(env, results);
+  return putLines(env, fetcher, exportId, path, first, last, results.length, lines);
+}
+
+/** Every verified pair as JSON lines, in the same shape as the GitHub files: the full set for the Hugging Face mirror. */
+export async function allVerifiedLines(env: Env): Promise<string[]> {
+  const { results } = await env.DB.prepare(
+    `SELECT r.id AS review_id, s.id AS sentence_id, s.english, s.direction, s.paite_prompt, r.final_paite, r.register, r.reviewer_email, r.created_at,
+            a.contributor_name, a.explanation
+     FROM reviews r
+     JOIN sentences s ON s.id = r.sentence_id
+     LEFT JOIN answers a ON a.id = r.accepted_answer_id
+     WHERE r.decision = 'accept' AND r.undone_at IS NULL
+     ORDER BY r.id`,
+  ).all<Row>();
+  return toLines(env, results);
+}
+
+async function toLines(env: Env, results: Row[]): Promise<string[]> {
   // one query per 50 sentences for the also-correct answers
   const also = new Map<number, string[]>();
   const sids = [...new Set(results.map((r) => r.sentence_id))];
@@ -53,7 +73,7 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
   }
   // pai2en: paite is the prompt, english is the contributor's (reviewed) answer, original_english is the round-trip source.
   const names = new Map((await activeReviewers(env)).map((r) => [r.email, r.name]));
-  const lines = results.map((row) => JSON.stringify({
+  return results.map((row) => JSON.stringify({
     id: `community:${row.sentence_id}`,
     direction: row.direction,
     ...(row.direction === "pai2en"
@@ -67,13 +87,15 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
     also_correct: also.get(row.sentence_id) ?? [],
     explanation: row.explanation,
   }));
+}
 
+async function putLines(env: Env, fetcher: typeof fetch, exportId: number, path: string, first: number, last: number, n: number, lines: string[]): Promise<{ n: number; path: string }> {
   const url = `https://api.github.com/repos/${env.CORPUS_REPO}/contents/${path}`;
   const res = await fetcher(url, {
     method: "PUT",
     headers: { ...ghHeaders(env), "content-type": "application/json" },
     body: JSON.stringify({
-      message: `community: ${results.length} verified sentences (reviews ${first}-${last})`,
+      message: `community: ${n} verified sentences (reviews ${first}-${last})`,
       content: toBase64Utf8(lines.join("\n") + "\n"),
       branch: env.CORPUS_BRANCH,
     }),
@@ -86,7 +108,7 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
     if (check.status !== 200) throw new Error("GitHub PUT 422");
   }
   await env.DB.prepare("UPDATE exports SET done = 1 WHERE id = ?1").bind(exportId).run();
-  return { n: results.length, path };
+  return { n, path };
 }
 
 // The contents API commits one file per call, so CONTRIBUTORS.md is a second commit right after the data. Never fails the export.
@@ -241,4 +263,6 @@ export async function runNightly(env: Env, fetcher: typeof fetch): Promise<void>
     return r || published ? { ...r, published } : null;
   });
   await logged(env, "digest", () => runDigest(env));
+  // Sundays: refresh the community files on Hugging Face.
+  if (new Date().getUTCDay() === 0) await logged(env, "huggingface", () => runHuggingFace(env, fetcher, Date.now()));
 }

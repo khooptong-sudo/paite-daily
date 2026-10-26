@@ -1,6 +1,6 @@
 # Handoff, 26 October 2026 (blue look, Check spelling, counts, Hear it, Check English)
 
-Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or start on value addition 6.**
+Start a new session with: **Read the top section of docs/HANDOFF.md, then ask the owner what to work on next, or start on value addition 7.**
 
 ## Where things stand
 - Live version `4673df25`, from `main` at `1615a62`, pushed. Live site, GitHub and `main` all match. Service worker cache **`v35`**.
@@ -14,7 +14,9 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - **Swipe review and shortcuts** (value addition 3), in `public/review/review.js`. With several answers, words not in every answer are marked yellow. On a phone (`pointer: coarse`) an answer swipes right to accept, left to reject that answer only (30% of its width; scrolling wins when the finger moves more vertically). Desktop: J/K, arrows or 1 to 9 move between answers; A or Enter accepts the highlighted one, X rejects it, E edits it (Esc back), V ticks it as a variant; S, N, R, U and ? as before. Checked with stand-in data only; the owner should try it on the real queue.
 - **Spelling rulebook** (value addition 4), `src/rules.ts`. Rules are read back from accepted reviews with a correction (`final_paite`) on English-to-Paite sentences, so an undo drops a rule by itself; no new table. The two lines are aligned word by word; a changed run pairs off one to one only when both sides have the same number of words and each pair still looks alike (edit distance at most half the longer word), so rewrites do not become rules. Public at **`/rules`** and **`/rules.json`** (added to `run_worker_first` in `wrangler.jsonc`; a new public path must be added there too). At review time each answer lists rules for its words with a "Use" pill that makes the change in the edit box (`/review/api/rules`). Linked from the reviewer header only. **Page title and copy are English only.**
 - **Gap-driven prompts** (value addition 5), `src/gaps.ts`. `COMMON` is about 300 everyday English words, most used first. A word is covered once a sentence using it has a verified Paite answer (cached ten minutes per worker). `nextSentence` (`src/db.ts`) now samples 40 random open forward sentences and serves the one that fills the most uncovered words, earlier words weighing more; reverse cards are unchanged. Every other unthemed refill asks DeepSeek for sentences using the first 25 uncovered words (topic recorded as `gaps`). Edit `COMMON` to steer what gets filled first.
-- Cache **`v41`**. 282 tests.
+- **Keyboard and dataset exports** (value addition 6). `src/keyboard.ts` serves `/words.tsv`, `/paite-wordlist.xml` (AnySoftKeyboard language-pack source, f 1 to 255) and `/paite-gboard.zip` (Gboard personal-dictionary import: a stored zip holding `dictionary.txt`, top 2,000 words, empty shortcut and language columns), linked at the foot of `/glossary`, always current, cached a day. `src/huggingface.ts` commits `community/paite-daily.jsonl` (every verified pair, same shape as the GitHub files), `community/paite-words.tsv` and `community/README.md` to **`LamkaLabs/paite-open-language-data`** on Sundays from the nightly cron, in one Hub commit (NDJSON commit API). It never touches the main card, `training/` or `eval/` (those belong to `paite_corpus/scripts/publish_hf.py`). Needs the `HF_TOKEN` secret (write token); `HF_REPO` overrides the repo. **Gboard import is untested on a real phone.** The main card should gain a `community` config pointing at `community/paite-daily.jsonl`; that edit belongs in `paite_corpus/huggingface/README.md`.
+- Fixed: the spelling word table counted English answers from Paite-to-English sentences; it now reads only answers into Paite.
+- Cache **`v41`**. 288 tests.
 
 ## Shipped 25 and 26 October
 - **Counts for each section.** `/api/me` returns `total` (sentences), `words`, `meanings`, `sayings`, `recordings`, `verified`, `badge`. Each front-page box shows a quiet "You: N"; `/proverbs` reads the stored copy (`localStorage pd:me`). The shawl weaves a thread per item in every section, and its share card lists each section. The old score share and its `app.js` code are gone.
@@ -25,7 +27,6 @@ Start a new session with: **Read the top section of docs/HANDOFF.md, then ask th
 - **Look and words.** Every card title is Young Serif at regular weight with its English as a small uppercase caption (`.card h2`, `.card h2 small`). The owner kept Young Serif after previewing Morenn and Rosehot. Contributor-facing "sayings" are now **Pau Upa** (proverbs & idioms). "About This Project" sits right-aligned under Reviewer and matches the footer link. Ask a relative is a WhatsApp pill on its own row with the owner's Paite how-to above the English. The Paite licence line opens "A utteng".
 
 ## Value additions still to do (suggested order)
-6. **Keyboard and dataset exports**: weekly word-frequency list for Gboard / AnySoftKeyboard; Hugging Face mirror with a dataset card.
 7. **Where you learned it**: optional village tag per answer, shown on a map.
 8. **Seasonal themes and a charcoal dark mode** (Chavang Kut, Christmas).
 9. **Ask a relative, version 2**: deep link to the exact sentence (`/?s=<id>`), credited to the relative.

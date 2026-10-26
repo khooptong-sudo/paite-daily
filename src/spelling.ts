@@ -34,10 +34,11 @@ let cache: { at: number; words: Map<string, number> } | null = null;
 export const clearSpellingCache = () => { cache = null; };
 
 /** Every attested word with how often it appears; rebuilt at most every ten minutes per worker. */
-async function vocabulary(env: Env, now: number): Promise<Map<string, number>> {
+export async function vocabulary(env: Env, now: number): Promise<Map<string, number>> {
   if (cache && now - cache.at < TTL) return cache.words;
   const [sentences, list] = await env.DB.batch<{ p: string }>([
-    env.DB.prepare(`SELECT ${finalPaite("a")} AS p FROM answers a WHERE a.status IN ('accepted', 'also_correct')`),
+    // Only answers into Paite: a Paite-to-English answer is English.
+    env.DB.prepare(`SELECT ${finalPaite("a")} AS p FROM answers a JOIN sentences s ON s.id = a.sentence_id WHERE a.status IN ('accepted', 'also_correct') AND s.direction = 'en2pai'`),
     env.DB.prepare("SELECT paite AS p FROM glossary WHERE hidden = 0"),
   ]);
   const words = new Map<string, number>();

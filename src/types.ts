@@ -14,6 +14,9 @@ export interface Env {
   CORPUS_BRANCH: string;
   COMMUNITY_GOAL: string;
   DEEPSEEK_API_KEY?: string;
+  /** Hugging Face write token and dataset id for the weekly mirror; no token, no mirror. */
+  HF_TOKEN?: string;
+  HF_REPO?: string;
   ALERT_EMAIL?: SendEmail;
 }
 

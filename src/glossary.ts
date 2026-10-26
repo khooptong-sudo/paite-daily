@@ -168,6 +168,7 @@ ${rail}${body}
 <span><b data-s="installApp">Install on this device</b><small data-s="installAppNote">Add Paite Daily to your home screen. No download.</small></span>
 <span class="go" aria-hidden="true">&darr;</span>
 </button>
+<p class="licence">Paite words for your phone keyboard, most used first, from verified sentences: <a href="/paite-gboard.zip" download>Gboard</a> (Settings, Dictionary, Personal dictionary, Import), <a href="/paite-wordlist.xml" download>AnySoftKeyboard</a>, or a <a href="/words.tsv" download>plain list</a>.</p>
 ${FOOTER}
 </main>
 <script src="/strings.js"></script>
