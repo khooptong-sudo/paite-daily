@@ -12,10 +12,10 @@
   Content-Type: application/json
 
 /*.js
-  Cache-Control: public, max-age=3600
+  Cache-Control: no-cache
 
 /*.css
-  Cache-Control: public, max-age=3600
+  Cache-Control: no-cache
 
 /*.png
   Cache-Control: public, max-age=3600

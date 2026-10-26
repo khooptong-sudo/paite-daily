@@ -13,6 +13,7 @@ import { checkGrammar } from "./grammar";
 import { checkSpelling } from "./spelling";
 import { cleanPlace } from "./places";
 import { weekFor } from "./week";
+import { streakFor } from "./streak";
 import { json, type Deps, type Env } from "./types";
 
 const DAY_MS = 86_400_000;
@@ -98,7 +99,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
               (SELECT count(*) FROM recordings WHERE phone_id = ?1) AS recordings`,
     ).bind(phoneId).first<{ total: number; verified: number; words: number; meanings: number; sayings: number; recordings: number }>();
     // One count per section: the puan's share card and each box's "You: N" read these.
-    return json({ total: r!.total, verified: r!.verified, words: r!.words, meanings: r!.meanings, sayings: r!.sayings, recordings: r!.recordings, badge: badgeFor(r!.verified) });
+    return json({ total: r!.total, verified: r!.verified, words: r!.words, meanings: r!.meanings, sayings: r!.sayings, recordings: r!.recordings, badge: badgeFor(r!.verified), streak: await streakFor(env.DB, phoneId, deps.now()) });
   }
 
   if (pathname === "/api/week" && req.method === "GET") return json(await weekFor(env, phoneId, deps.now()));

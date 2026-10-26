@@ -435,3 +435,11 @@ canvas.puan-ripple { display: block; width: 100%; max-width: 560px; height: auto
 .puan-pic { display: contents; }
 .share-chip { white-space: nowrap; flex: none; }
 #ask-relative { white-space: normal; }
+
+/* Streak in the header and the one-time milestone card. */
+.blue header #streak::before { content: "\00b7"; margin-right: 6px; }
+.milestone { position: fixed; z-index: 50; top: 12px; left: 50%; transform: translateX(-50%); width: min(92vw, 420px); box-sizing: border-box; padding: 14px 44px 14px 16px; border-radius: 14px; background: rgba(255, 255, 255, .95); color: #14213d; box-shadow: 0 8px 28px rgba(0, 0, 0, .25); font-weight: 600; }
+.milestone p { margin: 0; }
+.ms-close { position: absolute; top: 6px; right: 8px; width: 32px; height: 32px; padding: 0; border: 1px solid currentColor; border-radius: 8px; background: transparent; color: inherit; font-size: 1.2rem; line-height: 1; cursor: pointer; }
+.ms-spark { position: absolute; left: 50%; top: 50%; width: var(--s); height: var(--s); border-radius: 2px; background: var(--c); pointer-events: none; animation: ms-burst .9s ease-out forwards; }
+@keyframes ms-burst { from { transform: translate(-50%, -50%) scale(.4); opacity: 1; } to { transform: translate(calc(-50% + var(--x)), calc(-50% + var(--y))) rotate(200deg) scale(1); opacity: 0; } }

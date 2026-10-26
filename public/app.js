@@ -331,6 +331,7 @@
       if (!r.ok) return;
       const me = await r.json();
       $("badge").textContent = me.badge || ""; $("badge").hidden = !me.badge;
+      $("streak").textContent = `${me.streak} days in a row`; $("streak").hidden = !(me.streak >= 2);
       showCounts(me);
       // mypuan.js weaves the personal shawl from these counts.
       document.dispatchEvent(new CustomEvent("paite:me", { detail: me }));
