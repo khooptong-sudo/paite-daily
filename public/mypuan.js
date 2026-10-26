@@ -75,7 +75,7 @@
     if (!line) return;
     // The link opens this exact sentence on their phone, so they answer it themselves, with their own name.
     const link = "https://paite.lamkalabs.com/" + (el.dataset.id ? `?s=${el.dataset.id}` : "");
-    const msg = `Hiai Paite in bang chih ding? / How do you say this in Paite?\n\n"${line}"\n\nAnswer it yourself here, and your name goes with it: ${link}`;
+    const msg = `Hiai Paite in bang chih ding? / How do you say this in Paite?\n\n"${line}"\n\nHiai hon dawng inla, na min toh hon pelut ve. / Answer it yourself here, and your name goes with it: ${link}`;
     open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener");
   });
 })();

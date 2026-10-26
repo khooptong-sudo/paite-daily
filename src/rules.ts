@@ -68,10 +68,10 @@ export function renderRules(rules: Rule[]): string {
     : '<p class="empty">No rules yet. They appear here as reviewers correct spellings.</p>';
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Paite Spelling Rulebook</title>
+<title>Spelling Danbu · Paite Spelling Rulebook</title>
 <meta name="description" content="How Paite reviewers correct spelling, written down as they work: each change a reviewer made, how often, and the line it came from.">
 <link rel="canonical" href="https://paite.lamkalabs.com/rules">
-<meta property="og:title" content="Paite Spelling Rulebook">
+<meta property="og:title" content="Spelling Danbu · Paite Spelling Rulebook">
 <meta property="og:description" content="How Paite reviewers correct spelling, written down as they work.">
 <meta property="og:image" content="https://paite.lamkalabs.com/og.png">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
@@ -96,7 +96,7 @@ export function renderRules(rules: Rule[]): string {
 </style>
 </head>
 <body class="cp blue">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1>Spelling Rulebook</h1><p>Every spelling a reviewer corrected, most common first. It writes itself as they work.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1>Spelling Danbu<small>Spelling Rulebook</small></h1><p>Every spelling a reviewer corrected, most common first. It writes itself as they work.</p></header>
 <main class="gl">
 ${body}
 <p class="licence">Each rule comes from a verified sentence: the line as written, then as the reviewer kept it. Download as <a href="/rules.json">JSON</a>.</p>

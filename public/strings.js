@@ -32,7 +32,7 @@ window.STRINGS = {
   explanationLabel: { pai: "Hilhchetna", en: "Explanation" },
   sharedHello: { pai: "", en: "Someone asked you this one. Answer it here, and your answer is saved with your name." },
   sharedGone: { pai: "", en: "That sentence already has its answers. Here is another one to try." },
-  placeLabel: { pai: "", en: "Where did you learn your Paite? (optional)" },
+  placeLabel: { pai: "Paite pau koia na zir a?", en: "Where did you learn your Paite? (optional)" },
   placeHint: { pai: "", en: "Your village or town. Only a count per place is shown, never your name." },
   explanationHint: { pai: "A gen ut. Gen dan dang in.", en: "Word meanings, other ways to say it (optional)" },
   sentences: { pai: "Thuvual", en: "Sentences" },
