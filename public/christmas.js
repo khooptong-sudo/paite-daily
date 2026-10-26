@@ -31,24 +31,44 @@
   </svg>`;
   const HAT = `<svg viewBox="0 0 64 48" width="64" height="48"><path d="M8 38 Q20 4 50 8 Q58 9 60 22 L54 24 Q50 16 44 18 Q34 26 30 38 Z" fill="#d4142f"/><circle cx="58" cy="25" r="5.5" fill="#fff"/><rect x="2" y="34" width="34" height="10" rx="5" fill="#fff" transform="rotate(-6 19 39)"/></svg>`;
 
-  // Sleigh bells, made in the browser (no sound file): a quick run of bright, slightly
-  // out-of-tune metal strikes. Phones only allow sound after a touch, so the page jingles
-  // at the first touch anywhere, and again every time a bell is tapped.
-  let audio = null;
+  // The bells play the opening of "Jingle Bells" (1857, public domain) in a soft bell tone,
+  // with a light sleigh-bell shimmer on the beat. Made in the browser, no sound file.
+  // Phones only allow sound after a touch, so it plays at the first touch anywhere, and
+  // again every time a bell is tapped (a tap while it plays starts it over).
+  let audio = null, playing = null;
+  const NOTE = { C: 523.25, D: 587.33, E: 659.25, G: 783.99 };
+  // E E E- | E E E- | E G C D | E---
+  const TUNE = [["E", 1], ["E", 1], ["E", 2], ["E", 1], ["E", 1], ["E", 2], ["E", 1], ["G", 1], ["C", 1.5], ["D", .5], ["E", 4]];
+  const BEAT = 0.24;
+  function tone(out, t, f, len, vol) {
+    // A bell: the note plus two quieter overtones, struck and ringing away.
+    for (const [ratio, v] of [[1, 1], [2, .35], [3.01, .12]]) {
+      const o = audio.createOscillator(), g = audio.createGain();
+      o.type = "sine"; o.frequency.value = f * ratio;
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol * v, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.5, len * 1.6) / ratio);
+      o.connect(g); g.connect(out); o.start(t); o.stop(t + 2);
+    }
+  }
+  function shimmer(out, t) {
+    for (let k = 0; k < 3; k++) {
+      const o = audio.createOscillator(), g = audio.createGain(), s = t + k * 0.025;
+      o.type = "sine"; o.frequency.value = 3800 + Math.random() * 1600;
+      g.gain.setValueAtTime(0.0001, s); g.gain.exponentialRampToValueAtTime(0.05, s + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, s + 0.12);
+      o.connect(g); g.connect(out); o.start(s); o.stop(s + 0.15);
+    }
+  }
   function jingle() {
     try {
       audio ??= new (window.AudioContext || window.webkitAudioContext)();
       if (audio.state === "suspended") audio.resume();
-      const t0 = audio.currentTime, out = audio.createGain();
-      out.gain.value = 0.18; out.connect(audio.destination);
-      for (let k = 0; k < 9; k++) {
-        const t = t0 + k * 0.07 + Math.random() * 0.03, base = 2200 + Math.random() * 1400;
-        for (const ratio of [1, 1.51, 2.37]) {
-          const o = audio.createOscillator(), g = audio.createGain();
-          o.type = "sine"; o.frequency.value = base * ratio;
-          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.35 / ratio, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.35 / ratio);
-          o.connect(g); g.connect(out); o.start(t); o.stop(t + 0.4);
-        }
+      if (playing) { playing.gain.setTargetAtTime(0, audio.currentTime, 0.02); setTimeout(((p) => () => p.disconnect())(playing), 200); }
+      const out = audio.createGain();
+      out.gain.value = 0.22; out.connect(audio.destination); playing = out;
+      let t = audio.currentTime + 0.03;
+      for (const [n, beats] of TUNE) {
+        tone(out, t, NOTE[n], beats * BEAT, 0.5);
+        shimmer(out, t);
+        t += beats * BEAT;
       }
     } catch {}
   }
