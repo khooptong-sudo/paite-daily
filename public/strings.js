@@ -57,7 +57,7 @@ window.STRINGS = {
   installAppNote: { pai: "", en: "Add Paite Daily to your home screen. No download." },
   glossaryLine: { pai: "", en: "Words from the notes of our contributors." },
   glossaryEmpty: { pai: "", en: "No words yet. Add the first one on the front page." },
-  addWord: { pai: "Kammal Koihbeh In", en: "Add a Word" },
+  addWord: { pai: "Thumal Koihbeh In", en: "Add a Word" },
   addWordNote: { pai: "", en: "A Paite word or short phrase and its meaning in English. Either direction is fine." },
   wordNote: { pai: "Etsakna/Chiamtehna", en: "Example or Note (Optional)" },
   wordThanks: { pai: "", en: "Thanks! A reviewer will check it." },
