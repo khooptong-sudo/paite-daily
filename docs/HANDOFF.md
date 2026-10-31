@@ -3,7 +3,7 @@
 Start a new session with: **Read this top section, then do "First thing next session" below, then ask the owner what to work on.**
 
 ## Where things stand
-- Live worker version **`058320a3`**, deployed from **`880b587`**; `main` is that commit plus this handoff, pushed. Live site, GitHub and `main` all match. Service worker cache **`v61`**.
+- Live worker version **`55956746`**, from `main` at the latest commit, pushed. Live site, GitHub and `main` all match. Service worker cache **`v62`**. The English lane and the name ask are `880b587`; the What's New entries (`0d8c17a`) and this handoff follow it.
 - Remote D1 has every migration through **`0029_proverb_english.sql`**. Nothing pending. The 11 Paite sayings in `seed/paite-sayings.json` are seeded (`status = 'open'`, English NULL), so `/proverbs` is asking for their English right now.
 - R2 bucket **`paite-daily-audio`** (bound as `AUDIO`) holds recordings and, from 27 Oct, nightly backups under `backups/`.
 - **316 tests pass**, `tsc` clean.
@@ -15,7 +15,7 @@ Start a new session with: **Read this top section, then do "First thing next ses
 3. Ask the owner about the checks below and for any Paite they have sent.
 
 ## Open items
-- **Paite wording still English only:** What's New title; Your Week title; streak line and milestone message; offline messages; Check spelling button and messages; Spelling Danbu intro; place hint; Ask a relative help line (its Paite is out of date: it still says the reply is not saved) and its two notes; Aw in Aw consent line; the three new sayings labels `translateItEn`, `yourVersionEn`, `needsEnglish`; and the 31 Oct What's New item. Use the owner's words exactly; never invent Paite.
+- **Paite wording still English only:** What's New title; Your Week title; streak line and milestone message; offline messages; Check spelling button and messages; Spelling Danbu intro; place hint; Ask a relative help line (its Paite is out of date: it still says the reply is not saved) and its two notes; Aw in Aw consent line; the three new sayings labels `translateItEn`, `yourVersionEn`, `needsEnglish`; and the three 31 Oct What's New items. Use the owner's words exactly; never invent Paite.
 - **Owner checks on their phone:** Your Week Share picture; Gboard word list import; swipe review and the reviewer dashboard with real counts; Ask a relative from WhatsApp; Christmas look at `/?season=christmas` (reindeer direction, bells); and the name ask after a first submission, straight after an answer saved with no signal, and after a recording (it should scroll into view by itself).
 - **The sayings English lane has never been through a browser.** Tests cover submit, list, accept, publish and undo; the contributor box, the reviewer card for an English candidate and the publish should still be tried on the live site (see "First thing next session").
 - **`/proverbs` counts only English sayings waiting for Paite** in its "N waiting." line and its "still being gathered" note; the Paite sayings waiting for English are not in either. Worth a count of its own if the owner wants one.
@@ -98,7 +98,7 @@ Newest first. Each session prepends one section directly under this line.
 - **Migration `0029_proverb_english.sql`** rebuilds `proverb_answers` (`paite` nullable, new `english`, `CHECK` one of them) and adds `proverb_reviews.final_english`. **A plain `DROP TABLE proverb_answers` fails under foreign keys** ("FOREIGN KEY constraint failed") because `proverb_reviews.answer_id` references it; the migration parks `proverb_reviews`, rebuilds `proverb_answers`, recreates `proverb_reviews` from the parked copy, then recreates the partial unique index. Applied to remote D1: 13 commands, data intact (231 proverbs, 17 answers, 32 reviews).
 - **Eleven Paite sayings seeded** from `seed/paite-sayings.json` (`status: 'open'`, English NULL) with the owner's explainers, loaded with `node scripts/seed-proverbs.mjs --remote` (`changes: 12`). `Neklouh ding vonggah kei ken` is the one whose explainer arrived without a line.
 - **The one rule that must stay in step:** the server (`submitProverbAnswer`) and the page (`form()`) both choose the side with `wantsPaite = paite === null || english !== null`. Change one and the other must follow, or a live saying with both sides asks for the wrong language.
-- **Shipped:** commit `880b587`, worker version `058320a3`, cache `v61`, a What's New item, and 316 tests.
+- **Shipped:** `880b587` (code) and `0d8c17a` (What's New), worker version `55956746`, cache `v62`, 316 tests. What's New carries three items: the English lane, the name box coming into view, and the question following every kind of contribution.
 - **Left alone:** `scripts/backup-d1.ps1` still carries an uncommitted F:→E: backup path change that predates this work.
 
 ## ✅ 27102026 EoS: blue look, sixteen value additions, Christmas, What's New
