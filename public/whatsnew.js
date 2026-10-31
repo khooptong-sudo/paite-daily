@@ -4,6 +4,8 @@
 (() => {
   const NEWS = [
     { id: "2026-10-31-english", date: "2026-10-31", title: "Paite sayings, in English", text: "Paite proverbs and idioms now ask for their English version. Open one on the Pau Upa page and give it in your own words." },
+    { id: "2026-10-31-name", date: "2026-10-31", title: "Your name, if you want it", text: "After you contribute, we ask whether your name may go on the contributors list. The box now comes into view by itself, so you see it instead of missing it below the form." },
+    { id: "2026-10-31-ask", date: "2026-10-31", title: "Asked after every contribution", text: "The name question now follows a sentence, a word, a meaning, a saying, an answer saved with no signal and a recording, and the Pau Upa page asks too. It stops once you give a name or say no thanks." },
     { id: "2026-10-27-streaks", date: "2026-10-27", title: "Streaks and milestones", text: "See how many days in a row you have written Paite, and a small celebration at 10, 50, 100 and more verified lines." },
     { id: "2026-10-27-offline", date: "2026-10-27", title: "No signal? No problem", text: "If the network drops when you tap Send, your answer waits on your phone and sends by itself when you are back online." },
     { id: "2026-10-27-dash", date: "2026-10-27", title: "For reviewers: one dashboard", text: "The reviewer page now opens with every waiting queue in one place: sentences, words, Pau Upa and recordings, and how long the oldest has waited.", href: "/review" },
