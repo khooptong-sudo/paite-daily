@@ -14,6 +14,7 @@ export type CardSave = {
   proverbId: number;
   acceptAnswerId?: number;
   finalPaite?: string;
+  finalEnglish?: string;
   alsoCorrect?: number[];
   note?: string;
   rejectAll?: boolean;
@@ -53,13 +54,15 @@ export async function saveProverbReview(
     return "ok";
   }
 
-  // The line already on the page, corrected and put back. Nothing else moves.
+  // The line already on the page, corrected and put back. Nothing else moves. The
+  // side the reviewer corrected is the side the card carried.
   if (p.acceptPublished) {
-    const text = p.finalPaite !== undefined ? cleanText(p.finalPaite, 300) : "";
+    const english = p.finalEnglish !== undefined;
+    const text = cleanText(english ? p.finalEnglish : p.finalPaite, 300);
     if (!text) return "bad_answer";
     try {
       await env.DB.prepare(
-        `UPDATE proverbs SET paite = ?2, reviewed_by = ?3, reviewed_at = datetime('now') WHERE id = ?1`,
+        `UPDATE proverbs SET ${english ? "english" : "paite"} = ?2, reviewed_by = ?3, reviewed_at = datetime('now') WHERE id = ?1`,
       )
         .bind(p.proverbId, text, email)
         .run();
@@ -85,14 +88,16 @@ export async function saveProverbReview(
   // No correction offered means NULL, so a correction from the other reviewer survives.
   const finalPaite = p.finalPaite !== undefined ? cleanText(p.finalPaite, 300) : null;
   if (p.finalPaite !== undefined && !finalPaite) return "bad_answer";
+  const finalEnglish = p.finalEnglish !== undefined ? cleanText(p.finalEnglish, 300) : null;
+  if (p.finalEnglish !== undefined && !finalEnglish) return "bad_answer";
 
   const touched = JSON.stringify([p.acceptAnswerId, ...variants, ...losers]);
 
   await env.DB.batch([
     env.DB.prepare(
-      `INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision, final_paite, note, answer_ids)
-       VALUES (?1, ?2, ?3, 'accept', ?4, ?5, ?6)`,
-    ).bind(p.proverbId, p.acceptAnswerId, email, finalPaite, note, touched),
+      `INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision, final_paite, final_english, note, answer_ids)
+       VALUES (?1, ?2, ?3, 'accept', ?4, ?5, ?6, ?7)`,
+    ).bind(p.proverbId, p.acceptAnswerId, email, finalPaite, finalEnglish, note, touched),
     ...variants.map((id) =>
       env.DB.prepare(
         "INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision) VALUES (?1, ?2, ?3, 'variant')",
@@ -122,33 +127,43 @@ export async function saveProverbReview(
     .first<{ n: number }>();
   if ((n?.n ?? 0) < REQUIRED_REVIEWERS) return "waiting";
 
-  const settled = await env.DB.prepare(
+  const settledPaite = await env.DB.prepare(
     `SELECT final_paite FROM proverb_reviews
       WHERE answer_id = ?1 AND decision = 'accept' AND undone_at IS NULL AND final_paite IS NOT NULL
       ORDER BY id DESC LIMIT 1`,
   )
     .bind(p.acceptAnswerId)
     .first<{ final_paite: string | null }>();
-  const chosen = await env.DB.prepare("SELECT paite FROM proverb_answers WHERE id = ?1")
+  const settledEnglish = await env.DB.prepare(
+    `SELECT final_english FROM proverb_reviews
+      WHERE answer_id = ?1 AND decision = 'accept' AND undone_at IS NULL AND final_english IS NOT NULL
+      ORDER BY id DESC LIMIT 1`,
+  )
     .bind(p.acceptAnswerId)
-    .first<{ paite: string }>();
+    .first<{ final_english: string | null }>();
+  const chosen = await env.DB.prepare("SELECT paite, english FROM proverb_answers WHERE id = ?1")
+    .bind(p.acceptAnswerId)
+    .first<{ paite: string | null; english: string | null }>();
+
+  // The side the answer fills is the side that publishes; the other is left alone.
+  const paiteText = settledPaite?.final_paite || chosen?.paite || null;
+  const englishText = settledEnglish?.final_english || chosen?.english || null;
 
   try {
-    const text = settled?.final_paite || chosen?.paite || "";
     await env.DB.batch([
       // A saying that already published keeps its primary line. The new rendering
       // is accepted as an alternative beside it, which is the whole point of
       // putting the saying back in the pool.
       saying.status === "live"
         ? env.DB.prepare(
-            `UPDATE proverbs SET paite = ?2, reviewed_by = ?3, reviewed_at = datetime('now') WHERE id = ?1`,
-          ).bind(p.proverbId, text, email)
+            `UPDATE proverbs SET paite = COALESCE(?2, paite), english = COALESCE(?3, english), reviewed_by = ?4, reviewed_at = datetime('now') WHERE id = ?1`,
+          ).bind(p.proverbId, paiteText, englishText, email)
         : env.DB.prepare(
             `UPDATE proverbs
-                SET paite = ?2, status = 'live', accepting_more = 1,
-                    reviewed_by = ?3, reviewed_at = datetime('now')
+                SET paite = COALESCE(?2, paite), english = COALESCE(?3, english), status = 'live', accepting_more = 1,
+                    reviewed_by = ?4, reviewed_at = datetime('now')
               WHERE id = ?1`,
-          ).bind(p.proverbId, text, email),
+          ).bind(p.proverbId, paiteText, englishText, email),
       env.DB.prepare("UPDATE proverb_answers SET status = 'accepted' WHERE id = ?1").bind(p.acceptAnswerId),
       ...(saying.status === "live"
         ? []

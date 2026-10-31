@@ -56,6 +56,33 @@ async function answerStatus(id: number): Promise<string> {
   return r!.status;
 }
 
+// A Paite proverb waiting for its English version, the mirror of seedSaying.
+async function seedPaiteSaying(paite: string, status = "open"): Promise<number> {
+  const r = await DB.DB.prepare(
+    `INSERT INTO proverbs (kind, paite, english, entered_from, status, accepting_more)
+     VALUES ('proverb', ?1, NULL, 'pai2en', ?2, 0) RETURNING id`,
+  )
+    .bind(`${paite} #${++seq}`, status)
+    .first<{ id: number }>();
+  return r!.id;
+}
+
+async function seedEnglishAnswer(proverbId: number, english: string): Promise<number> {
+  const r = await DB.DB.prepare(
+    `INSERT INTO proverb_answers (proverb_id, english, phone_id, contributor_name) VALUES (?1, ?2, 'p-1', 'Contributor') RETURNING id`,
+  )
+    .bind(proverbId, `${english} #${++seq}`)
+    .first<{ id: number }>();
+  return r!.id;
+}
+
+async function fullSaying(id: number): Promise<SayingRow & { english: string | null }> {
+  const r = await DB.DB.prepare("SELECT status, paite, english, accepting_more FROM proverbs WHERE id = ?1")
+    .bind(id)
+    .first<SayingRow & { english: string | null }>();
+  return r!;
+}
+
 describe("one reviewer publishes", () => {
   it("publishes on a single accept", async () => {
     const pid = await seedSaying(ENGLISH);
@@ -195,5 +222,48 @@ describe("undo, skip and whole sayings", () => {
     const pid = await seedSaying("Strike while the iron is hot", "pending", L2);
     expect(await decideProverbPair(DB, "rev@example.org", pid, true)).toBe("ok");
     expect((await saying(pid)).status).toBe("live");
+  });
+});
+
+// The mirror lane: a Paite proverb is missing its English, so that is the side a
+// contributor fills and a reviewer publishes.
+describe("the English lane", () => {
+  it("publishes the English, leaving the Paite line alone", async () => {
+    const pid = await seedPaiteSaying(L1);
+    const aid = await seedEnglishAnswer(pid, "Nobody walks without fault");
+
+    expect(
+      await saveProverbReview(DB, "rev@example.org", { proverbId: pid, acceptAnswerId: aid, finalEnglish: "Nobody walks the path without fault." }),
+    ).toBe("ok");
+    const p = await fullSaying(pid);
+    expect(p.status).toBe("live");
+    expect(p.accepting_more).toBe(1);
+    expect(p.paite).toContain(L1.split(" ")[0]);
+    expect(p.english).toBe("Nobody walks the path without fault.");
+    expect(await answerStatus(aid)).toBe("accepted");
+  });
+
+  it("hands the reviewer the Paite line as the source and the English as the candidate", async () => {
+    const pid = await seedPaiteSaying(L1);
+    await seedEnglishAnswer(pid, "Nobody walks without fault");
+
+    const row = (await getProverbReviewList(DB, "rev@example.org")).answers.find((a) => a.proverb_id === pid)!;
+    expect(row.side).toBe("english");
+    expect(row.source).toContain(L1.split(" ")[0]);
+    expect(row.text).toContain("Nobody walks without fault");
+    expect(row.published).toBeNull();
+  });
+
+  it("undo puts the English back and keeps the Paite line", async () => {
+    const pid = await seedPaiteSaying(L1);
+    const aid = await seedEnglishAnswer(pid, "Nobody walks without fault");
+    await saveProverbReview(DB, "rev@example.org", { proverbId: pid, acceptAnswerId: aid, finalEnglish: "Nobody walks the path without fault." });
+
+    expect(await undoProverbReview(DB, "rev@example.org", pid)).toBe(true);
+    const p = await fullSaying(pid);
+    expect(p.status).toBe("open");
+    expect(p.english).toBeNull();
+    expect(p.paite).toContain(L1.split(" ")[0]);
+    expect(await answerStatus(aid)).toBe("new");
   });
 });

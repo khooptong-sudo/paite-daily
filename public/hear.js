@@ -59,7 +59,7 @@
         headers: { "content-type": blob.type, "X-Consent": CONSENT, "X-Duration": String(ms) } });
       if (r.status === 429) say("Slow down a little, then send again.");
       else if (!r.ok) say("Could not send this clip. Record it again.");
-      else { say("Thank you. A reviewer will listen to it."); document.dispatchEvent(new CustomEvent("paite:refresh")); setTimeout(() => next().catch(() => {}), 1200); }
+      else { say("Thank you. A reviewer will listen to it."); document.dispatchEvent(new CustomEvent("paite:refresh")); if (window.paiteAskName) window.paiteAskName($("h-send")); setTimeout(() => next().catch(() => {}), 1200); }
     } catch { say("Could not send. Check your connection."); }
     $("h-send").disabled = false;
   });

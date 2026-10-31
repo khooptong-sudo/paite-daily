@@ -72,8 +72,9 @@
     return r;
   }
 
-  // hear.js records through the same session.
+  // hear.js records through the same session, and asks for the name through the same card.
   window.paiteApi = api;
+  window.paiteAskName = askName;
 
   // Empty pool with a refill running: poll every 5 s for up to 60 s, then show the empty text and Retry.
   let pollTimer = null, pollUntil = 0;
@@ -113,7 +114,8 @@
       $("shared-note").hidden = !(current.shared || current.sharedGone);
       $("shared-note").innerHTML = current.shared ? tBoth("sharedHello") : current.sharedGone ? tBoth("sharedGone") : "";
       $("send").disabled = false;
-      $("paite").focus();
+      // While the name ask is open, do not pull focus (and the scroll) back to the answer box.
+      if ($("ask-name").hidden) $("paite").focus();
       if (window.pdTrack) window.pdTrack("card");
     } catch (e) {
       current = null;
@@ -139,6 +141,8 @@
     const host = from && from.closest("section.card");
     if (host && host !== box.parentElement) host.append(box);
     box.hidden = false;
+    // The form is taller than a phone screen, so the ask sits below the fold until brought into view.
+    box.scrollIntoView({ block: "nearest" });
   }
 
   // Answers typed with no network wait in localStorage and go one by one, oldest first.
@@ -160,7 +164,10 @@
       for (;;) {
         const item = store.get("outbox", [])[0];
         if (!item || navigator.onLine === false) break;
-        const r = await api("/api/answer", { method: "POST", body: item.body });
+        // The answer may have waited since before a name existed: carry the name now.
+        let body = item.body;
+        try { const queued = JSON.parse(body); if (!queued.name) { queued.name = store.get("name", ""); body = JSON.stringify(queued); } } catch {}
+        const r = await api("/api/answer", { method: "POST", body });
         // 400 and 409 will never succeed (bad or closed sentence); 429 and the rest can wait.
         if (!r.ok && r.status !== 400 && r.status !== 409) break;
         store.set("outbox", store.get("outbox", []).slice(1));
@@ -169,7 +176,7 @@
       }
     } catch {}
     flushing = false;
-    if (sent) { status(`${sent} saved answer${sent === 1 ? "" : "s"} sent.`, true); refreshMe(); }
+    if (sent) { status(`${sent} saved answer${sent === 1 ? "" : "s"} sent.`, true); refreshMe(); askName($("send")); }
   }
   window.addEventListener("online", flushOutbox);
   showOutbox();
@@ -187,6 +194,7 @@
       queueAnswer(body);
       status("Saved on this phone. It will send by itself when you are back online.", true);
       $("paite").value = ""; $("explanation").value = "";
+      askName($("send"));
       next();
     };
     if (navigator.onLine === false) { saveOffline(); return; }

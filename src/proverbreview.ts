@@ -23,16 +23,25 @@ export const REQUIRED_REVIEWERS = 1;
 export type ProverbAnswerRow = {
   id: number;
   proverb_id: number;
-  paite: string;
+  paite: string | null;
+  english: string | null;
+  answer_english: string | null;
   explainer: string | null;
   explainer_en: string | null;
   contributor_name: string | null;
   created_at: string;
-  english: string | null;
   kind: string;
   current_paite: string | null;
   accepts: number;
   mine: number;
+  /** Which side of the saying this candidate fills. */
+  side?: "paite" | "english";
+  /** The line already published for that side, if any. */
+  published?: string | null;
+  /** The saying's other line, shown to the reviewer as the source. */
+  source?: string | null;
+  /** The candidate's own line. */
+  text?: string | null;
 };
 
 export type ProverbPairRow = {
@@ -59,8 +68,8 @@ export async function getProverbReviewList(
   email: string,
   now = Date.now(),
 ): Promise<{ answers: ProverbAnswerRow[]; pairs: ProverbPairRow[]; required: number }> {
-  const answers = await env.DB.prepare(
-    `SELECT a.id, a.proverb_id, a.paite, a.explainer, a.explainer_en, a.contributor_name, a.created_at,
+  const answerRows = await env.DB.prepare(
+    `SELECT a.id, a.proverb_id, a.paite, a.english AS answer_english, a.explainer, a.explainer_en, a.contributor_name, a.created_at,
             p.english, p.kind, p.paite AS current_paite,
             (SELECT count(DISTINCT lower(r.reviewer_email)) FROM proverb_reviews r
               WHERE r.answer_id = a.id AND r.decision = 'accept' AND r.undone_at IS NULL) AS accepts,
@@ -94,8 +103,17 @@ export async function getProverbReviewList(
   )
     .bind(email, now)
     .all<ProverbPairRow>();
+  // One card per saying. Each candidate carries the side it fills, its own line,
+  // the saying's other line (the source), and the line already published on its side.
+  const answers = (answerRows.results ?? []).map((a) => ({
+    ...a,
+    side: (a.paite === null ? "english" : "paite") as "paite" | "english",
+    source: a.paite === null ? a.current_paite : a.english,
+    text: a.paite ?? a.answer_english,
+    published: a.paite === null ? a.english : a.current_paite,
+  }));
   return {
-    answers: answers.results ?? [],
+    answers,
     pairs: pairs.results ?? [],
     required: REQUIRED_REVIEWERS,
   };
@@ -138,11 +156,23 @@ export async function undoProverbReview(env: Env, email: string, proverbId: numb
     );
   }
   if (r.published) {
+    // Undo clears the side the review published: the Paite for an English idiom,
+    // the English for a Paite proverb.
+    let side = "paite";
+    if (r.answer_id != null) {
+      const ans = await env.DB.prepare("SELECT paite FROM proverb_answers WHERE id = ?1")
+        .bind(r.answer_id)
+        .first<{ paite: string | null }>();
+      if (ans && ans.paite === null) side = "english";
+    }
     stmts.push(
       env.DB.prepare(
-        `UPDATE proverbs SET status = 'open', paite = NULL, accepting_more = 0,
-                reviewed_by = NULL, reviewed_at = NULL WHERE id = ?1`,
-      ).bind(proverbId),
+        `UPDATE proverbs SET status = 'open',
+                paite = CASE WHEN ?2 = 'paite' THEN NULL ELSE paite END,
+                english = CASE WHEN ?2 = 'english' THEN NULL ELSE english END,
+                accepting_more = 0, reviewed_by = NULL, reviewed_at = NULL
+          WHERE id = ?1`,
+      ).bind(proverbId, side),
     );
   }
   await env.DB.batch(stmts);
@@ -185,19 +215,19 @@ export async function decideProverbAnswer(
   email: string,
   id: number,
   accept: boolean,
-  opts: { decision?: ProverbDecision; finalPaite?: string; note?: string } = {},
+  opts: { decision?: ProverbDecision; finalPaite?: string; finalEnglish?: string; note?: string } = {},
 ): Promise<"ok" | "waiting" | "not_found" | "duplicate"> {
   const decision: ProverbDecision = opts.decision ?? (accept ? "accept" : "reject");
   const note = opts.note ? cleanText(opts.note, 300) : null;
 
   const a = await env.DB.prepare(
-    `SELECT a.proverb_id, a.paite, a.explainer, a.explainer_en
+    `SELECT a.proverb_id, a.paite, a.english, a.explainer, a.explainer_en
        FROM proverb_answers a
        JOIN proverbs p ON p.id = a.proverb_id
       WHERE a.id = ?1 AND a.status = 'new' AND p.status IN ('open', 'pending')`,
   )
     .bind(id)
-    .first<{ proverb_id: number; paite: string; explainer: string | null; explainer_en: string | null }>();
+    .first<{ proverb_id: number; paite: string | null; english: string | null; explainer: string | null; explainer_en: string | null }>();
   if (!a) return "not_found";
 
   if (decision === "reject") {
@@ -222,12 +252,14 @@ export async function decideProverbAnswer(
   // Accepting without one leaves it NULL, so an earlier correction still wins.
   const finalPaite = opts.finalPaite !== undefined ? cleanText(opts.finalPaite, 300) : null;
   if (opts.finalPaite !== undefined && !finalPaite) return "not_found";
+  const finalEnglish = opts.finalEnglish !== undefined ? cleanText(opts.finalEnglish, 300) : null;
+  if (opts.finalEnglish !== undefined && !finalEnglish) return "not_found";
 
   await env.DB.prepare(
-    `INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision, final_paite, note)
-     VALUES (?1, ?2, ?3, 'accept', ?4, ?5)`,
+    `INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision, final_paite, final_english, note)
+     VALUES (?1, ?2, ?3, 'accept', ?4, ?5, ?6)`,
   )
-    .bind(a.proverb_id, id, email, finalPaite, note)
+    .bind(a.proverb_id, id, email, finalPaite, finalEnglish, note)
     .run();
 
   const n = await env.DB.prepare(
@@ -239,32 +271,41 @@ export async function decideProverbAnswer(
   if ((n?.n ?? 0) < REQUIRED_REVIEWERS) return "waiting";
 
   // Publish with the most recently settled text, which is the second reviewer's
-  // correction when they made one and the first reviewer's otherwise.
-  const settled = await env.DB.prepare(
+  // correction when they made one and the first reviewer's otherwise. The side the
+  // answer fills is the side that publishes; the other is left alone.
+  const settledPaite = await env.DB.prepare(
     `SELECT final_paite FROM proverb_reviews
       WHERE answer_id = ?1 AND decision = 'accept' AND undone_at IS NULL AND final_paite IS NOT NULL
       ORDER BY id DESC LIMIT 1`,
   )
     .bind(id)
     .first<{ final_paite: string | null }>();
+  const settledEnglish = await env.DB.prepare(
+    `SELECT final_english FROM proverb_reviews
+      WHERE answer_id = ?1 AND decision = 'accept' AND undone_at IS NULL AND final_english IS NOT NULL
+      ORDER BY id DESC LIMIT 1`,
+  )
+    .bind(id)
+    .first<{ final_english: string | null }>();
 
   try {
     await env.DB.batch([
       env.DB.prepare(
         `UPDATE proverbs
-            SET paite = ?2,
-                explainer = COALESCE(?3, explainer),
-                explainer_en = COALESCE(?4, explainer_en),
+            SET paite = COALESCE(?2, paite),
+                english = COALESCE(?3, english),
+                explainer = COALESCE(?4, explainer),
+                explainer_en = COALESCE(?5, explainer_en),
                 status = 'live',
                 accepting_more = 1,
-                reviewed_by = ?5,
+                reviewed_by = ?6,
                 reviewed_at = datetime('now')
           WHERE id = ?1`,
-      ).bind(a.proverb_id, settled?.final_paite || a.paite, a.explainer, a.explainer_en, email),
+      ).bind(a.proverb_id, settledPaite?.final_paite || a.paite, settledEnglish?.final_english || a.english, a.explainer, a.explainer_en, email),
       env.DB.prepare("UPDATE proverb_answers SET status = 'accepted' WHERE id = ?1").bind(id),
     ]);
   } catch (e) {
-    // proverbs_paite_unique refuses a Paite line that already belongs to another saying.
+    // The unique indexes on the Paite and English lines refuse a duplicate.
     if (/UNIQUE constraint failed/i.test(String(e))) return "duplicate";
     throw e;
   }

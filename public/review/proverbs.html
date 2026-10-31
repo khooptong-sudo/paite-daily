@@ -123,11 +123,18 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
     return row;
   }
 
+  // A candidate fills one side of the saying; the correction goes back on that side.
+  function langOf(side) { return side === "english" ? "en" : "pck"; }
+  function correction(body, side, value) {
+    body[side === "english" ? "finalEnglish" : "finalPaite"] = value;
+    return body;
+  }
+
   // ---- a saying with candidate lines -------------------------------------
   function answerCard(a, secondPass) {
     var card = h("section", "card");
-    card.appendChild(kindSwitch(a.proverb_id, a.kind, "English"));
-    card.appendChild(h("p", "prompt", a.english || "(no English line)"));
+    card.appendChild(kindSwitch(a.proverb_id, a.kind, a.side === "english" ? "Paite" : "English"));
+    card.appendChild(h("p", "prompt", a.source || "(no line yet)"));
     card.appendChild(h("p", "help", secondPass
       ? "One reviewer has approved a line for this Pau Upa. Check it and confirm, or correct it first."
       : "Pick the line that reads best. Correct it in the box if it needs it."));
@@ -137,12 +144,12 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
     // What is already on the page, if anything. The reviewer compares against it
     // and may correct it in place.
     var publishedBlock = null;
-    if (a.current_paite) {
+    if (a.published) {
       var pb = h("div", "block pub");
-      pb.appendChild(h("p", "txt", a.current_paite));
+      pb.appendChild(h("p", "txt", a.published));
       pb.appendChild(h("p", "meta", "Published"));
-      var pta = document.createElement("textarea"); pta.lang = "pck"; pta.spellcheck = false;
-      pta.value = a.current_paite;
+      var pta = document.createElement("textarea"); pta.lang = langOf(a.side); pta.spellcheck = false;
+      pta.value = a.published;
       pta.setAttribute("aria-label", "Correct the published line");
       pb.appendChild(pta);
       var prow = h("div", "row");
@@ -154,7 +161,7 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
 
       pok.addEventListener("click", function () {
         pok.disabled = true;
-        post("/review/api/proverbs/save", { proverbId: a.proverb_id, acceptPublished: true, finalPaite: pta.value })
+        post("/review/api/proverbs/save", correction({ proverbId: a.proverb_id, acceptPublished: true }, a.side || "paite", pta.value))
           .then(function (res) {
             if (res.ok) { card.remove(); say("Published line updated."); }
             else { pok.disabled = false; say((res.body && res.body.message) || "That did not go through."); }
@@ -164,10 +171,10 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
 
     a.candidates.forEach(function (c) {
       var block = h("div", "block");
-      block.appendChild(h("p", "txt", c.paite));
+      block.appendChild(h("p", "txt", c.text));
       block.appendChild(h("p", "meta", (c.contributor_name || "an unnamed contributor") + " \u00b7 " + String(c.created_at).slice(0, 10)));
-      var ta = document.createElement("textarea"); ta.lang = "pck"; ta.spellcheck = false;
-      ta.value = c.paite;
+      var ta = document.createElement("textarea"); ta.lang = langOf(c.side); ta.spellcheck = false;
+      ta.value = c.text;
       ta.setAttribute("aria-label", "Correct this line");
       block.appendChild(ta);
       var lab = h("label", "check");
@@ -190,13 +197,12 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
         var idx = blocks.findIndex(function (b) { return b.el === block; });
         var variants = blocks.filter(function (b, i) { return i !== idx && b.box.checked; }).map(function (b) { return b.c.id; });
         [ok, no].forEach(function (b) { b.disabled = true; });
-        post("/review/api/proverbs/save", {
+        post("/review/api/proverbs/save", correction({
           proverbId: a.proverb_id,
           acceptAnswerId: c.id,
-          finalPaite: ta.value,
           alsoCorrect: variants,
           note: note.value,
-        }).then(function (res) {
+        }, c.side || a.side || "paite", ta.value)).then(function (res) {
           if (!res.ok) { [ok, no].forEach(function (b) { b.disabled = false; }); say((res.body && res.body.message) || "That did not go through."); return; }
           card.remove();
           remember(a.proverb_id);
@@ -303,11 +309,11 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
       var bySaying = {};
       d.answers.forEach(function (a) {
         var key = a.proverb_id;
-        if (!bySaying[key]) bySaying[key] = { proverb_id: key, english: a.english, kind: a.kind, candidates: [], accepts: 0, mine: 0 };
+        if (!bySaying[key]) bySaying[key] = { proverb_id: key, kind: a.kind, side: a.side, source: a.source, candidates: [], accepts: 0, mine: 0 };
         bySaying[key].candidates.push(a);
         bySaying[key].accepts = Math.max(bySaying[key].accepts, a.accepts);
         bySaying[key].mine = Math.max(bySaying[key].mine, a.mine);
-        bySaying[key].published = bySaying[key].published || a.current_paite || null;
+        bySaying[key].published = bySaying[key].published || a.published || null;
       });
       var cards = Object.keys(bySaying).map(function (k) { return bySaying[k]; });
       var firsts = cards.filter(function (c) { return !c.published && c.mine === 0; });

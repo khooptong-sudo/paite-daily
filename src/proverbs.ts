@@ -68,23 +68,33 @@ export const proverbsJson = (xs: Proverb[]) =>
  * of an English idiom. Stored for a reviewer, never published straight away.
  */
 export async function submitProverbAnswer(env: Env, phoneId: string, b: Record<string, unknown>): Promise<Response> {
-  const paite = cleanText(b.paite, 300), explainer = opt(b.explainer, 600), explainer_en = opt(b.explainer_en, 600), name = opt(b.name, 60);
-  if (!isId(b.id) || !paite) return json({ error: "bad_request" }, 400);
+  const paite = opt(b.paite, 300), english = opt(b.english, 300), explainer = opt(b.explainer, 600), explainer_en = opt(b.explainer_en, 600), name = opt(b.name, 60);
+  if (!isId(b.id) || (!paite && !english)) return json({ error: "bad_request" }, 400);
   if ((b.explainer && !explainer) || (b.explainer_en && !explainer_en) || (b.name && !name)) return json({ error: "bad_request" }, 400);
-  const p = await env.DB.prepare("SELECT status, accepting_more FROM proverbs WHERE id = ?1")
+  const p = await env.DB.prepare("SELECT status, accepting_more, paite, english FROM proverbs WHERE id = ?1")
     .bind(b.id)
-    .first<{ status: string; accepting_more: number }>();
+    .first<{ status: string; accepting_more: number; paite: string | null; english: string | null }>();
   if (!p) return json({ error: "not_found" }, 404);
-  // A saying takes renderings while it waits for its first Paite line, and again
-  // once a reviewed line has published and the saying is collecting more.
+  // A saying takes renderings while it waits for its missing side, and again once
+  // a reviewed line has published and the saying is collecting more.
   const collecting = p.status === "open" || p.status === "pending" || (p.status === "live" && p.accepting_more === 1);
   if (!collecting) return json({ error: "closed" }, 409);
-  const dup = await env.DB.prepare("SELECT 1 FROM proverb_answers WHERE proverb_id = ?1 AND phone_id = ?2 AND lower(paite) = lower(?3)").bind(b.id, phoneId, paite).first();
+  // Fill the side the saying lacks. A saying that has both is collecting more Paite
+  // renderings, the way it always has.
+  const wantsPaite = p.paite === null || p.english !== null;
+  const column = wantsPaite ? "paite" : "english";
+  const line = wantsPaite ? paite : english;
+  if (!line) return json({ error: "bad_request" }, 400);
+  const dup = await env.DB.prepare(
+    `SELECT 1 FROM proverb_answers WHERE proverb_id = ?1 AND phone_id = ?2 AND lower(COALESCE(${column}, '')) = lower(?3)`,
+  )
+    .bind(b.id, phoneId, line)
+    .first();
   if (!dup)
     await env.DB.prepare(
-      "INSERT INTO proverb_answers (proverb_id, paite, explainer, explainer_en, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+      "INSERT INTO proverb_answers (proverb_id, paite, english, explainer, explainer_en, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
     )
-      .bind(b.id, cap(paite), explainer, explainer_en, phoneId, name)
+      .bind(b.id, wantsPaite ? cap(line) : null, wantsPaite ? null : cap(line), explainer, explainer_en, phoneId, name)
       .run();
   return json({ ok: true });
 }
@@ -147,16 +157,30 @@ else{window.turnstile.reset(tsId)}
 }).catch(function(e){waiter&&waiter.reject(e)})})}
 document.querySelectorAll("form[data-id]").forEach(function(f){
 f.addEventListener("submit",function(ev){ev.preventDefault();
-var st=f.querySelector(".st"),btn=f.querySelector("button"),ta=f.querySelector("textarea[name=paite]"),ex=f.querySelector("textarea[name=explainer]");
-var paite=ta.value.trim();if(!paite){ta.focus();return}
+var st=f.querySelector(".st"),btn=f.querySelector("button"),ta=f.querySelector("textarea"),side=f.dataset.side||"paite",ex=f.querySelector("textarea[name=explainer]");
+var val=ta.value.trim();if(!val){ta.focus();return}
 btn.disabled=true;st.className="st";st.textContent=t("sending","Sending\u2026");
 token().then(function(tk){return fetch("/api/session",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({phoneId:phone(),turnstileToken:tk})})})
 .then(function(r){if(!r.ok)throw new Error("session");return r.json()})
-.then(function(j){return fetch("/api/proverb/answer",{method:"POST",headers:{"content-type":"application/json","X-Session":j.session},body:JSON.stringify({id:Number(f.dataset.id),paite:paite,explainer:ex?ex.value.trim():""})})})
+.then(function(j){var body={id:Number(f.dataset.id),explainer:ex?ex.value.trim():""};body[side]=val;
+return fetch("/api/proverb/answer",{method:"POST",headers:{"content-type":"application/json","X-Session":j.session},body:JSON.stringify(body)})})
 .then(function(r){if(r.status===429)throw new Error("slow");if(!r.ok)throw new Error("bad");
-st.className="st ok";st.textContent=t("proverbThanks","Thanks! A reviewer will check it.");ta.value="";if(ex)ex.value="";btn.disabled=false})
+        st.className="st ok";st.textContent=t("proverbThanks","Thanks! A reviewer will check it.");ta.value="";if(ex)ex.value="";btn.disabled=false;ask(f)})
 .catch(function(e){btn.disabled=false;st.className="st err";
 st.textContent=e.message==="slow"?t("tooFast","Slow down a little, then try again."):t("offline","Could not send. Check your internet and try again.")})})});
+var ak=document.getElementById("ask-name");
+function named(){try{return !!JSON.parse(localStorage.getItem("pd:name"))||!!JSON.parse(localStorage.getItem("pd:noName"))}catch(e){return false}}
+function ask(el){if(!ak||named())return;
+var li=el&&el.closest("li");if(li&&li.parentNode&&li.nextSibling!==ak)li.parentNode.insertBefore(ak,li.nextSibling);
+ak.hidden=false;ak.scrollIntoView({block:"nearest"})}
+function nameSession(){return token().then(function(tk){return fetch("/api/session",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({phoneId:phone(),turnstileToken:tk})})}).then(function(r){if(!r.ok)throw new Error("session");return r.json()})}
+if(ak){
+var nm=document.getElementById("name"),sv=document.getElementById("save-name"),nn=document.getElementById("no-name");
+if(sv)sv.addEventListener("click",function(){var v=nm?nm.value.trim().slice(0,60):"";
+if(!v){try{localStorage.setItem("pd:noName","true")}catch(e){}ak.hidden=true;return}
+try{localStorage.setItem("pd:name",JSON.stringify(v))}catch(e){}ak.hidden=true;
+nameSession().then(function(j){return fetch("/api/name",{method:"POST",headers:{"content-type":"application/json","X-Session":j.session},body:JSON.stringify({name:v})})}).catch(function(){})});
+if(nn)nn.addEventListener("click",function(){try{localStorage.setItem("pd:noName","true")}catch(e){}ak.hidden=true});}
 })();`;
 
 const tag = (k: Kind) =>
@@ -165,11 +189,20 @@ const tag = (k: Kind) =>
     : '<span class="tag" data-s="kindProverb">Proverb</span>';
 
 function form(p: Proverb): string {
-  return `<details class="tr"><summary data-s="translateIt">Translate into Paite</summary><form data-id="${p.id}">
-<label class="lbl" for="p-${p.id}" data-s="yourVersion">Your Paite version</label>
-<textarea id="p-${p.id}" name="paite" lang="pck" spellcheck="false" rows="2" maxlength="300" required></textarea>
+  // The contributor fills the side the saying lacks: an English idiom asks for its
+  // Paite rendering, a Paite proverb asks for its English one. A saying that has
+  // both is collecting more Paite renderings, exactly as the server expects.
+  const wantsPaite = p.paite === null || p.english !== null;
+  const side = wantsPaite ? "paite" : "english";
+  const field = wantsPaite
+    ? `<label class="lbl" for="a-${p.id}" data-s="yourVersion">Your Paite version</label>
+<textarea id="a-${p.id}" name="paite" lang="pck" spellcheck="false" rows="2" maxlength="300" required placeholder="Lampam sik khiallou kuamah omlou"></textarea>
 <label class="lbl" for="e-${p.id}" data-s="explainerOptional">Explain what it means (optional)</label>
-<textarea id="e-${p.id}" name="explainer" rows="2" maxlength="600"></textarea>
+<textarea id="e-${p.id}" name="explainer" rows="2" maxlength="600"></textarea>`
+    : `<label class="lbl" for="a-${p.id}" data-s="yourVersionEn">Your English version</label>
+<textarea id="a-${p.id}" name="english" lang="en" spellcheck="false" rows="2" maxlength="300" required placeholder="A rolling stone gathers no moss"></textarea>`;
+  return `<details class="tr"><summary data-s="${wantsPaite ? "translateIt" : "translateItEn"}">Translate</summary><form data-id="${p.id}" data-side="${side}">
+${field}
 <button type="submit" class="send" data-s="send">Send</button>
 <p class="st" role="status"></p></form></details>`;
 }
@@ -179,17 +212,20 @@ function item(p: Proverb): string {
   // English idiom leads with English until a contributor supplies the Paite line.
   const first = p.entered_from === "en2pai" ? p.english : p.paite;
   const second = p.entered_from === "en2pai" ? p.paite : p.english;
-  const waiting = !p.paite;
-  const collecting = waiting || p.accepting_more === 1;
+  const needsPaite = !p.paite;
+  const needsEnglish = !p.english;
+  const collecting = needsPaite || needsEnglish || p.accepting_more === 1;
   const q = [p.paite, p.english, p.explainer, p.explainer_en].filter(Boolean).join(" ").toLowerCase();
-  const more = p.paite && p.accepting_more === 1
+  const more = p.paite && p.english && p.accepting_more === 1
     ? ' <small class="m" data-s="anotherVersion">Another version welcome</small>'
     : "";
   const other = second
     ? `<small class="m">${esc(second)}</small>${more}`
-    : waiting
+    : needsPaite
       ? '<small class="m" data-s="needsPaite">Needs a Paite version</small>'
-      : "";
+      : needsEnglish
+        ? '<small class="m" data-s="needsEnglish">Needs an English version</small>'
+        : "";
   const count = p.answers > 0 ? `<span class="n">${p.answers} ${p.answers === 1 ? "translation" : "translations"} so far</span>` : "";
   // Credit both sides of a reviewed entry: who contributed it, and who cleared it.
   const credit = [p.by ? `Added by ${esc(p.by)}` : "", p.reviewed_by ? `Reviewed by ${esc(p.reviewed_by)}` : ""].filter(Boolean).join(" · ");
@@ -262,6 +298,11 @@ ${paiteCount < 5 ? `<p class="note" id="paite-thin"><span data-s="paiteThin">Pai
 ${waiting ? `<p class="note" id="waiting"><span data-s="waitingNote">English idioms and proverbs are here for translation into Paite.</span> ${waiting} waiting. <button type="button" class="jump" data-dir="en2pai" data-s="filterEn2Pai">English &rarr; Paite</button></p>` : ""}
 ${body}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a Sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
+<div id="ask-name" hidden>
+<p id="askName" data-s="askName">Want your name on the Paite contributors list?</p>
+<input id="name" spellcheck="false" aria-labelledby="askName" maxlength="60" autocomplete="nickname" placeholder="Your Name">
+<div class="actions"><button type="button" class="primary" id="save-name" data-s="saveName">Add My Name</button><button type="button" id="no-name" data-s="noThanks">No Thanks</button></div>
+</div>
 ${FOOTER}
 </main>
 <div id="turnstile"></div>

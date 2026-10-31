@@ -18,12 +18,14 @@ function readProverbDecision(b: Record<string, unknown>) {
     : undefined;
   if (typeof b.accept !== "boolean" && !decision) return null;
   if (b.finalPaite !== undefined && typeof b.finalPaite !== "string") return null;
+  if (b.finalEnglish !== undefined && typeof b.finalEnglish !== "string") return null;
   if (b.note !== undefined && typeof b.note !== "string") return null;
   return {
     accept: b.accept === true,
     opts: {
       decision,
       finalPaite: b.finalPaite as string | undefined,
+      finalEnglish: b.finalEnglish as string | undefined,
       note: b.note as string | undefined,
     },
   };
@@ -103,7 +105,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     if (d === null) return json({ error: "bad_request" }, 400);
     const r = await decideProverbAnswer(env, email, b.id as number, d.accept, d.opts);
     if (r === "not_found") return json({ error: "not_found" }, 404);
-    if (r === "duplicate") return json({ error: "duplicate", message: "That Paite line already belongs to another saying." }, 409);
+    if (r === "duplicate") return json({ error: "duplicate", message: "That line already belongs to another saying." }, 409);
     return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
   }
   // The contributor's choice of proverb or idiom is a guess; the reviewer may correct it.
@@ -128,12 +130,14 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     if (!isId(b.proverbId)) return json({ error: "bad_request" }, 400);
     if (b.acceptAnswerId !== undefined && !isId(b.acceptAnswerId)) return json({ error: "bad_request" }, 400);
     if (b.finalPaite !== undefined && typeof b.finalPaite !== "string") return json({ error: "bad_request" }, 400);
+    if (b.finalEnglish !== undefined && typeof b.finalEnglish !== "string") return json({ error: "bad_request" }, 400);
     if (b.note !== undefined && typeof b.note !== "string") return json({ error: "bad_request" }, 400);
     if (b.alsoCorrect !== undefined && !isIdList(b.alsoCorrect)) return json({ error: "bad_request" }, 400);
     const r = await saveProverbReview(env, email, {
       proverbId: b.proverbId as number,
       acceptAnswerId: b.acceptAnswerId as number | undefined,
       finalPaite: b.finalPaite as string | undefined,
+      finalEnglish: b.finalEnglish as string | undefined,
       alsoCorrect: b.alsoCorrect as number[] | undefined,
       note: b.note as string | undefined,
       rejectAll: b.rejectAll === true,
@@ -142,7 +146,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps): Promise<
     });
     if (r === "not_found") return json({ error: "not_found" }, 404);
     if (r === "bad_answer") return json({ error: "bad_answer", message: "That line is no longer open for review." }, 400);
-    if (r === "duplicate") return json({ error: "duplicate", message: "That Paite line already belongs to another saying." }, 409);
+    if (r === "duplicate") return json({ error: "duplicate", message: "That line already belongs to another saying." }, 409);
     return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
   }
   if (pathname === "/review/api/proverbs/pair" && req.method === "POST") {

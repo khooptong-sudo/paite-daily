@@ -161,6 +161,53 @@ describe("POST /api/proverb/answer", () => {
   });
 });
 
+describe("the English lane", () => {
+  const openPaite = () => add({ paite: PAI, explainer: PAI_WHY, entered_from: "pai2en", status: "open" });
+  async function post(body: unknown, phone?: string) {
+    return call("/api/proverb/answer", { method: "POST", body: JSON.stringify(body), ...(phone ? { session: await session(phone) } : {}) });
+  }
+
+  it("asks for the English on a Paite saying that has none", async () => {
+    const id = await openPaite();
+    const html = await (await call("/proverbs")).text();
+    expect(html).toContain('data-s="needsEnglish"');
+    expect(html).toContain(`<form data-id="${id}" data-side="english">`);
+    expect(html).toContain('data-s="yourVersionEn"');
+    expect(html).not.toContain('data-side="paite"');
+  });
+
+  it("stores the English for a reviewer, not on the page", async () => {
+    const id = await openPaite();
+    const res = await post({ id, english: "Nobody walks the path without fault" }, PHONE_A);
+    expect(res.status).toBe(200);
+    const row = await env.DB.prepare("SELECT paite, english, phone_id, status FROM proverb_answers WHERE proverb_id = ?1").bind(id).first<any>();
+    expect(row).toMatchObject({ paite: null, english: "Nobody walks the path without fault", phone_id: PHONE_A, status: "new" });
+    const p = await env.DB.prepare("SELECT status, english FROM proverbs WHERE id = ?1").bind(id).first<any>();
+    expect(p).toMatchObject({ status: "open", english: null });
+  });
+
+  it("refuses a Paite rendering when the English is what is missing", async () => {
+    const id = await openPaite();
+    expect((await post({ id, paite: "Thu khat" }, PHONE_A)).status).toBe(400);
+  });
+
+  it("asks for the Paite again once a saying has both sides and is collecting more", async () => {
+    const id = await add({ paite: PAI, english: "Nobody walks the path without fault", explainer: PAI_WHY, entered_from: "pai2en", status: "live" });
+    await env.DB.prepare("UPDATE proverbs SET accepting_more = 1 WHERE id = ?1").bind(id).run();
+    const html = await (await call("/proverbs")).text();
+    expect(html).toContain(`<form data-id="${id}" data-side="paite">`);
+    expect(html).not.toContain('data-side="english"');
+  });
+
+  it("shows the English on the page once it is published, and stops asking", async () => {
+    const id = await openPaite();
+    await env.DB.prepare("UPDATE proverbs SET english = 'Nobody walks the path without fault' WHERE id = ?1").bind(id).run();
+    const html = await (await call("/proverbs")).text();
+    expect(html).toContain("Nobody walks the path without fault");
+    expect(html).not.toContain('data-s="needsEnglish"');
+  });
+});
+
 describe("POST /api/proverb/submit", () => {
   const submit = async (b: unknown, phone?: string) =>
     call("/api/proverb/submit", { method: "POST", body: JSON.stringify(b), ...(phone ? { session: await session(phone) } : {}) });

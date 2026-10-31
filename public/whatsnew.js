@@ -3,6 +3,7 @@
 // item is added. Add new items at the top of NEWS.
 (() => {
   const NEWS = [
+    { id: "2026-10-31-english", date: "2026-10-31", title: "Paite sayings, in English", text: "Paite proverbs and idioms now ask for their English version. Open one on the Pau Upa page and give it in your own words." },
     { id: "2026-10-27-streaks", date: "2026-10-27", title: "Streaks and milestones", text: "See how many days in a row you have written Paite, and a small celebration at 10, 50, 100 and more verified lines." },
     { id: "2026-10-27-offline", date: "2026-10-27", title: "No signal? No problem", text: "If the network drops when you tap Send, your answer waits on your phone and sends by itself when you are back online." },
     { id: "2026-10-27-dash", date: "2026-10-27", title: "For reviewers: one dashboard", text: "The reviewer page now opens with every waiting queue in one place: sentences, words, Pau Upa and recordings, and how long the oldest has waited.", href: "/review" },
