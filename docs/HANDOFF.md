@@ -1,21 +1,25 @@
-# Handoff, 27 October 2026 (blue look, nine value additions, seven more, Christmas, What's New)
+# Handoff, 31 October 2026 (name ask on every submission, the sayings English lane, 11 Paite sayings seeded)
 
 Start a new session with: **Read this top section, then do "First thing next session" below, then ask the owner what to work on.**
 
 ## Where things stand
-- Live version `88e2bc1a`, from `main` at the latest commit, pushed. Live site, GitHub and `main` all match. Service worker cache **`v60`**.
-- Remote D1 has every migration through **`0028_answer_place.sql`**. Nothing pending.
+- Live worker version **`058320a3`**, deployed from **`880b587`**; `main` is that commit plus this handoff, pushed. Live site, GitHub and `main` all match. Service worker cache **`v61`**.
+- Remote D1 has every migration through **`0029_proverb_english.sql`**. Nothing pending. The 11 Paite sayings in `seed/paite-sayings.json` are seeded (`status = 'open'`, English NULL), so `/proverbs` is asking for their English right now.
 - R2 bucket **`paite-daily-audio`** (bound as `AUDIO`) holds recordings and, from 27 Oct, nightly backups under `backups/`.
-- 308 tests pass (full suite, twice in a row), `tsc` clean.
+- **316 tests pass**, `tsc` clean.
 - Publishing chain: site to GitHub `khooptong-sudo/paite-open-language-data` nightly; that repo's Action to Hugging Face `LamkaLabs/paite-open-language-data` every Monday (its `HF_TOKEN` secret is set, first run succeeded); Zenodo only on a GitHub release (v1.1.0, DOI `10.5281/zenodo.23664981`).
 
 ## First thing next session
-1. **Confirm the first nightly backup ran:** `CI=1 node_modules/.bin/wrangler d1 execute paite-daily --remote --command "SELECT * FROM job_runs WHERE job = 'backup' ORDER BY id DESC LIMIT 3"`, and that `backups/` in the `AUDIO` bucket has a file for today.
-2. Ask the owner about the checks below and for any Paite they have sent.
+1. **Confirm the nightly backup still ran** after the 31 Oct migration: `CI=1 node_modules/.bin/wrangler d1 execute paite-daily --remote --command "SELECT * FROM job_runs WHERE job = 'backup' ORDER BY id DESC LIMIT 3"`, and that `backups/` in the `AUDIO` bucket has a file for today. The migration rebuilt `proverb_answers`, so the first backup after it is the one that proves the rebuild is safe to restore into.
+2. **Look at the English lane in a browser, on the live site.** `/proverbs` should list the 11 seeded sayings (Ainah Phah, Ainah Phahpih, Bui tawholh, Zawng thuak di ngau in thuak, Numei leh baal chi, Neklouh ding vonggah kei ken, Simbeng chiatchiat tangzang kineih, Ui leh kel bang, Duh se lua akta kiloh khuh, Aikohan, Tagah nawi muh) each with "Needs an English version" and an English box. Give one an English as a contributor, then accept it on the Pau Upa reviewer page (`/review/proverbs.html`), set its kind there, and check the English publishes beside the Paite line. The suite covers this; a browser never has.
+3. Ask the owner about the checks below and for any Paite they have sent.
 
 ## Open items
-- **Paite wording still English only:** What's New title; Your Week title; streak line and milestone message; offline messages; Check spelling button and messages; Spelling Danbu intro; place hint; Ask a relative help line (its Paite is out of date: it still says the reply is not saved) and its two notes; Aw in Aw consent line. Use the owner's words exactly; never invent Paite.
-- **Owner checks on their phone:** Your Week Share picture; Gboard word list import; swipe review and the reviewer dashboard with real counts; Ask a relative from WhatsApp; Christmas look at `/?season=christmas` (reindeer direction, bells).
+- **Paite wording still English only:** What's New title; Your Week title; streak line and milestone message; offline messages; Check spelling button and messages; Spelling Danbu intro; place hint; Ask a relative help line (its Paite is out of date: it still says the reply is not saved) and its two notes; Aw in Aw consent line; the three new sayings labels `translateItEn`, `yourVersionEn`, `needsEnglish`; and the 31 Oct What's New item. Use the owner's words exactly; never invent Paite.
+- **Owner checks on their phone:** Your Week Share picture; Gboard word list import; swipe review and the reviewer dashboard with real counts; Ask a relative from WhatsApp; Christmas look at `/?season=christmas` (reindeer direction, bells); and the name ask after a first submission, straight after an answer saved with no signal, and after a recording (it should scroll into view by itself).
+- **The sayings English lane has never been through a browser.** Tests cover submit, list, accept, publish and undo; the contributor box, the reviewer card for an English candidate and the publish should still be tried on the live site (see "First thing next session").
+- **`/proverbs` counts only English sayings waiting for Paite** in its "N waiting." line and its "still being gathered" note; the Paite sayings waiting for English are not in either. Worth a count of its own if the owner wants one.
+- **`/proverbs.json` is cached for five minutes** (`max-age=300`), so a mirror can lag a change by that much; the page itself is `no-store`.
 - **Owner's two recordings** wait at `/review/audio`; once accepted, their play buttons show in the chat only if those sentences are in a chat scene.
 - **Optional:** map dots for villages contributors type (list them with the query under "Where you learned it"); a fuller listening page; more same-person spellings for `SAME` in `getContributors`.
 
@@ -76,7 +80,7 @@ Concepts for several are in the private artifact "Paite Daily Rewoven": https://
 ## How to work in this repo
 - **Ship fully.** When the owner approves a change ("push", "go ahead", "ship it"), commit, push, apply any pending migration, deploy and check the live site in one go. Still ask first about anything new or risky (new outside service, new bucket, destructive migration).
 - **Order:** migration first (`CI=1 node_modules/.bin/wrangler d1 migrations apply paite-daily --remote`), then push, then deploy. A deploy before its migration breaks the new endpoints.
-- **Deploy only from a clean worktree:** `git worktree add -q .claude/worktrees/deploy-x <sha>`, copy `.dev.vars` in, run `../../../node_modules/.bin/tsc --noEmit` and `../../../node_modules/.bin/vitest run`, then `../../../node_modules/.bin/wrangler deploy`, all inside that folder. Then `rm -rf` it (it holds `.dev.vars`) and `git worktree prune`. Run each step in a subshell `( cd ... )` so the session never sits inside the folder, or Windows refuses to delete it.
+- **Deploy only from a clean worktree:** `git worktree add -q .claude/worktrees/deploy-x <sha>`, copy `.dev.vars` in, run `../../../node_modules/.bin/tsc --noEmit` and `../../../node_modules/.bin/vitest run`, then `../../../node_modules/.bin/wrangler deploy`, all inside that folder. Then `rm -rf` it (it holds `.dev.vars`) and `git worktree prune`. Run each step in a subshell `( cd ... )` so the session never sits inside the folder, or Windows refuses to delete it. Under PowerShell, plain `npx tsc --noEmit`, `npx vitest run` and `npx wrangler deploy` from inside the worktree find the repo's `node_modules`. If `git worktree remove --force` answers "Permission denied", go back to the repo root, delete `.dev.vars`, then `Remove-Item -Recurse -Force` the folder and `git worktree prune`.
 - **Git in this folder:** files are owned by another Windows account, so plain `git` refuses. Use `git -c safe.directory=*`. Push with `git -c credential.helper='!gh auth git-credential' push origin main`.
 - **Running tests in the main folder** also picks up the old `.claude/worktrees/paite-footer` copy; use `npx vitest run --exclude ".claude/**"`.
 - **Editing files from Bash:** Windows Python under Git Bash does not read heredoc stdin, so write the script to the scratchpad and run `python script.py < /dev/null`. Many files are CRLF; match line endings when replacing text.
@@ -86,6 +90,16 @@ Concepts for several are in the private artifact "Paite Daily Rewoven": https://
 - House rules: no em dashes in copy, the main action solid blue and the small chips outlined, never classify Paite with a colonial exonym.
 
 Newest first. Each session prepends one section directly under this line.
+
+## ✅ 31102026 EoS: name ask on every submission, the sayings English lane
+
+- **The name ask fires on every submission now, in the card it came from.** It was wired only to the four front-page forms; it now also fires on an answer saved while offline, on the outbox flush that sends one later, and on a recording (`app.js` exposes `window.paiteAskName`, which `hear.js` calls). The box is scrolled into view when it appears, and `next()` no longer pulls focus and the scroll back past it: the contribution card is about 960px tall on a phone, so the ask was landing about 700px below the fold and nobody saw it. A queued answer now also picks up the name given later, and the separate `/proverbs` page asks and posts `/api/name`.
+- **Sayings take their missing side in both directions.** A Paite proverb with no English shows "Needs an English version" and an English box on `/proverbs`; the reviewer sees the Paite line as the source, the English as the candidate, corrects it in the right language and accepts; it publishes `proverbs.english` and leaves `proverbs.paite` alone. `decideProverbAnswer`, `saveProverbReview` and `undoProverbReview` branch by side, and a duplicate is caught on either unique index. **Proverb or idiom stays the reviewer's call** (the kind switch already existed; the seed leaves `kind` at its default).
+- **Migration `0029_proverb_english.sql`** rebuilds `proverb_answers` (`paite` nullable, new `english`, `CHECK` one of them) and adds `proverb_reviews.final_english`. **A plain `DROP TABLE proverb_answers` fails under foreign keys** ("FOREIGN KEY constraint failed") because `proverb_reviews.answer_id` references it; the migration parks `proverb_reviews`, rebuilds `proverb_answers`, recreates `proverb_reviews` from the parked copy, then recreates the partial unique index. Applied to remote D1: 13 commands, data intact (231 proverbs, 17 answers, 32 reviews).
+- **Eleven Paite sayings seeded** from `seed/paite-sayings.json` (`status: 'open'`, English NULL) with the owner's explainers, loaded with `node scripts/seed-proverbs.mjs --remote` (`changes: 12`). `Neklouh ding vonggah kei ken` is the one whose explainer arrived without a line.
+- **The one rule that must stay in step:** the server (`submitProverbAnswer`) and the page (`form()`) both choose the side with `wantsPaite = paite === null || english !== null`. Change one and the other must follow, or a live saying with both sides asks for the wrong language.
+- **Shipped:** commit `880b587`, worker version `058320a3`, cache `v61`, a What's New item, and 316 tests.
+- **Left alone:** `scripts/backup-d1.ps1` still carries an uncommitted F:→E: backup path change that predates this work.
 
 ## ✅ 27102026 EoS: blue look, sixteen value additions, Christmas, What's New
 
