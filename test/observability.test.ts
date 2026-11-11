@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { errorPage } from "../src/observability";
 import { call, fakeDeps, session, PHONE_A } from "./helpers";
 
-const rev = (path: string, init: RequestInit = {}, email = "owner@example.org", deps = fakeDeps({ verifyAccess: async () => email })) =>
+const rev = (path: string, init: RequestInit = {}, email = "owner@example.org", deps = fakeDeps({ verifyReviewer: async () => email })) =>
   call(path, init, deps);
 const post = (path: string, body: unknown) => ({ method: "POST", body: JSON.stringify(body) });
 
@@ -45,7 +45,7 @@ describe("funnel events", () => {
 
 describe("errors", () => {
   it("answers a thrown API request with JSON, never a stack trace", async () => {
-    const deps = fakeDeps({ verifyAccess: async () => { throw new Error("kaboom"); } });
+    const deps = fakeDeps({ verifyReviewer: async () => { throw new Error("kaboom"); } });
     const r = await rev("/review/api/me", {}, "owner@example.org", deps);
     expect(r.status).toBe(500);
     expect(await r.json()).toEqual({ error: "server_error" });
@@ -79,7 +79,7 @@ describe("errors", () => {
   });
 
   it("lists the errors for the owner", async () => {
-    const deps = fakeDeps({ verifyAccess: async () => { throw new Error("kaboom"); } });
+    const deps = fakeDeps({ verifyReviewer: async () => { throw new Error("kaboom"); } });
     await call("/review/api/me", {}, deps);
     await call("/review/api/me", {}, deps);
     const r = await rev("/review/api/errors");
@@ -91,7 +91,7 @@ describe("errors", () => {
 
 describe("server input checks", () => {
   it("bounds ids and lists", async () => {
-    const deps = fakeDeps({ verifyAccess: async () => "rev@example.org" });
+    const deps = fakeDeps({ verifyReviewer: async () => "rev@example.org" });
     expect((await rev("/review/api/undo", post("/review/api/undo", { reviewId: 0 }), "rev@example.org", deps)).status).toBe(400);
     expect((await rev("/review/api/undo", post("/review/api/undo", { reviewId: -3 }), "rev@example.org", deps)).status).toBe(400);
     expect((await rev("/review/api/undo", post("/review/api/undo", { reviewId: 2 ** 31 }), "rev@example.org", deps)).status).toBe(400);

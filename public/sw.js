@@ -58,7 +58,7 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
 
   // Only reads of our own pages and files. Answers must reach the server, and
-  // the review pages belong to Cloudflare Access.
+  // the review pages need a signed-in reviewer, so they are never cached.
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;

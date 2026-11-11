@@ -6,7 +6,7 @@ import { call, fakeDeps } from "./helpers";
 const run = (ok: boolean, job = "export") => env.DB.prepare("INSERT INTO job_runs (job, ok, detail) VALUES (?1, ?2, 'x')").bind(job, ok ? 1 : 0).run();
 const fail = () => logged(env, "export", async () => { throw new Error("boom"); });
 const pass = () => logged(env, "export", async () => ({}));
-const as = (email: string | null) => call("/review/api/health", {}, fakeDeps({ verifyAccess: async () => email }));
+const as = (email: string | null) => call("/review/api/health", {}, fakeDeps({ verifyReviewer: async () => email }));
 
 describe("failingJobs", () => {
   it("two failures fail; failure then ok or single failure do not", async () => {

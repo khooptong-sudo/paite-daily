@@ -1,5 +1,5 @@
 import { renderAbout } from "./about";
-import { verifyAccess } from "./access";
+import { verifyReviewer } from "./login";
 import { logged, runNightly } from "./export";
 import { runPrereview } from "./prereview";
 import { lockedRefill } from "./refill";
@@ -32,7 +32,7 @@ export function createApp(deps: Deps) {
       if (pathname === "/about") return new Response(renderAbout(), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600" } });
       if (pathname.startsWith("/audio/") && req.method === "GET") return await publicAudio(env, pathname);
       if (pathname.startsWith("/api/")) return await handleContributor(req, env, deps, ctx);
-      if (pathname.startsWith("/review/api/")) return await handleReview(req, env, deps);
+      if (pathname.startsWith("/review/api/")) return await handleReview(req, env, deps, ctx);
       if (pathname === "/" || pathname === "/index.html") {
         const page = await env.ASSETS.fetch(req);
         return new HTMLRewriter()
@@ -51,7 +51,7 @@ export function createApp(deps: Deps) {
 
 const app = createApp({
   verifyTurnstile: (t, ip, env) => verifyTurnstile(t, ip, env),
-  verifyAccess: (req, env) => verifyAccess(req, env),
+  verifyReviewer: (req, env) => verifyReviewer(req, env, Date.now()),
   now: () => Date.now(),
 });
 

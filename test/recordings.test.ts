@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 import { addSentences, call, fakeDeps, PHONE_A, PHONE_B, session } from "./helpers";
 
-const REV = fakeDeps({ verifyAccess: async () => "rev@example.org" });
+const REV = fakeDeps({ verifyReviewer: async () => "rev@example.org" });
 const CLIP = new Uint8Array(4000).fill(7);
 
 // A sentence whose answer from `phone` a reviewer accepted, so the pair is verified.
@@ -70,7 +70,7 @@ describe("Hear it", () => {
     expect(pub.headers.get("content-type")).toBe("audio/webm");
     expect((await pub.arrayBuffer()).byteLength).toBe(4000);
 
-    const other = fakeDeps({ verifyAccess: async () => "owner@example.org" });
+    const other = fakeDeps({ verifyReviewer: async () => "owner@example.org" });
     expect((await call("/review/api/recordings/undo", { method: "POST", body: JSON.stringify({ id: 12345 }) }, other)).status).toBe(404);
     expect((await call("/review/api/recordings/undo", { method: "POST", body: JSON.stringify({ id: rec }) }, REV)).status).toBe(200);
     expect((await call(`/audio/${rec}`)).status).toBe(404);

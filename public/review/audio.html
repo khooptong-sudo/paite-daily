@@ -38,7 +38,8 @@
   function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
   function load() {
     fetch("/review/api/recordings").then(function (r) {
-      if (r.status === 401 || r.status === 403) throw new Error("auth");
+      if (r.status === 401) { location.replace("/review/login"); throw new Error("auth"); }
+      if (r.status === 403) throw new Error("auth");
       return r.json();
     }).then(function (j) {
       $("queue").textContent = j.waiting ? j.waiting + " waiting" : "Nothing waiting. Thank you.";

@@ -44,6 +44,6 @@ describe("Spelling rulebook", () => {
     expect(await page.text()).toContain("daam");
     expect(await (await call("/rules.json")).json()).toMatchObject({ rules: [{ from: "dam", to: "daam", count: 1 }] });
     expect((await call("/review/api/rules")).status).toBe(401);
-    expect((await call("/review/api/rules", {}, fakeDeps({ verifyAccess: async () => "rev@example.org" }))).status).toBe(200);
+    expect((await call("/review/api/rules", {}, fakeDeps({ verifyReviewer: async () => "rev@example.org" }))).status).toBe(200);
   });
 });

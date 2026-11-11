@@ -114,11 +114,11 @@ describe("page, hide, export", () => {
 
   it("hide is reviewer only and removes the entry from page and export", async () => {
     await seed();
-    const rev = fakeDeps({ verifyAccess: async () => "rev@example.org" });
+    const rev = fakeDeps({ verifyReviewer: async () => "rev@example.org" });
     const body = (id: number) => ({ method: "POST", body: JSON.stringify({ id }) });
     const id = (await getGlossary(env)).find((e) => e.paite === "Zu")!.id;
     expect((await call("/review/api/glossary/hide", body(id))).status).toBe(401);
-    expect((await call("/review/api/glossary/hide", body(id), fakeDeps({ verifyAccess: async () => "nobody@example.org" }))).status).toBe(403);
+    expect((await call("/review/api/glossary/hide", body(id), fakeDeps({ verifyReviewer: async () => "nobody@example.org" }))).status).toBe(403);
     expect((await call("/review/api/glossary/hide", { method: "POST", body: "{}" }, rev)).status).toBe(400);
     expect((await call("/review/api/glossary/hide", body(99999), rev)).status).toBe(404);
     expect((await call("/review/api/glossary", {}, rev)).status).toBe(200);

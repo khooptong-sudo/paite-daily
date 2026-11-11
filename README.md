@@ -7,10 +7,18 @@ Live: https://paite.lamkalabs.com
 ## Owner steps (accounts needed)
 
 1. Run `npx wrangler login` in this folder.
-2. Cloudflare dashboard, Zero Trust: create a team (free plan). Note the team domain, for example `lamkalabs.cloudflareaccess.com`.
-3. Zero Trust, Access, Applications: add a self-hosted application with domain `paite.lamkalabs.com` and path `review`. Policy: Allow, Include, Emails, then the reviewer emails. Login method: One-time PIN. Note the Application Audience (AUD) tag.
-4. Turnstile: add a widget for `paite.lamkalabs.com`, mode Invisible. Note the site key and secret.
-5. GitHub, Settings, Developer settings, Fine-grained tokens: create a token for only the repository `paite-open-language-data`, with Contents: Read and write.
+2. Turnstile: add a widget for `paite.lamkalabs.com`, mode Invisible. Note the site key and secret.
+3. GitHub, Settings, Developer settings, Fine-grained tokens: create a token for only the repository `paite-open-language-data`, with Contents: Read and write.
+
+## Reviewer sign-in
+
+Reviewers sign in at `/review/login` with their email and a password. There is no Cloudflare Access application in front of `/review`.
+
+- A reviewer is anyone in the `REVIEWERS` secret, an active row in the `reviewers` table, or an owner in `OWNER_EMAIL`.
+- Nobody is given a password. On the sign-in page, "Set or reset my password" emails a one-time link (one hour) to choose one. Approving an application emails the new reviewer the same kind of link (seven days).
+- A sign-in lasts 30 days on a device. Choosing a new password signs out every device.
+- Ten wrong passwords for one email in fifteen minutes lock that email for the rest of the fifteen minutes. A new password through the emailed link clears the lock.
+- The database holds a salted PBKDF2 hash of each password and a SHA-256 of each session and link token, never the values themselves. The code is in `src/login.ts`.
 
 ## Configure
 
@@ -18,7 +26,7 @@ Live: https://paite.lamkalabs.com
 npx wrangler d1 create paite-daily
 ```
 
-Copy the printed `database_id` into `wrangler.jsonc`. Set these vars there: `ACCESS_TEAM_DOMAIN`, `ACCESS_AUD`, `TURNSTILE_SITE_KEY`. Do not put reviewer emails in this public file. Add the domain:
+Copy the printed `database_id` into `wrangler.jsonc`. Set this var there: `TURNSTILE_SITE_KEY`. Do not put reviewer emails in this public file. Add the domain:
 
 ```jsonc
 "routes": [{ "pattern": "paite.lamkalabs.com", "custom_domain": true }],

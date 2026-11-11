@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { afterEach, describe, expect, it } from "vitest";
 import { addSentences, call, fakeDeps, NOW, PHONE_A, PHONE_B, PHONE_C, session } from "./helpers";
 
-const as = (email: string | null, now = NOW) => fakeDeps({ verifyAccess: async () => email, now: () => now });
+const as = (email: string | null, now = NOW) => fakeDeps({ verifyReviewer: async () => email, now: () => now });
 const rev = (path: string, body?: unknown, email: string | null = "rev@example.org", now = NOW) =>
   call(path, body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }, as(email, now));
 
@@ -47,7 +47,7 @@ describe("owner list", () => {
 });
 
 describe("review access", () => {
-  it("refuses requests without a valid Access identity", async () => {
+  it("refuses requests without a sign-in", async () => {
     expect((await rev("/review/api/next", undefined, null)).status).toBe(401);
   });
   it("refuses a signed-in person who is not on the reviewer list", async () => {

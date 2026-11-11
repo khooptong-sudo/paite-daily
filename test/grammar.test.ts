@@ -31,6 +31,6 @@ describe("Check English", () => {
     expect((await call("/api/grammar", { method: "POST", body })).status).toBe(401);
     expect((await call("/api/grammar", { method: "POST", body, session: await session(PHONE_A) })).status).toBe(503);
     expect((await call("/review/api/grammar", { method: "POST", body })).status).toBe(401);
-    expect((await call("/review/api/grammar", { method: "POST", body }, fakeDeps({ verifyAccess: async () => "rev@example.org" }))).status).toBe(503);
+    expect((await call("/review/api/grammar", { method: "POST", body }, fakeDeps({ verifyReviewer: async () => "rev@example.org" }))).status).toBe(503);
   });
 });

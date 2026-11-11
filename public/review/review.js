@@ -8,10 +8,14 @@
   async function me() {
     try {
       const r = await fetch("/review/api/me");
+      if (r.status === 401) { location.replace("/review/login"); return false; }
       if (r.status === 403) { $("english").textContent = "You are not a reviewer. Ask the owner to add your email."; return false; }
       if (!r.ok) { $("english").textContent = "Sign-in needed. Reload the page."; return false; }
       const m = await r.json();
-      $("who").textContent = m.name; isOwner = m.owner === true;
+      const out = document.createElement("button");
+      out.type = "button"; out.textContent = "Sign out"; out.style.cssText = "margin-left:10px;padding:6px 12px;font-size:.8rem";
+      out.addEventListener("click", async () => { out.disabled = true; try { await post("/review/api/logout", {}); } catch {} location.replace("/review/login"); });
+      $("who").replaceChildren(m.name, out); isOwner = m.owner === true;
       if (m.lastReviewId) lastUndo = m.lastReviewId;
       return true;
     } catch { $("english").textContent = "Sign-in needed. Reload the page."; return false; }

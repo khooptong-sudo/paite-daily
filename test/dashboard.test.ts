@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 import { addSentences, call, fakeDeps, PHONE_A } from "./helpers";
 
-const REV = fakeDeps({ verifyAccess: async () => "rev@example.org" });
+const REV = fakeDeps({ verifyReviewer: async () => "rev@example.org" });
 const get = async () => (await call("/review/api/dashboard", {}, REV)).json();
 
 // One waiting item in every queue. `done` makes the same items already decided.

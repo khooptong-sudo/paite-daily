@@ -1,4 +1,5 @@
 import { activeReviewers, isOwner } from "./access";
+import { createPasswordLink, INVITE_MS } from "./login";
 import { cleanText, isId } from "./text";
 import { json, type Deps, type Env } from "./types";
 
@@ -7,12 +8,12 @@ const OK = () => json({ ok: true });
 const owners = (env: Env) => (env.OWNER_EMAIL ?? "").split(",").map((o) => o.trim()).filter(Boolean);
 const oneLine = (s: string) => s.replace(/\s+/g, " ");
 
-async function hashIp(ip: string, secret: string): Promise<string> {
+export async function hashIp(ip: string, secret: string): Promise<string> {
   const d = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${secret}:${ip}`));
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-async function mail(env: Env, to: string | string[], subject: string, text: string): Promise<boolean> {
+export async function mail(env: Env, to: string | string[], subject: string, text: string): Promise<boolean> {
   if (!env.ALERT_EMAIL || (Array.isArray(to) && !to.length)) return false;
   try {
     await env.ALERT_EMAIL.send({ from: "alerts@alerts.lamkalabs.com", to, subject: oneLine(subject), text });
@@ -48,11 +49,12 @@ export async function handleApply(req: Request, env: Env, deps: Deps, ctx?: Exec
   return OK();
 }
 
-const APPROVED_TEXT = `You are now a Paite Daily reviewer. How to start:
+const APPROVED_TEXT = (link: string) => `You are now a Paite Daily reviewer. How to start:
 
-1. Open https://paite.lamkalabs.com/review
-2. Enter this email address.
-3. Enter the 6-digit code that Cloudflare Access sends you (check your spam folder).
+1. Open this link and choose a password. It works once, for 7 days:
+   ${link}
+2. After that, sign in at https://paite.lamkalabs.com/review with this email address and your password.
+3. If the link has run out or you forget the password, choose "Set or reset my password" on the sign-in page.
 
 What the buttons do:
 - Accept: keep this answer as the right translation.
@@ -62,13 +64,13 @@ What the buttons do:
 - Undo: take back your last decision.
 
 On a laptop, press A (accept), R (reject all), U (undo) and ? (help).
-The sign-in lasts about a day.
+You stay signed in for 30 days on each device.
 Open /review once on the phone you use to translate, to get the Endiktu badge.
 A daily email tells you how many answers wait.
 `;
 
 // Owner-only application and reviewer management. The caller has already checked the reviewer; this checks owner.
-export async function handleOwnerReview(pathname: string, method: string, b: Record<string, unknown>, env: Env, email: string): Promise<Response | null> {
+export async function handleOwnerReview(pathname: string, method: string, b: Record<string, unknown>, env: Env, email: string, now: number): Promise<Response | null> {
   const mine = ["/review/api/applications", "/review/api/applications/decide", "/review/api/reviewers", "/review/api/reviewers/remove"];
   if (!mine.includes(pathname)) return null;
   if (!isOwner(env, email)) return json({ error: "owner_only" }, 403);
@@ -89,7 +91,7 @@ export async function handleOwnerReview(pathname: string, method: string, b: Rec
       env.DB.prepare("INSERT INTO reviewers (email, name, added_by) VALUES (?1, ?2, ?3) ON CONFLICT (email) DO UPDATE SET name = excluded.name, removed_at = NULL, added_by = excluded.added_by").bind(to, app.name, email),
       mark,
     ]);
-    return json({ ok: true, emailed: await mail(env, to, "You are now a Paite Daily reviewer", APPROVED_TEXT) });
+    return json({ ok: true, emailed: await mail(env, to, "You are now a Paite Daily reviewer", APPROVED_TEXT(await createPasswordLink(env, to, now, INVITE_MS))) });
   }
   if (pathname === "/review/api/reviewers" && method === "GET") {
     const rs = await activeReviewers(env);

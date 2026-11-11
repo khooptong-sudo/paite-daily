@@ -12,7 +12,7 @@ import type { Deps } from "../src/types";
 beforeEach(async () => {
   // Per-worker caches would carry one test's words into the next.
   clearGapCache(); clearRulesCache(); clearSpellingCache();
-  await env.DB.batch(["grammar_checks", "recordings", "chat_wants", "job_locks", "word_submissions", "reviewer_applications", "reviewers", "proverb_answers", "proverbs", "glossary", "locks", "skips", "reviewer_phones", "reviews", "exports", "job_runs", "seen", "answers", "sentences", "errors", "events"].map((t) => env.DB.prepare(`DELETE FROM ${t}`)));
+  await env.DB.batch(["reviewer_login_attempts", "reviewer_password_links", "reviewer_sessions", "reviewer_passwords", "grammar_checks","recordings", "chat_wants", "job_locks", "word_submissions", "reviewer_applications", "reviewers", "proverb_answers", "proverbs", "glossary", "locks", "skips", "reviewer_phones", "reviews", "exports", "job_runs", "seen", "answers", "sentences", "errors", "events"].map((t) => env.DB.prepare(`DELETE FROM ${t}`)));
 });
 
 export const PHONE_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -23,7 +23,7 @@ export const NOW = 1_800_000_000_000;
 export function fakeDeps(overrides: Partial<Deps> = {}): Deps {
   return {
     verifyTurnstile: async () => true,
-    verifyAccess: async () => null,
+    verifyReviewer: async () => null,
     now: () => NOW,
     ...overrides,
   };

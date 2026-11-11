@@ -7,7 +7,7 @@ import { runDigest } from "../src/digest";
 const saved = { o: env.OWNER_EMAIL, r: env.REVIEWERS, a: env.ALERT_EMAIL };
 afterEach(() => { env.OWNER_EMAIL = saved.o; env.REVIEWERS = saved.r; env.ALERT_EMAIL = saved.a; vi.restoreAllMocks(); });
 
-const as = (email: string | null) => fakeDeps({ verifyAccess: async () => email, now: () => NOW });
+const as = (email: string | null) => fakeDeps({ verifyReviewer: async () => email, now: () => NOW });
 const rev = (path: string, body?: unknown, email: string | null = "rev@example.org") =>
   call(path, body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }, as(email));
 const OWNER = "owner@example.org";
@@ -18,7 +18,7 @@ const addDb = (email: string, name = "Dee") => env.DB.prepare("INSERT OR IGNORE 
 const pending = () => env.DB.prepare("SELECT id FROM reviewer_applications WHERE status = 'pending'").all<{ id: number }>();
 const count = async (t: string) => (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${t}`).first<{ n: number }>())!.n;
 
-describe("non-reviewer with a valid Access identity", () => {
+describe("signed-in person who is not a reviewer", () => {
   it("gets 403 on every review endpoint", async () => {
     const me = "stranger@example.org";
     const cases: [string, unknown?][] = [
@@ -156,7 +156,7 @@ describe("owner tools", () => {
     expect(await reviewerName(env, "new@x.org")).toBe("Newbie");
     const m = send.mock.calls[0][0] as { to: string; subject: string; text: string };
     expect([m.to, m.subject]).toEqual(["new@x.org", "You are now a Paite Daily reviewer"]);
-    expect(m.text).toContain("6-digit code");
+    expect(m.text).toMatch(/https:\/\/paite\.lamkalabs\.com\/review\/login#set=[0-9a-f]{64}/);
     expect((await rev("/review/api/applications/decide", { id, decision: "approve" }, OWNER)).status).toBe(404);
     expect((await rev("/review/api/me", undefined, "new@x.org")).status).toBe(200);
   });

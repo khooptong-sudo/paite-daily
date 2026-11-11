@@ -56,14 +56,14 @@ describe("digest", () => {
 describe("review queue", () => {
   it("returns the waiting count to reviewers only", async () => {
     const [s1] = await addSentences("One."); await ans(s1); await ans(s1);
-    const r = await call("/review/api/queue", {}, fakeDeps({ verifyAccess: async () => "rev@example.org" }));
+    const r = await call("/review/api/queue", {}, fakeDeps({ verifyReviewer: async () => "rev@example.org" }));
     expect(await r.json()).toEqual({ waiting: 2 });
-    expect((await call("/review/api/queue", {}, fakeDeps({ verifyAccess: async () => "x@example.org" }))).status).toBe(403);
+    expect((await call("/review/api/queue", {}, fakeDeps({ verifyReviewer: async () => "x@example.org" }))).status).toBe(403);
   });
   it("excludes sentences locked by another reviewer", async () => {
     const [s1] = await addSentences("One."); await ans(s1);
     await env.DB.prepare("INSERT INTO locks (sentence_id, reviewer_email, expires_at) VALUES (?1, 'owner@example.org', ?2)").bind(s1, NOW + 60_000).run();
-    const q = async (e: string) => (await (await call("/review/api/queue", {}, fakeDeps({ verifyAccess: async () => e }))).json<{ waiting: number }>()).waiting;
+    const q = async (e: string) => (await (await call("/review/api/queue", {}, fakeDeps({ verifyReviewer: async () => e }))).json<{ waiting: number }>()).waiting;
     expect(await q("rev@example.org")).toBe(0);
     expect(await q("owner@example.org")).toBe(1);
   });

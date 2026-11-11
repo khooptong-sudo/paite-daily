@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { addSentences, call, fakeDeps, PHONE_A, PHONE_B, session } from "./helpers";
 
 const rev = (path: string, body?: unknown) =>
-  call(path, body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }, fakeDeps({ verifyAccess: async () => "rev@example.org" }));
+  call(path, body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }, fakeDeps({ verifyReviewer: async () => "rev@example.org" }));
 
 // Two answers (A, B) on one sentence, then one review decision.
 async function reviewed(english: string, decision: Record<string, unknown> | ((ids: number[]) => Record<string, unknown>), answers = ["A one", "B one"]) {

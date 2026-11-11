@@ -302,7 +302,7 @@ body.blue{background:linear-gradient(180deg,#020617 0,#020617 160px,#0a2a8a 420p
   });
 
   fetch("/review/api/proverbs", { headers: { accept: "application/json" } })
-    .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function (r) { if (r.status === 401) location.replace("/review/login"); if (!r.ok) throw new Error(r.status); return r.json(); })
     .then(function (d) {
       need = d.required || 2;
       // Group candidates by saying, so one card carries every line for it.

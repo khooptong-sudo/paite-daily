@@ -10,7 +10,7 @@ afterEach(() => { env.REVIEWERS = saved.r; env.ALERT_EMAIL = saved.a; vi.restore
 const word = async (b: Record<string, unknown>, s?: string) =>
   call("/api/word", { method: "POST", body: JSON.stringify(b), session: s ?? (await session(PHONE_A)) });
 const rev = (path: string, body?: unknown, email: string | null = "rev@example.org") =>
-  call(path, body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }, fakeDeps({ verifyAccess: async () => email }));
+  call(path, body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }, fakeDeps({ verifyReviewer: async () => email }));
 const n = async (t: string) => (await env.DB.prepare(`SELECT COUNT(*) AS n FROM ${t}`).first<{ n: number }>())!.n;
 const asReviewer = () => { env.REVIEWERS = JSON.stringify({ "rev@example.org": "Rev" }); };
 

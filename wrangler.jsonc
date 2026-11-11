@@ -12,8 +12,6 @@
   "routes": [{ "pattern": "paite.lamkalabs.com", "custom_domain": true }],
   "triggers": { "crons": ["0 3 * * *", "*/15 * * * *", "0 2 * * *"] },
   "vars": {
-    "ACCESS_TEAM_DOMAIN": "lamka-labs-transcription-pages.cloudflareaccess.com",
-    "ACCESS_AUD": "2ebfb8063ca42a015b26e56ea83ea7827be1fdd902e748e54b9fb662a9962a53",
     "TURNSTILE_SITE_KEY": "0x4AAAAAAFWPYZ0Pau14Cq6s",
     "CORPUS_REPO": "khooptong-sudo/paite-open-language-data",
     "CORPUS_BRANCH": "master",

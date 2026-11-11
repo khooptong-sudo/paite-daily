@@ -4,7 +4,7 @@ import { call, fakeDeps } from "./helpers";
 
 // A reviewer identity for the /review/api routes, and a plain contributor for the public ones.
 const rev = (path: string, body?: unknown, email = "rev@example.org") =>
-  call(path, body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }, fakeDeps({ verifyAccess: async () => email }));
+  call(path, body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }, fakeDeps({ verifyReviewer: async () => email }));
 const post = (path: string, body: unknown) => ({ method: "POST", body: JSON.stringify(body) });
 
 async function seed(rows: [string, string, string | null][]): Promise<number[]> {

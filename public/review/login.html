@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<title>Paite Review: Sign in</title>
+<meta name="theme-color" content="#ffffff">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+<script src="/theme.js"></script>
+<style>
+  .meta { color: var(--muted); font-size: .9rem; margin: 0; }
+  .linkish { background: none; border: 0; box-shadow: none; padding: 10px 0; font-weight: 400; text-decoration: underline; text-underline-offset: 3px; justify-self: start; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  form { display: grid; gap: 16px; }
+  form input { width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body class="blue">
+<main>
+  <header><h1>Paite Review</h1><a href="/" style="align-self:center;font-size:.86rem;color:#b3253c;text-decoration:none;border-bottom:1px solid currentColor">&larr; Paite Daily</a></header>
+
+  <section class="card" id="signin" aria-labelledby="signin-h">
+    <h2 id="signin-h">Sign in</h2>
+    <form id="signin-form">
+      <label>Email<input id="email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" maxlength="120" required></label>
+      <label>Password<input id="password" type="password" autocomplete="current-password" maxlength="200" required></label>
+      <button type="submit" class="primary" id="signin-go">Sign in</button>
+    </form>
+    <button type="button" class="linkish" id="to-link">Set or reset my password</button>
+  </section>
+
+  <section class="card" id="link" aria-labelledby="link-h" hidden>
+    <h2 id="link-h">Set or reset your password</h2>
+    <p class="meta">Enter your reviewer email. We send you a link to choose a password. It works once, for one hour.</p>
+    <form id="link-form">
+      <label>Email<input id="link-email" type="email" autocomplete="username" inputmode="email" autocapitalize="none" spellcheck="false" maxlength="120" required></label>
+      <button type="submit" class="primary" id="link-go">Email me the link</button>
+    </form>
+    <button type="button" class="linkish" id="to-signin">Back to sign in</button>
+  </section>
+
+  <section class="card" id="set" aria-labelledby="set-h" hidden>
+    <h2 id="set-h">Choose your password</h2>
+    <p class="meta">At least 8 characters. A few words you can remember work well.</p>
+    <form id="set-form">
+      <label>New password<input id="new1" type="password" autocomplete="new-password" minlength="8" maxlength="200" required></label>
+      <label>Type it again<input id="new2" type="password" autocomplete="new-password" minlength="8" maxlength="200" required></label>
+      <button type="submit" class="primary" id="set-go">Save and sign in</button>
+    </form>
+  </section>
+
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+</main>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const status = (m, ok = false) => { $("status").textContent = m; $("status").className = "status " + (ok ? "ok" : m ? "err" : ""); };
+  const post = (path, body) => fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+  const show = (id) => { for (const s of ["signin", "link", "set"]) $(s).hidden = s !== id; status(""); };
+  const SLOW = "Too many tries. Wait 15 minutes and try again.";
+  const DOWN = "Could not reach the server. Check your connection and try again.";
+
+  // The one-time token arrives after the #, which the browser keeps to itself. Take it out of the address bar at once.
+  // hashchange covers a link opened in a tab that already shows this page, where the script does not run again.
+  let token = null;
+  function takeToken() {
+    const m = /^#set=([0-9a-f]{64})$/.exec(location.hash);
+    if (location.hash) history.replaceState(null, "", location.pathname);
+    if (m) { token = m[1]; show("set"); $("new1").focus(); }
+    return !!m;
+  }
+  addEventListener("hashchange", takeToken);
+
+  async function submit(button, fn) {
+    button.disabled = true;
+    try { await fn(); } catch { status(DOWN); } finally { button.disabled = false; }
+  }
+
+  $("signin-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    submit($("signin-go"), async () => {
+      const r = await post("/review/api/login", { email: $("email").value, password: $("password").value });
+      if (r.ok) { location.replace("/review"); return; }
+      status(r.status === 429 ? SLOW : r.status === 401 ? "That email and password do not match. Try again, or set a new password below." : "Could not sign in. Try again.");
+    });
+  });
+
+  $("link-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    submit($("link-go"), async () => {
+      const r = await post("/review/api/password/link", { email: $("link-email").value });
+      if (r.ok) status("If that email belongs to a reviewer, the link is on its way. Check your spam folder too.", true);
+      else status(r.status === 429 ? "Too many requests. Wait 15 minutes and try again." : "Could not send the link. Try again.");
+    });
+  });
+
+  $("set-form").addEventListener("submit", (e) => {
+    e.preventDefault();
+    if ($("new1").value !== $("new2").value) { status("The two passwords are not the same."); return; }
+    submit($("set-go"), async () => {
+      const r = await post("/review/api/password/set", { token, password: $("new1").value });
+      if (r.ok) { location.replace("/review"); return; }
+      const j = await r.json().catch(() => ({}));
+      if (j.error === "weak_password") status("Use at least 8 characters.");
+      else if (j.error === "bad_link") { show("link"); status("That link has been used or has run out. Ask for a new one."); }
+      else status("Could not save the password. Try again.");
+    });
+  });
+
+  $("to-link").addEventListener("click", () => { $("link-email").value = $("email").value; show("link"); $("link-email").focus(); });
+  $("to-signin").addEventListener("click", () => { show("signin"); $("email").focus(); });
+
+  // No link in hand and already signed in: go straight to the review page.
+  if (!takeToken()) fetch("/review/api/me").then((r) => { if (r.ok) location.replace("/review"); }).catch(() => {});
+})();
+</script>
+</body>
+</html>

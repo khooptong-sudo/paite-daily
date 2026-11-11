@@ -171,7 +171,7 @@ describe("contributors", () => {
 
   it("link-phone: reviewer only, validates id, upserts", async () => {
     const rev = (body: unknown, email: string | null = "rev@example.org") =>
-      call("/review/api/link-phone", { method: "POST", body: JSON.stringify(body) }, fakeDeps({ verifyAccess: async () => email }));
+      call("/review/api/link-phone", { method: "POST", body: JSON.stringify(body) }, fakeDeps({ verifyReviewer: async () => email }));
     expect((await rev({ phoneId: PHONE_A }, null)).status).toBe(401);
     expect((await rev({ phoneId: PHONE_A }, "x@example.org")).status).toBe(403);
     expect((await rev({ phoneId: "nope" })).status).toBe(400);

@@ -1,5 +1,5 @@
 import { cloudflareTest, readD1Migrations } from "@cloudflare/vitest-plugin";
-import { defineConfig } from "vitest/config";
+import { configDefaults, defineConfig } from "vitest/config";
 
 export default defineConfig(async () => {
   const migrations = await readD1Migrations("./migrations");
@@ -19,6 +19,7 @@ export default defineConfig(async () => {
         },
       }),
     ],
-    test: { setupFiles: ["./test/apply-migrations.ts"] },
+    // .claude holds worktree copies of the project; their tests are not this checkout's.
+    test: { setupFiles: ["./test/apply-migrations.ts"], exclude: [...configDefaults.exclude, ".claude/**"] },
   };
 });

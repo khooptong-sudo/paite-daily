@@ -55,6 +55,6 @@ describe("Is this spelled right?", () => {
     expect((await call("/api/spelling", { method: "POST", body })).status).toBe(401);
     expect((await call("/api/spelling", { method: "POST", body, session: await session(PHONE_A) })).status).toBe(200);
     expect((await call("/review/api/spelling", { method: "POST", body })).status).toBe(401);
-    expect((await call("/review/api/spelling", { method: "POST", body }, fakeDeps({ verifyAccess: async () => "rev@example.org" }))).status).toBe(200);
+    expect((await call("/review/api/spelling", { method: "POST", body }, fakeDeps({ verifyReviewer: async () => "rev@example.org" }))).status).toBe(200);
   });
 });

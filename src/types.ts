@@ -5,8 +5,6 @@ export interface Env {
   TURNSTILE_SECRET: string;
   SESSION_SECRET: string;
   GITHUB_TOKEN: string;
-  ACCESS_TEAM_DOMAIN: string;
-  ACCESS_AUD: string;
   TURNSTILE_SITE_KEY: string;
   REVIEWERS: string;
   OWNER_EMAIL: string;
@@ -19,7 +17,7 @@ export interface Env {
 
 export interface Deps {
   verifyTurnstile(token: string, ip: string | null, env: Env): Promise<boolean>;
-  verifyAccess(req: Request, env: Env): Promise<string | null>;
+  verifyReviewer(req: Request, env: Env): Promise<string | null>;
   now(): number;
   /** The model call, swapped out in tests. */
   fetch?: typeof fetch;

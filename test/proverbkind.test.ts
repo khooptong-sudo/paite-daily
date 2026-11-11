@@ -2,7 +2,7 @@ import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 import { call, fakeDeps } from "./helpers";
 
-const REV = fakeDeps({ verifyAccess: async () => "rev@example.org" });
+const REV = fakeDeps({ verifyReviewer: async () => "rev@example.org" });
 const kind = (body: unknown, deps = REV) => call("/review/api/proverbs/kind", { method: "POST", body: JSON.stringify(body) }, deps);
 
 describe("POST /review/api/proverbs/kind", () => {

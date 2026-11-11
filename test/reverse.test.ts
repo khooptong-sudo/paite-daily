@@ -7,7 +7,7 @@ import { runReverse } from "../src/reverse";
 import { addSentences, call, fakeDeps, NOW, PHONE_A, PHONE_B, PHONE_C, session } from "./helpers";
 
 const rev = (path: string, body?: unknown) =>
-  call(path, body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }, fakeDeps({ verifyAccess: async () => "rev@example.org" }));
+  call(path, body === undefined ? {} : { method: "POST", body: JSON.stringify(body) }, fakeDeps({ verifyReviewer: async () => "rev@example.org" }));
 
 const puts: any[] = [];
 const ghFetch = (async (_u: string, init?: RequestInit) => {

@@ -5,7 +5,7 @@
 // only applied when the person taps Use this.
 (() => {
   // The page decides how to reach the check: the front page through its session, the
-  // reviewer pages through Cloudflare Access. /proverbs has neither, so no pill there.
+  // reviewer pages through the reviewer sign-in. /proverbs has neither, so no pill there.
   const call = (what, text) => {
     if (window.paiteApi) return window.paiteApi(`/api/${what}`, { method: "POST", body: JSON.stringify({ text }) });
     if (location.pathname.startsWith("/review")) return fetch(`/review/api/${what}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ text }) });

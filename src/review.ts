@@ -1,5 +1,6 @@
 import { isOwner, reviewerName } from "./access";
 import { handleOwnerReview } from "./apply";
+import { handleLogin } from "./login";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
 import { reviewDashboard } from "./dashboard";
@@ -41,15 +42,20 @@ import { getRules } from "./rules";
 import { claimNext, decide, skipCard, undo, type Decision } from "./reviewdb";
 import { json, type Deps, type Env } from "./types";
 
-export async function handleReview(req: Request, env: Env, deps: Deps): Promise<Response> {
-  const email = await deps.verifyAccess(req, env);
+export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: ExecutionContext): Promise<Response> {
+  const { pathname, origin } = new URL(req.url);
+  // The session cookie is SameSite=Strict; this refuses a cross-site POST as well, whatever the browser does with cookies.
+  const from = req.headers.get("Origin");
+  if (req.method === "POST" && from !== null && from !== origin) return json({ error: "cross_site" }, 403);
+  const login = await handleLogin(req, env, deps, pathname, ctx);
+  if (login) return login;
+  const email = await deps.verifyReviewer(req, env);
   if (!email) return json({ error: "sign_in" }, 401);
   if (!(await reviewerName(env, email))) return json({ error: "not_a_reviewer" }, 403);
-  const { pathname } = new URL(req.url);
   let b: Record<string, unknown> = {};
   if (req.method === "POST") { try { b = (await req.json()) as Record<string, unknown>; } catch {} }
 
-  const owned = await handleOwnerReview(pathname, req.method, b, env, email);
+  const owned = await handleOwnerReview(pathname, req.method, b, env, email, deps.now());
   if (owned) return owned;
 
   if (pathname === "/review/api/rules" && req.method === "GET") return json({ rules: await getRules(env, deps.now()) });
