@@ -3,19 +3,26 @@
 // canvas over the same box, and the <img> stays in the page for its alt text and as the
 // fallback. Nothing runs for people who ask for reduced motion, and the loop sleeps when
 // the water is still or the band is off screen.
+// The band runs edge to edge, so the weave is laid as repeats of one seamless tile: three
+// pattern repeats cut from the shawl image, bar centre to bar centre (x 378 to 1527 of 1680).
+// When the page width changes, the canvas is rebuilt at the new width.
 (() => {
   const img = document.querySelector("img.puan");
   if (!img || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-  const CELL = 2, DAMP = 0.965, CALM = 0.05;
-  function start() {
-    const w = img.clientWidth, h = img.clientHeight;
+  const CELL = 2, DAMP = 0.965, CALM = 0.05, TILE_X = 378 / 1680, TILE_W = 1149 / 1680;
+  let gen = 0, cv = null;
+  function start(w, h) {
     if (!w || !h) return;
+    const my = ++gen;
     const dpr = Math.min(2, devicePixelRatio || 1), W = Math.round(w * dpr), H = Math.round(h * dpr);
-    const cv = document.createElement("canvas");
-    cv.width = W; cv.height = H; cv.className = "puan puan-ripple"; cv.setAttribute("aria-hidden", "true");
-    const ctx = cv.getContext("2d", { willReadFrequently: true });
-    ctx.drawImage(img, 0, 0, W, H);
+    const next = document.createElement("canvas");
+    next.width = W; next.height = H; next.className = "puan puan-ripple"; next.setAttribute("aria-hidden", "true");
+    const ctx = next.getContext("2d", { willReadFrequently: true });
+    // Lay the tile across the width at the band's height; a narrow band is one plain draw.
+    const nw = img.naturalWidth, nh = img.naturalHeight, tw = (TILE_W * nw / nh) * H;
+    if (tw >= W - 1 && Math.abs(W / H - nw / nh) < .05) ctx.drawImage(img, 0, 0, W, H);
+    else for (let x = 0; x < W; x += tw) ctx.drawImage(img, TILE_X * nw, 0, TILE_W * nw, nh, Math.round(x), 0, Math.ceil(tw), H);
     let src;
     try { src = ctx.getImageData(0, 0, W, H).data; } catch { return; }
     const out = ctx.createImageData(W, H), o = out.data;
@@ -24,7 +31,8 @@
     const gw = Math.ceil(w / CELL) + 2, gh = Math.ceil(h / CELL) + 2;
     let cur = new Float32Array(gw * gh), prev = new Float32Array(gw * gh);
 
-    (img.closest("picture") || img).after(cv); // after the <picture>, so it sits where the band was
+    if (cv) cv.replaceWith(next); else (img.closest("picture") || img).after(next); // where the band was
+    cv = next;
     img.classList.add("puan-under");
 
     let running = false, visible = true;
@@ -40,6 +48,7 @@
     };
 
     function frame() {
+      if (my !== gen) return;
       let energy = 0;
       for (let y = 1; y < gh - 1; y++) for (let x = 1; x < gw - 1; x++) {
         const k = y * gw + x;
@@ -66,14 +75,26 @@
       else { running = false; if (!visible) return; cur.fill(0); prev.fill(0); ctx.putImageData(new ImageData(new Uint8ClampedArray(src), W, H), 0, 0); }
     }
 
-    const at = (e) => { const r = cv.getBoundingClientRect(); return [(e.clientX - r.left) * (w / r.width), (e.clientY - r.top) * (h / r.height)]; };
+    const at = (e) => { const r = next.getBoundingClientRect(); return [(e.clientX - r.left) * (w / r.width), (e.clientY - r.top) * (h / r.height)]; };
     let last = 0;
-    cv.addEventListener("pointermove", (e) => { const now = performance.now(); if (now - last < 40) return; last = now; const [x, y] = at(e); drop(x, y, 2, 90); });
-    cv.addEventListener("pointerdown", (e) => { const [x, y] = at(e); drop(x, y, 4, 380); });
+    next.addEventListener("pointermove", (e) => { const now = performance.now(); if (now - last < 40) return; last = now; const [x, y] = at(e); drop(x, y, 2, 90); });
+    next.addEventListener("pointerdown", (e) => { const [x, y] = at(e); drop(x, y, 4, 380); });
 
     // A drop on its own every few seconds while the band is in view.
-    new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && !running) drop(Math.random() * w, Math.random() * h); }).observe(cv);
-    setInterval(() => { if (visible && !document.hidden) drop(Math.random() * w, Math.random() * h, 3, 160); }, 4200);
+    const io = new IntersectionObserver(([e]) => { visible = e.isIntersecting; if (visible && !running) drop(Math.random() * w, Math.random() * h); });
+    io.observe(next);
+    const tick = setInterval(() => {
+      if (my !== gen) { clearInterval(tick); io.disconnect(); return; }
+      if (visible && !document.hidden) drop(Math.random() * w, Math.random() * h, 3, 160);
+    }, 4200);
   }
-  if (img.complete && img.naturalWidth) start(); else img.addEventListener("load", start, { once: true });
+
+  // Rebuild when the band's width changes (rotation, window resize); the canvas keeps its CSS box.
+  let t = 0;
+  addEventListener("resize", () => {
+    clearTimeout(t);
+    t = setTimeout(() => { if (cv && Math.abs(cv.clientWidth - cv.width / Math.min(2, devicePixelRatio || 1)) > 2) start(cv.clientWidth, cv.clientHeight); }, 250);
+  });
+  const go = () => start(img.clientWidth, img.clientHeight);
+  if (img.complete && img.naturalWidth) go(); else img.addEventListener("load", go, { once: true });
 })();

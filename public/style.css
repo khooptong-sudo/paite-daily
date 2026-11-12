@@ -467,3 +467,171 @@ button:not(.play):not(.news-close):not(.ms-close):not(.share-chip):not(.chip):no
 /* The close buttons are a plain ×, no ring (owner, 27 Oct); the tap area stays 44px. */
 .news-close, .ms-close { border: 0 !important; background: transparent; box-shadow: none; }
 .news-close:hover, .ms-close:hover { color: var(--fg); }
+
+/* ==========================================================================================
+   INK (12 Nov): the whole site in one editorial dark voice, to sit with the Liquid Silk footer.
+   Warm black page, cream type, hairline rules instead of boxes, underline-only fields, numbered
+   sections, and the liangbat band running edge to edge. Every page carries body.blue, so this
+   layer is scoped to it and sits last, over the blue theme above.
+   ========================================================================================== */
+@property --silk-x { syntax: "<percentage>"; initial-value: 0%; inherits: false; }
+body.blue {
+  --bg: #0c0b0a; --fg: #f4f1ea; --muted: rgba(244, 241, 234, .62); --line: rgba(244, 241, 234, .14); --hair: rgba(244, 241, 234, .42);
+  --accent: #f4f1ea; --accent-fg: #0c0b0a; --surface: rgba(244, 241, 234, .03);
+  --blue: #e8424a; --blue-hover: #ff5a62; --ring: #f2b705;
+  --silk: linear-gradient(100deg, var(--fg) 0 28%, #f2b705, #e8424a, #6d5cff, #00a651, var(--fg) 72% 100%);
+  background: var(--bg); color: var(--fg);
+}
+html:has(body.blue) { background: #0c0b0a; color-scheme: dark; }
+.blue ::selection { background: #f2b705; color: #0c0b0a; }
+
+/* The liangbat band, edge to edge. The <img> paints a seamless tile (three pattern repeats cut
+   bar to bar from the shawl image) as its own background, so the band is whole without script;
+   ripple.js lays the same tile on its canvas. */
+.blue img.puan:not(.puan-under), .blue canvas.puan-ripple {
+  display: block; width: calc(100% + 32px); max-width: none; height: clamp(64px, 8vw, 104px); margin: 0 -16px;
+  background: #000 url(/liangbat-tile.webp) repeat-x left center / auto 100%; object-position: -99999px 0; border-radius: 0; cursor: pointer;
+}
+body.blue:not(.cp) > .puan-pic img.puan:not(.puan-under), body.blue:not(.cp) > canvas.puan-ripple { margin-top: calc(-1 * max(20px, env(safe-area-inset-top))); }
+.blue.cp .hero img.puan:not(.puan-under), .blue.cp .hero canvas.puan-ripple { margin-bottom: 40px; }
+
+/* Front page column: wide and editorial. */
+body.blue:not(.cp) main { max-width: 980px; gap: 0; padding-top: 28px; counter-reset: sec; }
+body.blue:not(.cp) main > header { padding-bottom: 28px; }
+body.blue:not(.cp) main > header h1 { font: 500 .8rem/1.2 var(--body); letter-spacing: .32em; text-transform: uppercase; color: var(--fg); }
+.blue header .streak { color: var(--muted); }
+.blue header .badge { background: var(--fg); color: var(--bg); }
+.blue header .back { font-weight: 500; color: var(--fg); }
+
+/* Goal: big numerals over a hairline weave. */
+.blue .goal { color: var(--muted); padding-bottom: 36px; gap: 12px; }
+.blue .goal b { font: 400 clamp(2.8rem, 9vw, 5rem)/1 var(--display); color: var(--fg); letter-spacing: -.02em; }
+.blue .goal-bar { height: 3px; border: 0; border-radius: 3px; background: var(--line); }
+.blue .goal-bar i { border-radius: 3px; }
+
+/* Sections: open, ruled, numbered. No boxes. */
+.blue .card {
+  background: transparent; border: 0; border-top: 1px solid var(--line); border-radius: 0; box-shadow: none;
+  -webkit-backdrop-filter: none; backdrop-filter: none; padding: 36px 0; gap: 18px; color: var(--fg);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .blue .card { background: transparent; } }
+body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback) { counter-increment: sec; }
+@media (min-width: 760px) {
+  body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback) { grid-template-columns: 120px minmax(0, 1fr); column-gap: 40px; }
+  body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback) > * { grid-column: 2; }
+  body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback)::before {
+    content: counter(sec, decimal-leading-zero); grid-column: 1; grid-row: 1 / span 2; align-self: start;
+    font: 400 4.2rem/.9 var(--display); color: var(--fg); opacity: .22; letter-spacing: -.03em;
+  }
+}
+.blue .card h2, .blue .sentence, .blue .word-prompt, .blue .news-title { color: var(--fg); }
+.blue .card h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
+.blue .label { color: var(--muted); }
+.blue .sentence { font-size: clamp(1.7rem, 5vw, 2.6rem); line-height: 1.15; }
+
+/* The greeting is the hero: huge, with the silk colours drifting through the letters. */
+.blue .card.chat { border-top: 0; padding-top: 8px; }
+.blue .chat .hello {
+  display: block; margin: 10px 0 6px; font: 400 clamp(3.2rem, 12vw, 9rem)/.92 var(--display); letter-spacing: -.04em; text-wrap: balance;
+  background: var(--silk) var(--silk-x) 0 / 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: silk-x 18s ease-in-out infinite alternate;
+}
+@keyframes silk-x { to { --silk-x: 100%; } }
+.blue .chat .hello-en { font: 400 clamp(1.15rem, 3vw, 1.7rem)/1.3 var(--display); color: var(--muted); }
+.blue .chat-chev { width: 28px; height: 28px; margin-top: 18px; }
+
+/* Fields: a single underline, Paite typed in the display face. */
+.blue textarea, .blue input:not([type=radio]):not([type=checkbox]), .blue select {
+  background: transparent; color: var(--fg); border: 0; border-bottom: 1px solid var(--hair); border-radius: 0; padding: 10px 0; box-shadow: none;
+}
+.blue textarea { font-size: 1.45rem; min-height: 72px; }
+.blue textarea:focus, .blue input:not([type=radio]):not([type=checkbox]):focus, .blue select:focus { outline: 0; border-color: var(--fg); box-shadow: 0 2px 0 0 var(--ring); }
+.blue select option { background: #0c0b0a; color: #f4f1ea; }
+.blue ::placeholder { color: var(--muted); opacity: 1; }
+.blue input[type=radio] { border-color: rgba(244, 241, 234, .7); }
+.blue input[type=radio]:checked { background: radial-gradient(var(--fg) 0 45%, transparent 50%); border-color: var(--fg); }
+.blue input[type=checkbox] { accent-color: #f2b705; }
+
+/* Buttons: one cream pill per form; everything else is a hairline or a text link. */
+.blue button { background: transparent; color: var(--fg); border: 1px solid var(--hair); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.blue button:not(.primary):not(.share-chip):not(.chip):not(.news-close):not(.play) { border-color: var(--hair); }
+.blue button.primary, .blue .seg button[aria-pressed="true"], .blue .cta {
+  background: var(--fg); color: var(--bg); border: 0; border-radius: 999px; font-weight: 600; box-shadow: none;
+}
+.blue button.primary:hover:not(:disabled), .blue .cta:hover { background: #fff; }
+.blue button.primary small, .blue .seg button[aria-pressed="true"] small, .blue .cta small { color: rgba(12, 11, 10, .62); }
+.blue .seg button[aria-pressed="true"] { color: var(--bg); }
+.blue .actions button:not(.primary) { color: var(--fg); border: 0; }
+/* The main action is a pill sized to its words, not a full-width bar. */
+.blue .actions button.primary, .blue form > button.primary, .blue #fb-ok { flex: 0 1 auto; min-width: 200px; padding: 14px 34px; }
+@media (max-width: 480px) { .blue .actions button.primary { flex: 1; min-width: 0; } }
+.blue .share-chip, .blue .card .share-chip, .blue header .share-chip, .blue .mypuan .share-chip { color: var(--fg); border: 1px solid var(--hair); background: transparent; }
+.blue .share-chip:hover:not(:disabled) { background: rgba(244, 241, 234, .08); }
+.blue .share-chip img, .blue .card .share-chip img { filter: invert(1); }
+.blue .chip { color: var(--fg); border-color: var(--hair); }
+.blue .chip[aria-pressed="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.blue .card-h .more { background: transparent; border-color: var(--hair); color: var(--fg); }
+.blue .news-close, .blue .ms-close { color: var(--muted); }
+.blue .want, .blue .gram-out .linkish { color: var(--fg); }
+
+/* Chat bubbles. */
+.blue .bub { background: rgba(244, 241, 234, .04); border-color: var(--line); }
+.blue .turn.me .bub { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.blue .turn.me .bub .eng { color: rgba(12, 11, 10, .65); }
+.blue .chat-note .answer, .blue .answer { background: rgba(244, 241, 234, .04); border-color: var(--line); }
+.blue .answer.variant { border-color: #f2b705; }
+
+/* Link rows: a contents page in big serif. */
+.blue .pan { border-bottom: 1px solid var(--line); padding: 26px 0; color: var(--fg); transition: padding .35s cubic-bezier(.2, .7, .2, 1); }
+.blue .pan b { font-size: clamp(1.5rem, 4vw, 2.4rem); }
+.blue .pan .go { font-size: 1.6rem; opacity: .55; transition: transform .35s cubic-bezier(.2, .7, .2, 1), opacity .3s; }
+.blue .pan:hover { padding-left: 14px; }
+.blue .pan:hover .go { opacity: 1; transform: translateX(4px); }
+
+/* Everything else that was light. */
+.blue #fb-list mark { background: var(--fg); color: var(--bg); }
+.blue .shared-note { background: rgba(244, 241, 234, .05); border-color: var(--line); }
+.blue .status.err { color: #ff7a7a; }
+.blue .alert { background: rgba(232, 66, 74, .14); color: var(--fg); border: 1px solid rgba(232, 66, 74, .5); }
+.blue .clip { background: rgba(244, 241, 234, .04); border: 1px solid var(--line); box-shadow: none; }
+.blue .whatsnew { border-top: 0; padding: 0 0 24px; }
+.blue .news li { border-top-color: var(--line); }
+.blue .news a { color: #f2b705; }
+.blue .mypuan { margin: 0 0 32px; }
+.blue :focus-visible, .blue .card :focus-visible, .blue .cp main :focus-visible, .blue .whatsnew :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+.blue .play { background: var(--blue); }
+.blue small { color: var(--muted); }
+.milestone { background: #f4f1ea; color: #0c0b0a; }
+
+/* Inner pages: an editorial title on the dark page, the text column without a box. */
+.blue.cp .hero { text-align: left; max-width: 980px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) 16px 40px; border: 0; background: transparent; }
+.blue.cp .hero h1 { font-size: clamp(2.8rem, 10vw, 7rem); line-height: .95; letter-spacing: -.035em; color: var(--fg); }
+.blue.cp .hero h1 small, .blue.cp .hero p small { color: var(--muted); }
+.blue.cp .hero p { margin: 22px 0 0; max-width: 44ch; color: var(--muted); font-size: 1.15rem; }
+.blue.cp main { width: auto; max-width: 980px; background: transparent; border: 0; border-top: 1px solid var(--line); border-radius: 0; box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; color: var(--fg); margin: 0 auto 32px; padding-inline: 16px; }
+.blue.cp > .goal { max-width: 980px; color: var(--muted); }
+.blue .p, .blue .rows, .blue .empty, .blue .seg { background: var(--surface); border-color: var(--line); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.blue .seg button { color: var(--fg); border: 0; }
+
+@media (prefers-reduced-motion: reduce) { .blue .chat .hello { animation: none; } }
+
+/* Panlate, the word list and the other contributors.css pages: their light pieces, made dark.
+   contributors.css loads after this file, so these name .blue to win. */
+.blue .gl .az { background: rgba(12, 11, 10, .92); }
+.blue .gl .az a { color: var(--fg); }
+.blue .gl .az a:hover, .blue .gl .az a:focus-visible { background: var(--fg); color: var(--bg); }
+.blue .gl input[type=search], .blue .gl textarea { color: var(--fg); background: transparent; border: 0; border-bottom: 1px solid var(--hair); border-radius: 0; }
+.blue .gl details.tr > summary, .blue .gl .filters button { background: transparent; }
+.blue .more, .blue .apply { background: var(--surface); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.blue .p1 { border-color: var(--hair); box-shadow: none; }
+.blue .pack .sc { color: var(--fg); }
+.blue .badge { color: var(--fg); border-color: var(--fg); background: transparent; }
+.blue .t50 { box-shadow: inset 0 0 0 2px var(--bg), inset 0 0 0 3px var(--fg); }
+.blue .t100, .blue .t500 { background: var(--fg); color: var(--bg); }
+.blue .seal-mark { fill: transparent; stroke: var(--fg); }
+.blue .seal-mark path:last-child { stroke: var(--fg); }
+.blue .cta.glass-btn { background: transparent; color: var(--fg); border: 1px solid var(--hair); border-radius: 18px; }
+.blue .cta.glass-btn small { color: var(--muted); }
+.blue .p .pod-share { background: transparent; color: var(--fg); border-color: var(--hair); }
+.blue .p .pod-share img { filter: invert(1); }
+.blue .gl .send { background: var(--fg); color: var(--bg); border-color: var(--fg); border-radius: 999px; }
