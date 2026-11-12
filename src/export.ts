@@ -16,7 +16,7 @@ export function toBase64Utf8(s: string): string {
 
 type Row = {
   review_id: number; sentence_id: number; english: string; direction: string; paite_prompt: string | null; final_paite: string; register: string;
-  reviewer_email: string; created_at: string; contributor_name: string | null; explanation: string | null;
+  reviewer_email: string; created_at: string; contributor_name: string | null; explanation: string | null; licence: string | null;
 };
 
 const ghHeaders = (env: Env) => ({
@@ -30,7 +30,7 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
   const path = `community/verified-${first}-${last}.jsonl`;
   const { results } = await env.DB.prepare(
     `SELECT r.id AS review_id, s.id AS sentence_id, s.english, s.direction, s.paite_prompt, r.final_paite, r.register, r.reviewer_email, r.created_at,
-            a.contributor_name, a.explanation
+            a.contributor_name, a.explanation, a.licence
      FROM reviews r
      JOIN sentences s ON s.id = r.sentence_id
      LEFT JOIN answers a ON a.id = r.accepted_answer_id
@@ -64,7 +64,8 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
     contributor: row.contributor_name ?? "",
     verified_by: names.get(row.reviewer_email.toLowerCase()) ?? "Reviewer",
     verified_at: row.created_at,
-    licence: "CC-BY-4.0",
+    // What the contributor agreed to when they sent it (migration 0031). CC BY when unknown, since it waives the least.
+    licence: row.licence ?? "CC-BY-4.0",
     also_correct: also.get(row.sentence_id) ?? [],
     explanation: row.explanation,
   }));

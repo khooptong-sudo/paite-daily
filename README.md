@@ -1,6 +1,6 @@
 # Paite Daily
 
-Paite Daily collects translations of simple English sentences into Paite. People answer on their phones with no account. Reviewers check the answers, and the verified ones go to the open dataset [paite-open-language-data](https://github.com/khooptong-sudo/paite-open-language-data) under CC0. The app is a Cloudflare Worker with a D1 database.
+Paite Daily collects translations of simple English sentences into Paite. People answer on their phones with no account. Reviewers check the answers, and the verified ones go to the open dataset [paite-open-language-data](https://github.com/khooptong-sudo/paite-open-language-data) (answers sent before 2026-10-21 18:47 UTC are CC0 1.0, later ones CC BY 4.0; each line's `licence` field says which). The app is a Cloudflare Worker with a D1 database.
 
 Live: https://paite.lamkalabs.com
 
@@ -79,3 +79,9 @@ Use the same signing key for every build. A different key breaks the update path
 ```powershell
 npm test
 ```
+
+## Licence
+
+The code is dual-licensed: use it under either the [MIT licence](LICENSE-MIT) or the [Apache License 2.0](LICENSE-APACHE), whichever you prefer (SPDX: `MIT OR Apache-2.0`). Unless you say otherwise, any contribution you send is offered under the same two licences.
+
+The data the site collects is not covered by these files. Each exported line carries its own `licence` field: `CC0-1.0` for answers sent before 2026-10-21 18:47 UTC, when the form said "public domain", and `CC-BY-4.0` after, when it says "with credit". The column `answers.licence` (migration `0031`) records it per answer. Voice recordings are CC BY 4.0, from the consent box on the recorder.

@@ -10,7 +10,7 @@ import { PUAN } from "./puan";
 
 const TITLE = "About Paite Daily";
 const DESC =
-  "Paite Daily is a free, volunteer-reviewed Paite–English corpus. 78,725 speakers, no spellchecker. Every pair is checked by a native speaker and free to use with credit (CC BY 4.0).";
+  "Paite Daily is a free, volunteer-reviewed Paite–English corpus. 78,725 speakers, no spellchecker. Every pair is checked by a native speaker and free to use (CC0 or CC BY 4.0).";
 const CANON = "https://paite.lamkalabs.com/about";
 
 // Scoped to this page only, so no shared stylesheet is touched.
@@ -55,6 +55,9 @@ const STYLE = `<style>
 .about .card2 small{display:block;font-size:.75rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
 .about .card2 strong{display:block;margin-top:4px;font-weight:700;overflow-wrap:anywhere}
 .about .card2 span{display:block;margin-top:4px;font-size:.9rem;color:var(--muted)}
+.about .rights{margin:0 0 1.25rem;padding:0;border-top:1px solid var(--line)}
+.about .rights dt{margin:0;padding:12px 0 2px;font-weight:700;line-height:1.4}
+.about .rights dd{margin:0;padding:0 0 12px;border-bottom:1px solid var(--line);line-height:1.6;color:var(--muted);max-width:62ch}
 .about .refs{list-style:none;margin:0;padding:0;font-size:.92rem;color:var(--muted)}
 .about .refs li{margin:0 0 .55rem;padding-left:1rem;text-indent:-1rem}
 .about .updated{margin:0 0 2rem;font-size:.82rem;color:var(--muted)}
@@ -73,9 +76,17 @@ const JSONLD = JSON.stringify({
   "@type": "Dataset",
   name: "Paite Daily: a Paite–English verified corpus",
   description:
-    "A volunteer-reviewed corpus of aligned Paite–English sentence pairs, proverbs and idioms. Every pair is checked by a native speaker before publication and free to use with credit (CC BY 4.0).",
+    "A volunteer-reviewed corpus of aligned Paite–English sentence pairs. Every pair is checked by a native speaker before publication. Each pair is CC0 1.0 or CC BY 4.0, as its licence field says.",
   url: "https://paite.lamkalabs.com/",
-  license: "https://creativecommons.org/licenses/by/4.0/",
+  license: ["https://creativecommons.org/licenses/by/4.0/", "https://creativecommons.org/publicdomain/zero/1.0/"],
+  sameAs: [
+    "https://github.com/khooptong-sudo/paite-open-language-data",
+    "https://huggingface.co/datasets/LamkaLabs/paite-open-language-data",
+    "https://doi.org/10.5281/zenodo.23349155",
+  ],
+  distribution: [
+    { "@type": "DataDownload", encodingFormat: "application/jsonl", contentUrl: "https://github.com/khooptong-sudo/paite-open-language-data/tree/master/community" },
+  ],
   isAccessibleForFree: true,
   inLanguage: "pck",
   creator: { "@type": "Organization", name: "Lamka Labs", url: "https://lamkalabs.com" },
@@ -133,7 +144,7 @@ ${STYLE}
 <li style="--c:var(--red)"><b>78,725</b><span>mother-tongue speakers, Census of India 2011</span></li>
 <li style="--c:var(--yel)"><b>1903</b><span>year the Paite Laimal alphabet was devised</span></li>
 <li style="--c:var(--grn)"><b>2004</b><span>Paite approved as a Manipur University degree subject</span></li>
-<li style="--c:var(--ink)"><b>CC BY</b><span>every verified pair is free to use with credit</span></li>
+<li style="--c:var(--ink)"><b>Open</b><span>every verified pair is free to use (CC0 or CC BY 4.0)</span></li>
 </ul>
 
 <section aria-labelledby="people">
@@ -182,20 +193,42 @@ ${STYLE}
 <li><h3>Review</h3><p>A reviewer checks the translation against the source. The site never shows an unreviewed submission as an answer.</p></li>
 <li><h3>Publish</h3><p>The approved pair joins the pool of verified sentences. Only then does it become a prompt for the next learner.</p></li>
 </ol>
-<p>Proverbs and idioms (<em>pau upa</em>) go through the same loop, in both directions, under the same rule: a reviewer approves each one before it appears. Nothing is published without review. No model writes our data, and no model decides what counts as correct Paite.
-<p><strong>Where AI helps.</strong> We do use an AI model (DeepSeek) behind the scenes, and it is part of what the coffee button pays for. It suggests new everyday English sentences for people to translate. It leaves reviewers a short advisory note on each answer, which they are free to ignore. It powers the Check English button, which only suggests a fix and changes nothing until you tap Use this. And it lifts word-list entries out of the notes contributors write, keeping only words that appear in their verified Paite; reviewers correct or hide any that are wrong. It never writes, corrects or approves Paite.</p></p>
+<p>Proverbs and idioms (<em>pau upa</em>) go through the same loop, in both directions, under the same rule: a reviewer approves each one before it appears. Nothing is published without review. No model writes our data, and no model decides what counts as correct Paite.</p>
+<p><strong>Where AI helps.</strong> We do use an AI model (DeepSeek) behind the scenes, and it is part of what the coffee button pays for. It suggests new everyday English sentences for people to translate. It leaves reviewers a short advisory note on each answer, which they are free to ignore. It powers the Check English button, which only suggests a fix and changes nothing until you tap Use this. And it lifts word-list entries out of the notes contributors write, keeping only words that appear in their verified Paite; reviewers correct or hide any that are wrong. It never writes, corrects or approves Paite.</p>
 </section>
 
 <section aria-labelledby="open">
 <p class="kicker"><b>05</b> Open data</p>
 <h2 id="open">Free to use, and built to outlast this site</h2>
-<p>Every verified pair is free to use under the <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">Creative Commons Attribution 4.0</a> licence (CC BY 4.0). You can copy it, change it and build on it, for any purpose, including commercial work. The one condition is credit.</p>
-<p>Use the data for a Paite keyboard dictionary, a spellchecker, a concordance, a school workbook or a translation model. You do not need to ask us. Credit “Paite Daily, Lamka Labs” and link to the dataset, the way the Zenodo record shows how to cite it.</p>
+<p>Everything lives in two public GitHub repositories. Every night at 03:00 UTC, this site sends its newly verified pairs to the dataset repository. The second repository holds the code that runs this site.</p>
 <div class="cards">
-<a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>Data on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The verified corpus, the open Paite&ndash;English dictionary and other Paite text.</span></a>
-<a class="card2" href="https://doi.org/10.5281/zenodo.23349156" target="_blank" rel="noopener"><small>Citable releases on Zenodo</small><strong>doi.org/10.5281/zenodo.23349156</strong><span>Versioned deposits, starting with v1.0.0.</span></a>
+<a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>The data, on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The verified pairs from this site, together with the Paite Bible, a dictionary, hymns, corrections and ready-to-train files.</span></a>
+<a class="card2" href="https://github.com/khooptong-sudo/paite-daily" target="_blank" rel="noopener"><small>The code, on GitHub</small><strong>khooptong-sudo/paite-daily</strong><span>This site: a Cloudflare Worker with a D1 database. MIT or Apache 2.0, your choice.</span></a>
+<a class="card2" href="https://huggingface.co/datasets/LamkaLabs/paite-open-language-data" target="_blank" rel="noopener"><small>The same data, on Hugging Face</small><strong>LamkaLabs/paite-open-language-data</strong><span>Copied from GitHub every Monday, ready for <code>load_dataset</code>.</span></a>
+<a class="card2" href="https://doi.org/10.5281/zenodo.23349155" target="_blank" rel="noopener"><small>Citable releases on Zenodo</small><strong>doi.org/10.5281/zenodo.23349155</strong><span>This DOI always points to the latest release (now v1.1.0).</span></a>
 </div>
-<p style="margin-top:1rem">The site is a static export. Anyone can fork it and host it again for the price of a domain. If this project stops, the sentences do not.</p>
+
+<h3 id="rights" style="margin-top:2rem">What you may do with each part</h3>
+<p>Different parts of the dataset have different terms. The <a href="https://github.com/khooptong-sudo/paite-open-language-data/blob/master/LICENSE" target="_blank" rel="noopener">LICENSE file</a> in the dataset repository is the full statement. In short:</p>
+<dl class="rights">
+<dt>Verified pairs from this site <code>community/</code></dt>
+<dd>Each line has a <code>licence</code> field. Pairs sent before 21 October 2026, 18:47 UTC, when the form said “public domain”, are <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 1.0</a>: use them with no conditions at all. Pairs sent since then, and every new one, are <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>: use them for any purpose, including commercial work, as long as you give credit.</dd>
+<dt>Corrections, grammar notes and documentation</dt>
+<dd>CC BY 4.0.</dd>
+<dt>Paite Bible <code>bible/laisiangthou/</code></dt>
+<dd>The Laisiangthou translation by John Samte, used with his permission. Credit John Samte, and ask him before any commercial use.</dd>
+<dt>English Bible <code>bible/world-english-bible/</code></dt>
+<dd>The World English Bible, which is in the public domain.</dd>
+<dt>Dictionary and hymns <code>dictionary/</code>, <code>songs/</code></dt>
+<dd>These belong to their authors and publishers. The repository does not license them. They are there for non-commercial research, education and language preservation.</dd>
+<dt>Ready-to-train files <code>training/</code></dt>
+<dd>These mix all of the above. Each row has a <code>source</code> field, so you can tell which terms apply to it.</dd>
+<dt>The code of this site</dt>
+<dd>Your choice of the <a href="https://github.com/khooptong-sudo/paite-daily/blob/main/LICENSE-MIT" target="_blank" rel="noopener">MIT licence</a> or the <a href="https://github.com/khooptong-sudo/paite-daily/blob/main/LICENSE-APACHE" target="_blank" rel="noopener">Apache License 2.0</a>. The same goes for the scripts in the dataset repository.</dd>
+</dl>
+<p>The proverbs and idioms and the voice recordings are on this site but not yet in the dataset. You can download the proverbs as <a href="/proverbs.json">JSON</a>.</p>
+<p>Use the data for a Paite keyboard dictionary, a spellchecker, a concordance, a school workbook or a translation model. For the open parts, you do not need to ask us. Credit “Paite Open Language Data, Lamka Labs” and link to the dataset, or cite the Zenodo DOI.</p>
+<p>The data does not depend on this site. It is on GitHub, with copies on Hugging Face and Zenodo. The code is open too, so anyone can run the site again. If this project stops, the sentences do not.</p>
 </section>
 
 <section aria-labelledby="who">
@@ -217,7 +250,7 @@ ${STYLE}
 </ul>
 </section>
 
-<p class="updated">Last updated: 21 October 2026</p>
+<p class="updated">Last updated: 12 November 2026</p>
 
 ${FOOTER}
 </main>

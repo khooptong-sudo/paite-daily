@@ -29,12 +29,19 @@ describe("about page", () => {
     expect(html).toContain('<link rel="icon" href="/favicon.ico" sizes="32x32">');
   });
 
-  it("declares the corpus as a CC BY 4.0 dataset", () => {
+  // community/ holds CC0 lines (answers sent before 22 Oct 2026) and CC BY 4.0 lines (after), so the page states both.
+  it("declares the corpus as a CC0 and CC BY 4.0 dataset", () => {
     expect(html).toContain('"@type":"Dataset"');
     expect(html).toContain("creativecommons.org/licenses/by/4.0");
-    expect(html).not.toContain("CC0");
-    expect(html).not.toContain("public domain");
+    expect(html).toContain("creativecommons.org/publicdomain/zero/1.0");
     expect(html).toContain('"inLanguage":"pck"');
+  });
+
+  it("links both GitHub repositories and the concept DOI", () => {
+    expect(html).toContain("github.com/khooptong-sudo/paite-open-language-data");
+    expect(html).toContain("github.com/khooptong-sudo/paite-daily");
+    expect(html).toContain("doi.org/10.5281/zenodo.23349155");
+    expect(html).not.toContain("static export");
   });
 
   it("states the mother-tongue figure, not an ethnic population estimate", () => {

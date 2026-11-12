@@ -58,6 +58,16 @@ describe("export", () => {
     expect(JSON.stringify(lines)).not.toContain("rev@example.org");
   });
 
+  it("labels each line with the licence its contributor agreed to", async () => {
+    await verified("I am well.", "Ka dam e.");
+    await verified("Good night for now.", "Mangpha phot le.");
+    await env.DB.prepare("UPDATE answers SET licence = 'CC0-1.0' WHERE paite = 'Ka dam e.'").run();
+    const gh = github();
+    await exportVerified(env, gh.fetcher);
+    const lines = decode(gh.puts[0].body.content).trim().split("\n").map((l) => JSON.parse(l));
+    expect(lines.map((l) => l.licence)).toEqual(["CC0-1.0", "CC-BY-4.0"]);
+  });
+
   it("does nothing when there is nothing new", async () => {
     const gh = github();
     expect((await exportVerified(env, gh.fetcher)).exported).toBe(0);
