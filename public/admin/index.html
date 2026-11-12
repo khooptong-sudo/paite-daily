@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin · Paite Daily</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f5f1e8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@1&family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/contributors.css">
+<link rel="stylesheet" href="/admin/admin.css">
+<script src="/theme.js"></script>
+</head>
+<body class="blue cp">
+<header class="hero"><div class="hero-nav"><a class="back" href="/"><span aria-hidden="true">&larr;</span> Paite Daily</a><button type="button" class="link-btn" id="sign-out">Sign out</button></div><h1>Admin<small id="who">Signing in…</small></h1></header>
+<main class="adm" hidden id="dash">
+  <section class="card" aria-labelledby="ai-h">
+    <h2 id="ai-h">The AI that serves the site<small>Used for the chat, new sentences, reviewer notes, Check English and the word list</small></h2>
+    <p class="adm-state" id="ai-state"></p>
+    <form id="ai-form" class="adm-form" novalidate>
+      <label>Provider<select id="provider"></select></label>
+      <label>Endpoint<input id="base-url" type="url" inputmode="url" maxlength="300" placeholder="https://…" autocomplete="off"></label>
+      <label>Model<input id="model" maxlength="120" autocomplete="off" spellcheck="false"></label>
+      <label>API key<input id="key" type="password" maxlength="500" autocomplete="off" spellcheck="false" placeholder="Paste a new key"></label>
+      <p class="adm-note">The key is stored encrypted and never shown again; you see only its last four characters. Leave it empty to keep the current key while you change the model.</p>
+      <div class="actions"><button type="submit" class="primary">Save</button><button type="button" id="test">Test connection</button><button type="button" id="clear">Remove saved key</button></div>
+      <p class="status" id="ai-status" role="status"></p>
+    </form>
+  </section>
+  <section class="card" aria-labelledby="adm-h" id="admins-card" hidden>
+    <h2 id="adm-h">Admins<small>Only you, the owner, can add or remove them</small></h2>
+    <ul class="adm-list" id="admins"></ul>
+    <form id="add-form" class="adm-form" novalidate>
+      <label>Add an admin by email<input id="add-email" type="email" maxlength="254" autocomplete="off"></label>
+      <div class="actions"><button type="submit" class="primary">Add and email an invite</button></div>
+      <p class="status" id="add-status" role="status"></p>
+    </form>
+  </section>
+  <section class="card" aria-labelledby="chat-h">
+    <h2 id="chat-h">How the chat uses the AI<small>Answers come only from the verified corpus</small></h2>
+    <p class="adm-note">The AI only reads what a visitor typed and picks one verified sentence that means the same, by its number, or none. It never writes a reply: whatever it says is ignored unless it is a number from the list, and the visitor sees only the reviewed Paite from the database. Questions that are not about saying something in Paite get "not in the corpus yet", never an answer.</p>
+  </section>
+</main>
+<script src="/admin/admin.js"></script>
+</body>
+</html>

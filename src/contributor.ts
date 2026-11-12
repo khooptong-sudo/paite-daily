@@ -61,7 +61,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   if (pathname === "/api/chat/scenes" && req.method === "GET") return json({ scenes: await buildScenes(env) }, 200, "public, max-age=120");
   if (pathname === "/api/chat/match" && req.method === "GET") {
     const q = new URL(req.url).searchParams.get("q") ?? "";
-    return json({ match: await matchChat(env, q.slice(0, 200)) }, 200, "public, max-age=60");
+    return json({ match: await matchChat(env, q.slice(0, 200), deps.fetch ?? fetch, deps.now()) }, 200, "public, max-age=60");
   }
   if (pathname === "/api/chat/want" && req.method === "POST") {
     const b = await body(req);

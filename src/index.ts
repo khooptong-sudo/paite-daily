@@ -3,6 +3,7 @@ import { verifyReviewer } from "./login";
 import { logged, runNightly } from "./export";
 import { runPrereview } from "./prereview";
 import { lockedRefill } from "./refill";
+import { queueWanted } from "./wants";
 import { handleContributor } from "./contributor";
 import { getContributors, renderPage } from "./contributors";
 import { getGlossary, renderGlossary } from "./glossary";
@@ -13,6 +14,7 @@ import { getPlaces, renderPlaces } from "./places";
 import { errorPage, handleEvent, recordError } from "./observability";
 import { publicAudio } from "./recordings";
 import { handleReview } from "./review";
+import { handleAdmin } from "./admin";
 import { verifyTurnstile } from "./turnstile";
 import type { Deps, Env } from "./types";
 
@@ -33,6 +35,7 @@ export function createApp(deps: Deps) {
       if (pathname.startsWith("/audio/") && req.method === "GET") return await publicAudio(env, pathname);
       if (pathname.startsWith("/api/")) return await handleContributor(req, env, deps, ctx);
       if (pathname.startsWith("/review/api/")) return await handleReview(req, env, deps, ctx);
+      if (pathname.startsWith("/admin/api/")) return await handleAdmin(req, env, deps, ctx);
       if (pathname === "/" || pathname === "/index.html") {
         const page = await env.ASSETS.fetch(req);
         return new HTMLRewriter()
@@ -59,7 +62,7 @@ export default {
   fetch: (req: Request, env: Env, ctx: ExecutionContext) => app(req, env, ctx),
   scheduled: async (c: ScheduledController, env: Env, ctx: ExecutionContext) => {
     ctx.waitUntil(
-      c.cron === "*/15 * * * *" ? logged(env, "prereview", () => runPrereview(env, fetch)).then(() => logged(env, "refill", () => lockedRefill(env, fetch, Date.now())))
+      c.cron === "*/15 * * * *" ? logged(env, "prereview", () => runPrereview(env, fetch)).then(() => logged(env, "refill", () => lockedRefill(env, fetch, Date.now()))).then(() => logged(env, "wants", () => queueWanted(env, fetch)))
       : c.cron === "0 2 * * *" ? logged(env, "refill", () => lockedRefill(env, fetch, Date.now()))
       : runNightly(env, fetch));
   },

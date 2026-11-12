@@ -4,23 +4,27 @@ type Next = { id: number; english: string; direction?: "pai2en" };
 
 // Every 5th card of a phone is a reverse (pai2en) prompt when one is free for it; otherwise, and when the other direction is empty, serve what exists.
 // For a pai2en card, `english` holds the Paite text to translate.
-// A forward card is the one of up to 40 random open sentences that fills the most gaps:
+// A forward card is a line a visitor asked the chat for when one is open; otherwise the one of
+// up to 40 random open sentences that fills the most gaps:
 // common English words with no verified Paite example yet (see gaps.ts).
 const SAMPLE = 40;
 export async function nextSentence(db: D1Database, phoneId: string, now: number): Promise<Next | null> {
   const forward = async () => {
     const { results } = await db.prepare(
-      `SELECT s.id, s.english FROM sentences s
+      `SELECT s.id, s.english, s.source FROM sentences s
        WHERE s.status = 'open' AND s.answer_count < 2 AND s.direction = 'en2pai'
          AND NOT EXISTS (SELECT 1 FROM seen WHERE seen.phone_id = ?1 AND seen.sentence_id = s.id)
          AND NOT EXISTS (SELECT 1 FROM locks WHERE sentence_id = s.id AND expires_at > ?2)
-       ORDER BY random() LIMIT ${SAMPLE}`,
-    ).bind(phoneId, now).all<Next>();
-    if (results.length < 2) return results[0] ?? null;
+       ORDER BY s.source = 'want' DESC, random() LIMIT ${SAMPLE}`,
+    ).bind(phoneId, now).all<Next & { source: string }>();
+    // A line a visitor asked the chat for comes first (wants.ts).
+    const asked = results.find((s) => s.source === "want");
+    if (asked) return { id: asked.id, english: asked.english };
+    if (results.length < 2) return results[0] ? { id: results[0].id, english: results[0].english } : null;
     const covered = await coveredWords(db, now);
     let best = results[0], top = -1;
     for (const s of results) { const g = gapScore(s.english, covered); if (g > top) { best = s; top = g; } }
-    return best;
+    return { id: best.id, english: best.english };
   };
   const reverse = () => db
     .prepare(

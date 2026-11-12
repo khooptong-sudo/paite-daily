@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Admin sign-in · Paite Daily</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#f5f1e8">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@1&family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/contributors.css">
+<link rel="stylesheet" href="/admin/admin.css">
+<script src="/theme.js"></script>
+</head>
+<body class="blue cp">
+<header class="hero"><div class="hero-nav"><a class="back" href="/"><span aria-hidden="true">&larr;</span> Paite Daily</a></div><h1>Admin<small>Owner and admins only</small></h1></header>
+<main class="adm">
+  <section class="card" id="signin">
+    <h2>Sign in<small>Email and password</small></h2>
+    <form id="login-form" class="adm-form" novalidate>
+      <label>Email<input id="email" type="email" autocomplete="username" required maxlength="254"></label>
+      <label>Password<input id="password" type="password" autocomplete="current-password" required maxlength="200"></label>
+      <div class="actions"><button type="submit" class="primary">Sign in</button><button type="button" id="send-link">Email me a link</button></div>
+      <p class="status" id="login-status" role="status"></p>
+    </form>
+    <p class="adm-note">No password yet, or forgot it? Type your email and tap <b>Email me a link</b>. Only the owner and the admins they add get a link.</p>
+  </section>
+  <section class="card" id="choose" hidden>
+    <h2>Choose your password<small>At least 8 characters</small></h2>
+    <form id="set-form" class="adm-form" novalidate>
+      <label>New password<input id="new-password" type="password" autocomplete="new-password" required minlength="8" maxlength="200"></label>
+      <div class="actions"><button type="submit" class="primary">Save and sign in</button></div>
+      <p class="status" id="set-status" role="status"></p>
+    </form>
+  </section>
+</main>
+<script src="/admin/admin.js"></script>
+</body>
+</html>

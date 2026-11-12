@@ -1,0 +1,15 @@
+/* Admin pages: the Ink look, a single column of forms. */
+.adm { display: grid; gap: 0; max-width: 760px !important; }
+.adm-form { display: grid; gap: 16px; }
+.adm-form label { display: grid; gap: 6px; font-weight: 600; font-size: .95rem; }
+.adm-note { margin: 0; font: italic 400 1.05rem/1.45 var(--italic, Georgia, serif); color: var(--muted); }
+.adm-state { margin: 0; padding: 12px 14px; border-left: 3px solid var(--line); background: var(--surface); font-size: .92rem; }
+.adm-state.on { border-left-color: #00a651; }
+.adm-state.off { border-left-color: #d71920; }
+.adm-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.adm-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.adm-list li small { display: block; }
+.adm-list li:last-child { border-bottom: 0; }
+.adm .actions { flex-wrap: wrap; gap: 10px; }
+.status.ok { color: #00843f; }
+.link-btn { background: none !important; border: 0 !important; padding: 8px 4px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; cursor: pointer; color: var(--fg); min-height: 0 !important; }

@@ -1,3 +1,4 @@
+import { aiConfig, askJSON } from "./ai";
 import { normaliseEnglish } from "./text";
 import { gapWords } from "./gaps";
 import type { Env } from "./types";
@@ -22,13 +23,13 @@ export async function takeForcedSlot(db: D1Database, now: number): Promise<boole
 
 // Returns null (no job row) when another refill holds the lock.
 export async function lockedRefill(env: Env, fetcher: typeof fetch, now: number, topic?: string) {
-  if (!env.DEEPSEEK_API_KEY || !(await acquireRefillLock(env.DB, now))) return null;
+  if (!(await aiConfig(env)) || !(await acquireRefillLock(env.DB, now))) return null;
   try { return await runRefill(env, fetcher, now, topic); } finally { await releaseRefillLock(env.DB); }
 }
 
 // Phone ran out: refill in the background. True when a refill started or is already running.
 export async function refillOnDemand(env: Env, now: number, ctx?: ExecutionContext): Promise<boolean> {
-  if (!env.DEEPSEEK_API_KEY) return false;
+  if (!(await aiConfig(env))) return false;
   if (!(await acquireRefillLock(env.DB, now))) return true;
   if (!(await takeForcedSlot(env.DB, now))) { await releaseRefillLock(env.DB); return false; }
   const job = (async () => {
@@ -40,7 +41,7 @@ export async function refillOnDemand(env: Env, now: number, ctx?: ExecutionConte
 }
 
 export async function runRefill(env: Env, fetcher: typeof fetch, now: number, topic?: string, force = false, timeoutMs = 30_000, count = 50): Promise<{ topic: string; received: number; inserted: number } | null> {
-  if (!env.DEEPSEEK_API_KEY) return null;
+  if (!(await aiConfig(env))) return null;
   const open = (await env.DB.prepare("SELECT count(*) AS n FROM sentences WHERE status = 'open' AND answer_count < 2 AND direction = 'en2pai'").first<{ n: number }>())!.n;
   if (!force && open >= 300) return null;
   // Every other unthemed refill asks for the common words that still have no verified
@@ -48,21 +49,10 @@ export async function runRefill(env: Env, fetcher: typeof fetch, now: number, to
   const gaps = topic === undefined && Math.random() < .5 ? await gapWords(env.DB, now) : [];
   topic ??= gaps.length ? "gaps" : TOPICS[Math.floor(Math.random() * TOPICS.length)];
   const about = gaps.length ? `everyday life, each one using at least one of these words: ${gaps.join(", ")}` : `"${topic}"`;
-  const res = await fetcher("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: { authorization: `Bearer ${env.DEEPSEEK_API_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      response_format: { type: "json_object" },
-      messages: [{
-        role: "user",
-        content: `Write exactly ${count} short, simple, everyday English sentences about ${about} for native Paite speakers to translate. Each sentence has 4-12 words, in the present or simple past tense. Use no names of real people, no religious doctrine, no numbers above twenty and no slang. Reply with JSON only: {"sentences":["..."]}`,
-      }],
-    }),
-    signal: AbortSignal.timeout(timeoutMs),
+  const out = await askJSON(env, fetcher, {
+    timeoutMs,
+    user: `Write exactly ${count} short, simple, everyday English sentences about ${about} for native Paite speakers to translate. Each sentence has 4-12 words, in the present or simple past tense. Use no names of real people, no religious doctrine, no numbers above twenty and no slang. Reply with JSON only: {"sentences":["..."]}`,
   });
-  if (!res.ok) throw new Error(`DeepSeek ${res.status}`);
-  const out = JSON.parse(((await res.json()) as any).choices[0].message.content);
   const list: unknown[] = Array.isArray(out.sentences) ? out.sentences : [];
   const seen = new Set<string>();
   const keep: string[] = [];

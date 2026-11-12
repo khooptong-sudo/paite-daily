@@ -7,7 +7,7 @@
 // later deploy. Do not go back to that order. Raise CACHE when the shell
 // changes, so the old store is dropped on activate.
 
-const CACHE = "paite-daily-v70";
+const CACHE = "paite-daily-v72";
 
 const SHELL = [
   "/",
@@ -60,11 +60,11 @@ self.addEventListener("fetch", (event) => {
   const request = event.request;
 
   // Only reads of our own pages and files. Answers must reach the server, and
-  // the review pages need a signed-in reviewer, so they are never cached.
+  // the review and admin pages need someone signed in, so they are never cached.
   if (request.method !== "GET") return;
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/review")) return;
+  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/review") || url.pathname.startsWith("/admin")) return;
 
   event.respondWith((async () => {
     try {

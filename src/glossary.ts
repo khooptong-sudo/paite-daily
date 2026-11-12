@@ -1,3 +1,4 @@
+import { aiConfig, askJSON } from "./ai";
 import { finalPaite } from "./final";
 import { publicReviewerNames } from "./access";
 import { esc } from "./contributors";
@@ -28,20 +29,7 @@ export function cleanEntries(out: any, paiteText: string): { paite: string; engl
 
 async function extract(env: Env, fetcher: typeof fetch, p: Pending): Promise<number> {
   await env.DB.prepare("UPDATE answers SET gloss_attempts = gloss_attempts + 1 WHERE id = ?1").bind(p.id).run();
-  const res = await fetcher("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: { authorization: `Bearer ${env.DEEPSEEK_API_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      temperature: 0,
-      response_format: { type: "json_object" },
-      messages: [{ role: "system", content: SYSTEM }, { role: "user", content: `English: ${p.english}\nPaite: ${p.paite}\nNote: ${p.explanation}` }],
-    }),
-    signal: AbortSignal.timeout(20_000),
-  });
-  if (!res.ok) throw new Error(`DeepSeek ${res.status}`);
-  let out: unknown;
-  try { out = JSON.parse(((await res.json()) as any).choices[0].message.content); } catch (e) { throw e; }
+  const out: unknown = await askJSON(env, fetcher, { system: SYSTEM, user: `English: ${p.english}\nPaite: ${p.paite}\nNote: ${p.explanation}`, timeoutMs: 20_000, exact: true });
   const entries = cleanEntries(out, p.paite);
   await env.DB.batch([
     ...entries.map((e) => env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, answer_id, sentence_id) VALUES (?1, ?2, ?3, ?4, ?5)").bind(e.paite, e.english, e.note || null, p.id, p.sentence_id)),
@@ -52,7 +40,7 @@ async function extract(env: Env, fetcher: typeof fetch, p: Pending): Promise<num
 
 // Only en2pai notes explain Paite words. Returns null (no job row) when there is nothing to do.
 export async function runGlossary(env: Env, fetcher: typeof fetch): Promise<{ entries: number; failed: number } | null> {
-  if (!env.DEEPSEEK_API_KEY) return null;
+  if (!(await aiConfig(env))) return null;
   const { results } = await env.DB.prepare(
     `SELECT a.id, a.sentence_id, ${finalPaite("a")} AS paite, s.english, a.explanation FROM answers a JOIN sentences s ON s.id = a.sentence_id
      WHERE a.status IN ('accepted', 'also_correct') AND s.direction = 'en2pai' AND a.gloss_done = 0 AND a.gloss_attempts < 3

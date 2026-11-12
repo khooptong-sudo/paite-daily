@@ -1,3 +1,4 @@
+import { aiConfig, AIHttpError, askJSON } from "./ai";
 import type { Env } from "./types";
 
 const FLAGS = ["ok", "tedim_style", "english", "junk"];
@@ -22,24 +23,20 @@ type Row = { id: number; sentence_id: number; english: string; direction: string
 async function noteSentence(env: Env, fetcher: typeof fetch, rows: Row[]): Promise<number> {
   const attempts = rows.filter((r) => r.ai_note === null).map((r) => env.DB.prepare("UPDATE answers SET ai_attempts = ai_attempts + 1 WHERE id = ?1").bind(r.id));
   // A thrown fetch counts as an attempt (so it cannot retry forever); an HTTP error does not.
-  const res = await fetcher("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: { authorization: `Bearer ${env.DEEPSEEK_API_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      temperature: 0,
-      response_format: { type: "json_object" },
-      messages: [
-        { role: "system", content: rows[0].direction === "pai2en" ? SYSTEM_REV : SYSTEM },
-        { role: "user", content: `${rows[0].direction === "pai2en" ? `Paite: ${rows[0].paite_prompt}\nOriginal English: ${rows[0].english}` : `English: ${rows[0].english}`}\nAnswers: ${JSON.stringify(rows.map((r) => ({ id: r.id, paite: r.paite })))}` },
-      ],
-    }),
-    signal: AbortSignal.timeout(20_000),
-  }).catch(async (e) => { await env.DB.batch(attempts); throw e; });
-  if (!res.ok) throw new Error(`DeepSeek ${res.status}`);
-  const sent = new Set(rows.map((r) => r.id));
   let out: any;
-  try { out = JSON.parse(((await res.json()) as any).choices[0].message.content); } catch (e) { await env.DB.batch(attempts); throw e; }
+  try {
+    out = await askJSON(env, fetcher, {
+      system: rows[0].direction === "pai2en" ? SYSTEM_REV : SYSTEM,
+      user: `${rows[0].direction === "pai2en" ? `Paite: ${rows[0].paite_prompt}\nOriginal English: ${rows[0].english}` : `English: ${rows[0].english}`}\nAnswers: ${JSON.stringify(rows.map((r) => ({ id: r.id, paite: r.paite })))}`,
+      timeoutMs: 20_000,
+      exact: true,
+    });
+  } catch (e) {
+    // A provider's HTTP error is retried as is; a network failure or unreadable reply counts as an attempt.
+    if (!(e instanceof AIHttpError)) await env.DB.batch(attempts);
+    throw e;
+  }
+  const sent = new Set(rows.map((r) => r.id));
   const stmts: D1PreparedStatement[] = [];
   for (const a of Array.isArray(out.answers) ? out.answers : []) {
     if (!sent.has(a?.id) || rows.find((r) => r.id === a.id)!.ai_note !== null || typeof a.note !== "string" || !FLAGS.includes(a.flag)) continue;
@@ -53,7 +50,7 @@ async function noteSentence(env: Env, fetcher: typeof fetch, rows: Row[]): Promi
 }
 
 export async function runPrereview(env: Env, fetcher: typeof fetch): Promise<{ noted: number; failed: number } | null> {
-  if (!env.DEEPSEEK_API_KEY) return null;
+  if (!(await aiConfig(env))) return null;
   const ids = (await env.DB.prepare(
     "SELECT sentence_id FROM answers WHERE ai_note IS NULL AND status = 'new' AND ai_attempts < 3 GROUP BY sentence_id ORDER BY min(ai_attempts), min(id) LIMIT 20",
   ).all<{ sentence_id: number }>()).results.map((r) => r.sentence_id);

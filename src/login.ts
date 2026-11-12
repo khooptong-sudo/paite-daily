@@ -12,24 +12,24 @@ export const SESSION_MS = 30 * 24 * 3_600_000;
 export const LINK_MS = 3_600_000;
 export const INVITE_MS = 7 * 24 * 3_600_000;
 export const MIN_PASSWORD = 8;
-const MAX_PASSWORD = 200;
-const ITERATIONS = 100_000; // the most Workers WebCrypto allows for PBKDF2
+export const MAX_PASSWORD = 200;
+export const ITERATIONS = 100_000; // the most Workers WebCrypto allows for PBKDF2
 const WINDOW_MS = 15 * 60_000;
 const MAX_LOGIN_PER_EMAIL = 10, MAX_LOGIN_PER_IP = 30;
 const MAX_LINK_PER_EMAIL = 3, MAX_LINK_PER_IP = 10;
 
 const enc = new TextEncoder();
-const hex = (buf: ArrayBuffer | Uint8Array) => [...new Uint8Array(buf as ArrayBuffer)].map((b) => b.toString(16).padStart(2, "0")).join("");
-const unhex = (s: string) => new Uint8Array((s.match(/../g) ?? []).map((h) => parseInt(h, 16)));
-const sha256 = async (s: string) => hex(await crypto.subtle.digest("SHA-256", enc.encode(s)));
-const randomToken = () => hex(crypto.getRandomValues(new Uint8Array(32)));
+export const hex = (buf: ArrayBuffer | Uint8Array) => [...new Uint8Array(buf as ArrayBuffer)].map((b) => b.toString(16).padStart(2, "0")).join("");
+export const unhex = (s: string) => new Uint8Array((s.match(/../g) ?? []).map((h) => parseInt(h, 16)));
+export const sha256 = async (s: string) => hex(await crypto.subtle.digest("SHA-256", enc.encode(s)));
+export const randomToken = () => hex(crypto.getRandomValues(new Uint8Array(32)));
 
-async function pbkdf2(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
+export async function pbkdf2(password: string, salt: Uint8Array, iterations: number): Promise<Uint8Array> {
   const key = await crypto.subtle.importKey("raw", enc.encode(password), "PBKDF2", false, ["deriveBits"]);
   return new Uint8Array(await crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt, iterations }, key, 256));
 }
 
-function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
+export function sameBytes(a: Uint8Array, b: Uint8Array): boolean {
   if (a.length !== b.length) return false;
   let diff = 0;
   for (let i = 0; i < a.length; i++) diff |= a[i] ^ b[i];

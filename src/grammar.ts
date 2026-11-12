@@ -1,3 +1,4 @@
+import { aiConfig, askJSON } from "./ai";
 import { cleanText } from "./text";
 import { json, type Env } from "./types";
 
@@ -18,20 +19,8 @@ Reply with JSON only: {"fixed": "<the line>"}`;
 
 /** The model's corrected line, or null when it gave nothing usable. */
 export async function fixEnglish(env: Env, text: string, fetcher: typeof fetch): Promise<string | null> {
-  const res = await fetcher("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: { authorization: `Bearer ${env.DEEPSEEK_API_KEY}`, "content-type": "application/json" },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      temperature: 0,
-      response_format: { type: "json_object" },
-      messages: [{ role: "system", content: SYSTEM }, { role: "user", content: text }],
-    }),
-    signal: AbortSignal.timeout(15_000),
-  });
-  if (!res.ok) return null;
   let fixed: unknown;
-  try { fixed = JSON.parse(((await res.json()) as any).choices[0].message.content).fixed; } catch { return null; }
+  try { fixed = (await askJSON(env, fetcher, { system: SYSTEM, user: text, timeoutMs: 15_000, exact: true }))?.fixed; } catch { return null; }
   const out = cleanText(fixed, 600);
   // A "fix" far longer than the line rewrote it rather than corrected it.
   return out && out.length <= text.length * 1.5 + 20 ? out : null;
@@ -41,7 +30,7 @@ export async function fixEnglish(env: Env, text: string, fetcher: typeof fetch):
 export async function checkGrammar(env: Env, who: string, b: Record<string, unknown>, now: number, fetcher: typeof fetch): Promise<Response> {
   const text = cleanText(b.text, 500);
   if (!text) return json({ error: "bad_request" }, 400);
-  if (!env.DEEPSEEK_API_KEY) return json({ error: "unavailable" }, 503);
+  if (!(await aiConfig(env))) return json({ error: "unavailable" }, 503);
   const used = await env.DB.prepare("SELECT SUM(at > ?2 - 60000) AS m, count(*) AS d FROM grammar_checks WHERE who = ?1 AND at > ?2 - 86400000")
     .bind(who, now).first<{ m: number | null; d: number }>();
   if ((used!.m ?? 0) >= PER_MINUTE || used!.d >= PER_DAY) return json({ error: "slow_down" }, 429);
