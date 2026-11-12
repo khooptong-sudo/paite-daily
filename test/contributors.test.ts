@@ -59,7 +59,7 @@ describe("contributors", () => {
     expect(page).toContain("the data stays free for everyone");
     expect(page).toContain('<p class="links">');
     expect(page).toContain('<script src="/footer.js"></script>');
-    expect(page).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png">');
+    expect(page).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">');
     expect(page).toContain('<meta name="twitter:card" content="summary_large_image">');
     expect(page).toContain("theconcierge@lamkalabs.com");
     expect(page).toContain("wa.me/918375098415");

@@ -73,12 +73,12 @@ export function renderRules(rules: Rule[]): string {
 <link rel="canonical" href="https://paite.lamkalabs.com/rules">
 <meta property="og:title" content="Spelling Danbu · Paite Spelling Rulebook">
 <meta property="og:description" content="How Paite reviewers correct spelling, written down as they work.">
-<meta property="og:image" content="https://paite.lamkalabs.com/og.png">
+<meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icons/emblem-small.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@1&family=Inter:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 <script src="/theme.js"></script>
 <link rel="stylesheet" href="/contributors.css">

@@ -101,7 +101,7 @@ describe("page, hide, export", () => {
     expect(html).toContain("the data stays free for everyone");
     expect(html).toContain('<p class="links">');
     expect(html).toContain('<script src="/footer.js"></script>');
-    expect(html).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png">');
+    expect(html).toContain('<meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">');
     expect(html).toContain('<a class="mail" href="mailto:theconcierge@lamkalabs.com"');
     expect(html).toContain("wa.me/918375098415");
     expect(html).not.toContain("Write to");

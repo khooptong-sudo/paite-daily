@@ -24,7 +24,7 @@ describe("about page", () => {
 
   it("carries the canonical and social metadata", () => {
     expect(html).toContain('<link rel="canonical" href="https://paite.lamkalabs.com/about">');
-    expect(html).toContain('property="og:image" content="https://paite.lamkalabs.com/og.png"');
+    expect(html).toContain('property="og:image" content="https://paite.lamkalabs.com/og.png?v=2"');
     expect(html).toContain('name="twitter:card" content="summary_large_image"');
     expect(html).toContain('<link rel="icon" href="/favicon.ico" sizes="32x32">');
   });

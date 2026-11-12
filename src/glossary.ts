@@ -125,7 +125,7 @@ export function renderGlossary(xs: Entry[]): string {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Paite Word List</title>
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f5f1e8">
 <link rel="canonical" href="https://paite.lamkalabs.com/glossary">
 <meta property="og:site_name" content="Paite Daily">
 <meta property="og:type" content="website">
@@ -133,14 +133,14 @@ export function renderGlossary(xs: Entry[]): string {
 <meta property="og:url" content="https://paite.lamkalabs.com/glossary">
 <meta property="og:title" content="Paite Word List">
 <meta property="og:description" content="The Paite Word List from our contributors: Paite words, English meanings and examples.">
-<meta property="og:image" content="https://paite.lamkalabs.com/og.png">
+<meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Paite Word List">
 <meta name="twitter:description" content="The Paite word list from our contributors: Paite words, English meanings and examples.">
-<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png">
+<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta name="twitter:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -150,7 +150,7 @@ export function renderGlossary(xs: Entry[]): string {
 <script>document.documentElement.className="js"</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@1&family=Inter:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 <script src="/theme.js"></script>
 <link rel="stylesheet" href="/contributors.css">

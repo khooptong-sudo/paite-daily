@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Paite Daily — a Paite–English corpus</title>
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f5f1e8">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
@@ -18,18 +18,18 @@
 <meta property="og:url" content="https://paite.lamkalabs.com/">
 <meta property="og:title" content="Paite Daily — a Paite word corpus">
 <meta property="og:description" content="Verified Paite–English pairs, reviewed by native speakers, free to use with credit (CC BY 4.0) for any keyboard, dictionary or translation project.">
-<meta property="og:image" content="https://paite.lamkalabs.com/og.png">
+<meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Paite Daily — a Paite word corpus">
 <meta name="twitter:description" content="Verified Paite–English pairs, reviewed by native speakers, free to use with credit (CC BY 4.0).">
-<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png">
+<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta name="twitter:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@1&family=Inter:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 <script src="/theme.js"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
@@ -45,7 +45,7 @@
       <a class="share-chip about-chip" href="/about">About This Project <span aria-hidden="true">&rarr;</span></a>
     </nav>
   </header>
-  <div class="goal" id="goal" hidden><div><b id="goal-n"></b> / <span id="goal-max"></span> <span data-s="goalLine"></span></div><div class="goal-bar" id="goal-bar" role="progressbar" aria-valuemin="0"><i></i></div></div>
+  <div class="goal kp-goal" id="goal" hidden><div class="kp-head"><div class="kp-n"><b id="goal-n"></b><span> / <span id="goal-max"></span></span> <span class="kp-unit" data-s="goalLine"></span></div><div class="kp-name"><b>BA / Siamsin Puan</b><i>The shawl we weave together</i></div></div><div class="kp-wrap"><canvas class="kp" aria-hidden="true"></canvas><span class="kp-tip" hidden></span></div><div class="goal-bar" id="goal-bar" role="progressbar" aria-valuemin="0" aria-label="Verified sentences toward the goal"><i></i></div><p class="kp-note">Every thread is one verified sentence, given by one person and checked by another.</p></div>
   <section class="card whatsnew" id="whatsnew" hidden aria-label="What's New">
     <details>
       <summary><span class="news-title">What's New <span class="news-count"></span></span><span class="news-chev" aria-hidden="true">&#8964;</span></summary>
@@ -263,6 +263,7 @@
 <script src="/app.js" defer></script>
 <script src="/chat.js" defer></script>
 <script src="/footer.js" defer></script>
+<script src="/shawl.js" defer></script>
 <script src="/mypuan.js" defer></script>
 <script src="/hear.js" defer></script>
 <script src="/pwa.js" defer></script>

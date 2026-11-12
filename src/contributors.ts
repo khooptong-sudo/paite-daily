@@ -143,7 +143,7 @@ export function wallNames(d: Pick<Contributors, "contributors" | "reviewers">): 
 // The ranking shows this many places; everyone below folds into one compact box.
 const TOP = 10;
 const goalBar = (g: { verified: number; goal: number }) =>
-  `<div class="goal"><div class="goal-t"><b>${g.verified}</b> / ${g.goal} <span data-s="goalLine">Verified Sentences</span></div><div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${g.goal}" aria-valuenow="${g.verified}"><i style="width:${Math.min(100, Math.round((g.verified / g.goal) * 100))}%"></i></div></div>`;
+  `<div class="goal kp-goal"><div class="kp-head"><div class="kp-n"><b>${g.verified}</b><span> / ${g.goal}</span> <span class="kp-unit" data-s="goalLine">Verified Sentences</span></div><div class="kp-name"><b>BA / Siamsin Puan</b><i>The shawl we weave together</i></div></div><div class="kp-wrap"><canvas class="kp" aria-hidden="true"></canvas><span class="kp-tip" hidden></span></div><div class="goal-bar" role="progressbar" aria-label="Verified sentences toward the goal" aria-valuemin="0" aria-valuemax="${g.goal}" aria-valuenow="${g.verified}"><i style="width:${Math.min(100, Math.round((g.verified / g.goal) * 100))}%"></i></div><p class="kp-note">Every thread is one verified sentence, given by one person and checked by another.</p></div><script src="/shawl.js" defer></script>`;
 
 export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="/contributors.css">', siteKey = ""): string {
   const names = wallNames(d);
@@ -184,7 +184,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Panlate - Contributors</title>
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f5f1e8">
 <link rel="canonical" href="https://paite.lamkalabs.com/contributors">
 <meta property="og:site_name" content="Paite Daily">
 <meta property="og:type" content="website">
@@ -192,14 +192,14 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <meta property="og:url" content="https://paite.lamkalabs.com/contributors">
 <meta property="og:title" content="Contributors of Paite Daily">
 <meta property="og:description" content="The people writing Paite into the future. See this week's contributors and reviewers, and add a sentence.">
-<meta property="og:image" content="https://paite.lamkalabs.com/og.png">
+<meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Contributors of Paite Daily">
 <meta name="twitter:description" content="The people writing Paite into the future. See this week's contributors and reviewers, and add a sentence.">
-<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png">
+<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta name="twitter:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -209,7 +209,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <script>document.documentElement.className="js"</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@1&family=Inter:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 <script src="/theme.js"></script>
 ${css}</head>

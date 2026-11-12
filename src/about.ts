@@ -100,7 +100,7 @@ export function renderAbout(): string {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${TITLE}</title>
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#f5f1e8">
 <meta name="description" content="${DESC}">
 <link rel="canonical" href="${CANON}">
 <meta property="og:site_name" content="Paite Daily">
@@ -109,14 +109,14 @@ export function renderAbout(): string {
 <meta property="og:url" content="${CANON}">
 <meta property="og:title" content="${TITLE}">
 <meta property="og:description" content="${DESC}">
-<meta property="og:image" content="https://paite.lamkalabs.com/og.png">
+<meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${TITLE}">
 <meta name="twitter:description" content="${DESC}">
-<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png">
+<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta name="twitter:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
@@ -127,7 +127,7 @@ export function renderAbout(): string {
 <script>document.documentElement.className="js"</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@1&family=Inter:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 <script src="/theme.js"></script>
 <link rel="stylesheet" href="/contributors.css">
