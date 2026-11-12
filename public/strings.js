@@ -108,7 +108,7 @@ window.STRINGS = {
   applyThanks: { pai: "", en: "Thanks. The owner will review your request." },
   applyInvalid: { pai: "", en: "Please enter your name and a valid email." },
   applyFailed: { pai: "", en: "Could not send. Try again later." },
-  coffee: { pai: "", en: "Click Here to Buy Us Coffee" },
+  coffee: { pai: "", en: "Buy us Coffee" },
   coffeeNote: { pai: "", en: "Helps cover the AI and server costs, so the data stays free for everyone." },
   scanUpi: { pai: "", en: "Scan with Any UPI App" },
   tooFast: { pai: "Hon awl deuh hiau in, kin law zezen.", en: "Slow down a little, then try again." },
