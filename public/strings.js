@@ -113,7 +113,6 @@ window.STRINGS = {
   scanUpi: { pai: "", en: "Scan with Any UPI App" },
   tooFast: { pai: "Hon awl deuh hiau in, kin law zezen.", en: "Slow down a little, then try again." },
   chatTitle: { pai: "Paite Pau In", en: "Paite in conversation" },
-  chatHelloEn: { pai: "", en: "Good morning! How are you?" },
   chatAsk: { pai: "", en: "Look it up" },
   chatNote: { pai: "", en: "Every line here comes from a reviewed pair. Nothing is invented." },
   chatMiss: { pai: "", en: "No reviewed pair for that yet." },

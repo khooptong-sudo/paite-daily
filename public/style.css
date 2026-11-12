@@ -635,3 +635,82 @@ body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week
 .blue .p .pod-share { background: transparent; color: var(--fg); border-color: var(--hair); }
 .blue .p .pod-share img { filter: invert(1); }
 .blue .gl .send { background: var(--fg); color: var(--bg); border-color: var(--fg); border-radius: 999px; }
+
+/* INK, LIGHT ("paper"), the default: the same editorial design in ink on warm paper. theme.js
+   sets html[data-theme=light] unless the reader picked dark; the Liquid Silk footer stays dark. */
+html[data-theme=light] body.blue {
+  --bg: #f5f1e8; --fg: #15120f; --muted: rgba(21, 18, 15, .62); --line: rgba(21, 18, 15, .14); --hair: rgba(21, 18, 15, .42);
+  --accent: #15120f; --accent-fg: #f5f1e8; --surface: rgba(21, 18, 15, .03);
+  --blue: #c8102e; --blue-hover: #a50d26; --ring: #c8102e;
+  --silk: linear-gradient(100deg, var(--fg) 0 28%, #b87a00, #c8102e, #4b3bd6, #00843f, var(--fg) 72% 100%);
+}
+html[data-theme=light]:has(body.blue) { background: #f5f1e8; color-scheme: light; }
+html[data-theme=light] .blue ::selection { background: #15120f; color: #f5f1e8; }
+html[data-theme=light] .blue header, html[data-theme=light] .blue header a, html[data-theme=light] .blue .goal,
+html[data-theme=light] .blue .mypuan h2, html[data-theme=light] .blue .mypuan-how, html[data-theme=light] .blue .mypuan-how b,
+html[data-theme=light] .blue .mypuan-note, html[data-theme=light] .blue .hero .back, html[data-theme=light] .blue header a[style] { color: var(--fg) !important; }
+html[data-theme=light] .blue .mypuan h2 small, html[data-theme=light] .blue .mypuan-how, html[data-theme=light] .blue .mypuan-note { color: var(--muted) !important; }
+html[data-theme=light] .blue button.primary small, html[data-theme=light] .blue .seg button[aria-pressed="true"] small, html[data-theme=light] .blue .cta small { color: rgba(245, 241, 232, .7); }
+html[data-theme=light] .blue button.primary:hover:not(:disabled), html[data-theme=light] .blue .cta:hover { background: #000; }
+html[data-theme=light] .blue .share-chip img, html[data-theme=light] .blue .card .share-chip img, html[data-theme=light] .blue .p .pod-share img { filter: none; }
+html[data-theme=light] .blue .share-chip:hover:not(:disabled) { background: rgba(21, 18, 15, .06); }
+html[data-theme=light] .blue .bub, html[data-theme=light] .blue .chat-note .answer, html[data-theme=light] .blue .answer, html[data-theme=light] .blue .clip { background: rgba(21, 18, 15, .035); }
+html[data-theme=light] .blue .turn.me .bub .eng { color: rgba(245, 241, 232, .72); }
+html[data-theme=light] .blue .shared-note { background: rgba(21, 18, 15, .04); }
+html[data-theme=light] .blue .status.err { color: #b3141a; }
+html[data-theme=light] .blue select option { background: #f5f1e8; color: #15120f; }
+html[data-theme=light] .blue input[type=radio] { border-color: rgba(21, 18, 15, .7); }
+html[data-theme=light] .blue input[type=checkbox] { accent-color: #15120f; }
+html[data-theme=light] .blue .gl .az { background: rgba(245, 241, 232, .92); }
+html[data-theme=light] .blue .news a { color: #c8102e; }
+html[data-theme=light] .blue .answer.variant { border-color: #c8102e; }
+html[data-theme=light] .milestone { background: #15120f; color: #f5f1e8; }
+
+/* The switch: a small sun / moon in the header, beside Reviewer. */
+.theme-toggle { display: inline-grid; place-items: center; width: 40px; height: 40px; min-height: 40px !important; padding: 0; border-radius: 50%; cursor: pointer; font-size: 1rem; line-height: 1; }
+.theme-toggle svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; }
+/* The icon shows where a tap takes you: the moon on paper, the sun at night. */
+.theme-toggle .moon { display: none; }
+html[data-theme=light] .theme-toggle .moon { display: block; }
+html[data-theme=light] .theme-toggle .sun { display: none; }
+
+/* MAIN BUTTONS (12 Nov). Arrow Disc everywhere: the words on the left (Paite over its English),
+   an ink disc with an arrow on the right that turns a quarter as you hover. The Pau Upa page
+   (body.pauupa) uses Stamp instead: square corners and an offset ink block that presses in. */
+body.blue { --disc-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6' fill='none' stroke='%230c0b0a' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+html[data-theme=light] body.blue { --disc-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6' fill='none' stroke='%23f5f1e8' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+.blue button.primary, .blue .gl .send {
+  display: inline-grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 18px; align-items: center; text-align: left;
+  min-width: 0; min-height: 58px; padding: 6px 6px 6px 26px; border-radius: 999px; font-weight: 600; line-height: 1.2;
+  background: transparent; color: var(--fg); border: 1px solid var(--hair); box-shadow: none; transition: border-color .3s;
+}
+.blue button.primary > small, .blue .gl .send > small, html[data-theme=light] .blue button.primary > small { grid-column: 1; display: block; margin: 2px 0 0; color: var(--muted); }
+.blue button.primary::after, .blue .gl .send::after {
+  content: ""; grid-column: 2; grid-row: 1 / span 2; width: 46px; height: 46px; border-radius: 50%;
+  background: var(--disc-arrow) center / 18px no-repeat, var(--fg); transition: transform .45s cubic-bezier(.2, .7, .2, 1);
+}
+.blue button.primary:hover:not(:disabled), .blue .gl .send:hover { background: transparent; border-color: var(--fg); }
+.blue button.primary:hover:not(:disabled)::after, .blue .gl .send:hover::after { transform: rotate(-45deg); }
+.blue .actions button.primary, .blue form > button.primary, .blue #fb-ok { flex: 0 1 auto; min-width: 0; padding: 6px 6px 6px 26px; }
+@media (max-width: 480px) { .blue .actions button.primary { flex: 1; } }
+/* The link-style call to action (Paite Daily · Add a sentence) gets the same disc on its arrow. */
+.blue .cta { background: transparent; color: var(--fg); border: 1px solid var(--hair); border-radius: 999px; padding: 6px 6px 6px 26px; }
+.blue .cta:hover { background: transparent; border-color: var(--fg); }
+.blue .cta small { color: var(--muted); }
+.blue .cta .go { width: 46px; height: 46px; border-radius: 50%; flex: none; font-size: 0; background: var(--disc-arrow) center / 18px no-repeat, var(--fg); transition: transform .45s cubic-bezier(.2, .7, .2, 1); }
+.blue .cta:hover .go { transform: rotate(-45deg); }
+
+/* Stamp, on the Pau Upa page only. */
+.blue.pauupa button.primary, .blue.pauupa .gl .send, .blue.pauupa .cta {
+  display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; min-height: 52px; padding: 11px 30px;
+  background: var(--bg); color: var(--fg); border: 1.5px solid var(--fg); border-radius: 2px; box-shadow: 5px 5px 0 var(--fg);
+  transition: transform .2s cubic-bezier(.2, .7, .2, 1), box-shadow .2s cubic-bezier(.2, .7, .2, 1);
+}
+.blue.pauupa .cta { flex-direction: row; align-items: center; justify-content: space-between; }
+.blue.pauupa button.primary::after, .blue.pauupa .gl .send::after { content: none; }
+.blue.pauupa .cta .go { width: auto; height: auto; background: none; font-size: 1.4rem; }
+.blue.pauupa .cta:hover .go { transform: translateX(4px); }
+.blue.pauupa .gl .send { flex-direction: row; align-items: baseline; gap: .45em; }
+.blue.pauupa .gl .send > small { display: inline; margin: 0; }
+.blue.pauupa button.primary:hover:not(:disabled), .blue.pauupa .gl .send:hover, .blue.pauupa .cta:hover { background: var(--bg); transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--fg); }
+.blue.pauupa button.primary:active, .blue.pauupa .gl .send:active, .blue.pauupa .cta:active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--fg); }

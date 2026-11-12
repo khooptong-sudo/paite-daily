@@ -79,7 +79,18 @@
         <span class="chat-intro">
           <span class="label" id="chat-h" data-s="chatTitle"></span>
           <span class="hello" id="chat-hello" lang="pck">Zingpha! Na dam hia?</span>
-          <span class="hello-en" data-s="chatHelloEn"></span>
+          <span class="hello-en" id="chat-hello-en">Good morning! How are you?</span>
+          <script>
+            // The greeting follows the hour on the reader's phone: Zingpha early, Sunpha later in the
+            // morning, Nitaklampha in the afternoon, Nitakpha from evening until the small hours.
+            (() => {
+              const h = new Date().getHours();
+              const [pai, en] = h >= 4 && h < 9 ? ["Zingpha", "Good morning"] : h >= 9 && h < 12 ? ["Sunpha", "Good morning"]
+                : h >= 12 && h < 17 ? ["Nitaklampha", "Good afternoon"] : ["Nitakpha", "Good evening"];
+              document.getElementById("chat-hello").textContent = pai + "! Na dam hia?";
+              document.getElementById("chat-hello-en").textContent = en + "! How are you?";
+            })();
+          </script>
         </span>
         <svg class="chat-chev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </summary>
