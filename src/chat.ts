@@ -26,12 +26,14 @@ const SCENES: { key: string; label: string; lines: string[] }[] = [
 const key = (s: string) => normaliseEnglish(s).replace(/[^\p{L}\p{N}'\s]/gu, " ").replace(/\s+/g, " ").trim();
 
 // Words that carry no meaning on their own; matching on them produces noise.
-// Question words stay in: "how much is this" must not collapse to nothing.
+// Question words stay in: "how much is this" must not collapse to nothing. Pronouns and "not"
+// stay in too: "are you hungry?" is not "I am hungry.", and "I am not tired" is not "I am tired".
 const STOP = new Set(
-  "a an the is are am was were be been being do does did done to of in on at for from by with and or but if i you he she it we they me him her us them my your his its our their this that these those have has had not no yes can could will would should shall may might must please there here".split(" "),
+  "a an the is are am was were be been being do does did done to of in on at for from by with and or but if this that these those have has had can could will would should shall may might must please there here".split(" "),
 );
 
 const tokens = (s: string) => key(s).split(" ").filter((w) => w && !STOP.has(w));
+const NEG = ["not", "no", "never", "don't", "doesn't", "didn't", "isn't", "aren't", "can't", "won't", "nothing", "nobody"];
 
 /**
  * The reviewed pairs a visitor may see: an accepted answer on a verified sentence,
@@ -97,11 +99,14 @@ export async function matchChat(env: Env, q: string, fetcher: typeof fetch = fet
     const shared = want.filter((w) => have.includes(w)).length;
     // F1 over the words that matter: a line with three extra words is a different
     // sentence, however many words it shares.
-    const score = key(p.english) === asked ? 1 : (2 * shared) / (want.length + have.length);
+    // A negation on one side only turns the meaning around: never a match.
+    const flips = NEG.some((n) => want.includes(n)) !== NEG.some((n) => have.includes(n));
+    const score = key(p.english) === asked ? 1 : flips ? 0 : (2 * shared) / (want.length + have.length);
     if (score > (best?.score ?? 0)) best = { english: p.english, paite: p.paite, score, ...(p.audio ? { audio: p.audio } : {}) };
   }
   const plain = best && best.score >= 0.7 ? best : null;
-  if (best?.score === 1) return plain;
+  // Only the very same line skips the model; the same content words in another order or person do not.
+  if (best && key(best.english) === asked) return best;
   // A long message is not a line to say in Paite: it never reaches the model.
   if (q.length > 160) return plain;
   const cfg = await aiConfig(env);

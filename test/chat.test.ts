@@ -75,6 +75,14 @@ describe("chat match", () => {
     expect(await matchChat(env, "   ")).toBeNull();
   });
 
+  it("does not answer a question with its statement, or drop a not", async () => {
+    await verified("I am hungry.", "Ka gil kial.");
+    await verified("I am tired.", "Ka chim hi.");
+    expect(await matchChat(env, "are you hungry")).toBeNull();
+    expect(await matchChat(env, "I am not tired")).toBeNull();
+    expect((await matchChat(env, "I am hungry"))?.paite).toBe("Ka gil kial.");
+  });
+
   it("ignores pairs that were never accepted, and unverified sentences", async () => {
     await addSentences("Where is the market?");
     expect(await matchChat(env, "where is the market")).toBeNull();
