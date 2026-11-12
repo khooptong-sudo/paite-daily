@@ -648,7 +648,6 @@ html[data-theme=light] .blue .mypuan h2, html[data-theme=light] .blue .mypuan-ho
 html[data-theme=light] .blue .mypuan-note, html[data-theme=light] .blue .hero .back, html[data-theme=light] .blue header a[style] { color: var(--fg) !important; }
 html[data-theme=light] .blue .mypuan h2 small, html[data-theme=light] .blue .mypuan-how, html[data-theme=light] .blue .mypuan-note { color: var(--muted) !important; }
 html[data-theme=light] .blue button.primary small, html[data-theme=light] .blue .seg button[aria-pressed="true"] small, html[data-theme=light] .blue .cta small { color: rgba(245, 241, 232, .7); }
-html[data-theme=light] .blue button.primary:hover:not(:disabled), html[data-theme=light] .blue .cta:hover { background: #000; }
 html[data-theme=light] .blue .share-chip img, html[data-theme=light] .blue .card .share-chip img, html[data-theme=light] .blue .p .pod-share img { filter: none; }
 html[data-theme=light] .blue .share-chip:hover:not(:disabled) { background: rgba(21, 18, 15, .06); }
 html[data-theme=light] .blue .bub, html[data-theme=light] .blue .chat-note .answer, html[data-theme=light] .blue .answer, html[data-theme=light] .blue .clip { background: rgba(21, 18, 15, .035); }
@@ -721,3 +720,60 @@ html[data-theme=light] body.blue { --disc-arrow: url("data:image/svg+xml,%3Csvg 
 .hdr-links .back { grid-column: 1; grid-row: 1; }
 .hdr-links .theme-toggle { grid-column: 2; grid-row: 1; }
 .hdr-links .about-chip { grid-column: 1 / -1; grid-row: 2; }
+
+/* CHRISTMAS ON INK (12 Nov). The season sits on the editorial page instead of the old boxed cards:
+   the greeting set in the serif with festive colours drifting through it, the Santa hat on the
+   big greeting's first letter, a red-and-green ribbon on each section's top rule with holly at its
+   end (no snow caps, which fought the section numbers), snow with a halo that shows on paper, and
+   stars only at night. */
+.blue .xmas-greet { margin: 0 0 18px; text-align: left; white-space: nowrap; font: 400 clamp(1.45rem, 6.4vw, 3.6rem)/1 var(--display); letter-spacing: -.02em; text-shadow: none;
+  color: transparent; background: linear-gradient(100deg, #c8102e 0 25%, #137a3a, #c8102e, #b8860b, #c8102e 75% 100%) var(--silk-x) 0 / 300% 100%;
+  -webkit-background-clip: text; background-clip: text; animation: silk-x 14s ease-in-out infinite alternate; }
+.blue .xmas-greet .bell { color: initial; -webkit-text-fill-color: initial; font-size: .6em; }
+.blue.cp .hero .xmas-greet { margin: 0 0 clamp(30px, 5.6vw, 72px); max-width: none; color: transparent; font-size: clamp(1.4rem, 4vw, 2.2rem); }
+body.blue:not(.cp) main > .xmas-greet { padding-top: 6px; }
+/* Night: gold into red, like lamplight. */
+html:not([data-theme=light]) .blue .xmas-greet { background-image: linear-gradient(100deg, #ffd23f 0 25%, #ff6b6b, #ffe27a, #33d17a, #ffd23f 75% 100%); }
+/* The hat on the big greeting. */
+.blue .chat .hello.xmas-hatted { position: relative; margin-top: .55em; }
+.blue .chat .hello .xmas-hat { left: -.28em; top: -.5em; width: .8em; }
+/* Sections: no snow caps; the number keeps its place. */
+[data-season=christmas] body.blue .card::before, [data-season=christmas] body.blue.cp main::before {
+  position: static; top: auto; left: auto; right: auto; height: auto; background: none; filter: none; pointer-events: none;
+}
+[data-season=christmas] body.blue .card:is(.chat, .whatsnew, .week, #feedback)::before, [data-season=christmas] body.blue.cp main::before,
+[data-season=christmas] body.blue main:not(:has(> #chat)) > .card::before { content: none; }
+/* A ribbon on the top rule of each section, holly where it ends. */
+[data-season=christmas] body.blue .card:not(.chat):not(.whatsnew):not(.week), [data-season=christmas] body.blue.cp main {
+  border-top: 3px solid transparent; border-image: repeating-linear-gradient(90deg, #c8102e 0 22px, transparent 22px 28px, #137a3a 28px 50px, transparent 50px 56px) 3 0 0 0 / 3px 0 0 0;
+}
+[data-season=christmas] body.blue .card::after, [data-season=christmas] body.blue.cp main::after { top: -18px; right: -6px; width: 40px; height: 30px; }
+[data-season=christmas] body.blue .card:is(.chat, .whatsnew, .week)::after { content: none; }
+/* Lights hang from a dark wire on paper. */
+html[data-theme=light] .blue .xmas-lights { background-image: radial-gradient(ellipse 50% 6px at 50% 0, transparent 5px, rgba(21, 18, 15, .35) 5.5px 6.5px, transparent 7px); }
+.blue .xmas-lights { max-width: none; margin: 4px 0 6px; }
+/* Stars belong to the night. */
+html[data-theme=light] .xmas-stars { display: none; }
+.blue .xmas-trees { margin: 40px 0 -6px; }
+.blue .xmas-mute { background: var(--fg); color: var(--bg); border-color: #c8102e; }
+/* Hover on the Arrow Disc buttons: the pill fills with ink and its words turn paper-white, so
+   they stay legible; the disc flips to paper with an ink arrow. (Stamp on Pau Upa keeps its own.) */
+body.blue { --disc-arrow-inv: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6' fill='none' stroke='%23f4f1ea' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+html[data-theme=light] body.blue { --disc-arrow-inv: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12h14M13 6l6 6-6 6' fill='none' stroke='%2315120f' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+body.blue:not(.pauupa) button.primary:hover:not(:disabled), body.blue:not(.pauupa) .gl .send:hover, body.blue:not(.pauupa) .cta:hover,
+html[data-theme=light] body.blue:not(.pauupa) button.primary:hover:not(:disabled), html[data-theme=light] body.blue:not(.pauupa) .cta:hover {
+  background: var(--fg); color: var(--bg); border-color: var(--fg);
+}
+body.blue:not(.pauupa) button.primary:hover:not(:disabled) > small, body.blue:not(.pauupa) .gl .send:hover > small, body.blue:not(.pauupa) .cta:hover small,
+html[data-theme=light] body.blue:not(.pauupa) button.primary:hover:not(:disabled) > small { color: color-mix(in srgb, var(--bg) 78%, transparent); }
+body.blue:not(.pauupa) button.primary:hover:not(:disabled)::after, body.blue:not(.pauupa) .gl .send:hover::after, body.blue:not(.pauupa) .cta:hover .go {
+  background: var(--disc-arrow-inv) center / 18px no-repeat, var(--bg);
+}
+
+/* Panlate: the title block sits in the middle of the page. */
+.blue.panlate .hero { text-align: center; }
+.blue.panlate .hero h1 { display: inline-block; }
+.blue.panlate .hero p { margin-inline: auto; }
+.blue.panlate .hero-nav { text-align: left; }
+.blue.panlate .hero .xmas-greet { text-align: center; }
+.blue.panlate .hero h1 small { text-align: center; }

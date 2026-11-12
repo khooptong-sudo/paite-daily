@@ -79,7 +79,8 @@
   }
 
   function hat() {
-    const h1 = document.querySelector("body.blue main > header h1, body.blue .hero h1");
+    // On the front page the hat sits on the first letter of the big greeting; elsewhere on the page title.
+    const h1 = document.querySelector("#chat-hello") || document.querySelector("body.blue .hero h1, body.blue main > header h1");
     if (!h1) return;
     h1.classList.add("xmas-hatted");
     h1.prepend(hidden(make("span", "xmas-hat", HAT)));
@@ -122,14 +123,16 @@
     const size = () => {
       const dpr = Math.min(2, devicePixelRatio || 1);
       W = innerWidth; H = innerHeight; cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      const n = Math.round(Math.min(110, (W * H) / 7000));
+      const n = Math.round(Math.min(55, (W * H) / 14000)); // about half the old fall (owner, 12 Nov)
       flakes = Array.from({ length: n }, () => ({ x: Math.random() * W, y: Math.random() * H, r: 1 + Math.random() * 2.8, v: 0.4 + Math.random() * 1.1, w: Math.random() * Math.PI * 2 }));
     };
     size(); addEventListener("resize", size);
     const frame = () => {
       if (!document.hidden) {
         ctx.clearRect(0, 0, W, H);
-        ctx.fillStyle = "rgba(255, 255, 255, .9)"; ctx.shadowColor = "rgba(120, 140, 170, .6)"; ctx.shadowBlur = 2;
+        // On the light paper theme a white flake needs a darker halo to be seen; at night it needs almost none.
+        const paper = document.documentElement.dataset.theme === "light";
+        ctx.fillStyle = "rgba(255, 255, 255, .95)"; ctx.shadowColor = paper ? "rgba(52, 72, 104, .55)" : "rgba(120, 140, 170, .6)"; ctx.shadowBlur = paper ? 3.5 : 2;
         for (const f of flakes) {
           f.y += f.v; f.w += 0.015; f.x += Math.sin(f.w) * 0.5;
           if (f.y > H + 4) { f.y = -4; f.x = Math.random() * W; }
