@@ -1,6 +1,45 @@
-# Handoff, 31 October 2026 (name ask on every submission, the sayings English lane, 11 Paite sayings seeded)
+# Handoff, 12 November 2026 (health check, licence by answer, voice recordings in the dataset, About page covers both repos)
 
-Start a new session with: **Read this top section, then do "First thing next session" below, then ask the owner what to work on.**
+Start a new session with: **Read this top section, then do "First thing next session" below, then ask the owner what to work on.** The 31 October section below still holds for everything not mentioned here, including its open items.
+
+## Where things stand
+- Live worker version **`fda0d9bd`**, from `main` at **`e74d45e`**, pushed. Live site, GitHub and `main` all match. The 11 Nov reviewer sign-in commit `ce05d3d` had been deployed but not pushed; it is pushed now. Service worker cache still **`v62`** (no shell change).
+- Remote D1 has every migration through **`0032_recording_export.sql`**. Nothing pending.
+- **336 tests pass** (40 files), `tsc` clean.
+- Dataset repo `khooptong-sudo/paite-open-language-data` (local clone `H:\Paite Corpus\paite_corpus`) is at **`d5147b4`**, its "Check data" Action green.
+- **Health check, 12 Nov:** every nightly job ran every night 29 Oct to 12 Nov with no failure ever logged. GitHub `community/` held exactly the 1,229 live accepted reviews (sentence IDs compared one by one, no gaps, overlaps or late undos). Nightly backups present in R2.
+- **Reviewing stopped on 4 Nov.** 720 answers wait (status `new`), the oldest from 14 Oct; answers still arrive (27 in the week to 12 Nov). The export reporting 0 each night since 5 Nov is correct, not a fault. Of the 1,342 reviews, `sut.tonsing@gmail.com` did 777.
+- **Since the 11 Nov sign-in change only `khooptong@gmail.com` has a password.** No other reviewer, including sut.tonsing, has set one. Each can use "Set or reset my password" on `/review/login` (a one-hour emailed link); the owner may need to tell them.
+
+## Shipped 12 November
+- **Licence by answer.** Until commit `152c016` (2026-10-21 18:47:31 UTC) the form said "public domain"; since then "with credit (CC BY 4.0)". `answers.licence` (migration `0031`, default `CC-BY-4.0`) records it: 2,233 answers `CC0-1.0`, the rest `CC-BY-4.0`; no answer falls between the commit and the deploy (last CC0 answer 21 Oct 16:36, first CC BY 22 Oct 00:49 UTC). The export labels each line from it. **New answers stay CC BY 4.0** (decided: it is what contributors since 22 Oct and every speaker agreed to, it matches the rest of the dataset and Zenodo, and the site is built on credit; the cost is that only the CC0 lines can go to Mozilla Common Voice).
+- **388 published lines relabelled** `CC-BY-4.0` to `CC0-1.0` in 7 `community/` files (dataset `a5588e9`); only the `licence` field changed. GitHub now has 954 CC0 and 275 CC BY lines, matching D1.
+- **Dataset LICENSE, README, CONTRIBUTING and Hugging Face card** state the rules per part: 2a community per line, 2b audio CC BY 4.0, 2c code; `eval/`, `glossary.json`, `CONTRIBUTORS.md`, `docs/` CC BY; `prompts/everyday_en.txt` CC0; section 5 explains `training/` rows (`source: community` rows take the licence of the `community/` line with the same `id`).
+- **Code is `MIT OR Apache-2.0` in both repos.** Here: `LICENSE-MIT` (renamed from `LICENSE`), `LICENSE-APACHE`, `package.json`, README "Licence". In the dataset repo the two files sit in **`scripts/`**, not the root, so GitHub's sidebar does not label the data MIT.
+- **Voice recordings go to the dataset.** Nightly job **`audio`** (`exportRecordings` in `src/export.ts`, pure parts in `src/audiomanifest.ts`): accepted clips whose sentence review is still live go to `audio/<id>.webm|ogg|m4a`, at most 10 a night (one contents-API commit each), then `audio/recordings.jsonl` is rewritten from D1 (skipped when unchanged); a clip whose review or sentence review is undone is deleted from GitHub. `recordings.exported_at` (migration `0032`) tracks it. No phone ID or email is published; `verified_by` is the reviewer's public name. The first **62 clips (4.8 MB)** were copied by hand in dataset `d5147b4` and marked exported. `scripts/publish_hf.py` now uploads `audio/` too.
+- **About page** (`src/about.ts`): section 05 lists both GitHub repos, Hugging Face and the Zenodo **concept** DOI `10.5281/zenodo.23349155` (was the v1.0.0 record), and a "What you may do with each part" list that matches the dataset LICENSE. Removed the false "open dictionary" and "static export" claims. Facts tile, meta description and JSON-LD list CC0 and CC BY (JSON-LD also `sameAs` the three copies). "five volunteer reviewers". Method steps coloured red, yellow, green. Fixed a nested `</p></p>`. `test/about.test.ts` checks both licences and both repos; the old test forbade "CC0" and is replaced.
+- `README.md` here: the "under CC0" line now describes the per-line split.
+
+## First thing next session
+1. **Check the first live runs of the new code** (13 Nov 03:00 UTC): `SELECT job, ok, detail, created_at FROM job_runs WHERE job IN ('export','audio') ORDER BY id DESC LIMIT 4`. `audio` should be absent (nothing new) or `ok = 1`. If the hand-made `audio/recordings.jsonl` differed from the worker's, the job rewrites it once (`manifest: true`); that is harmless.
+2. After Monday 16 Nov 04:00 UTC, confirm Hugging Face has `audio/` (the weekly Action run).
+3. Ask the owner whether the reviewers have set passwords and whether reviewing has restarted; 720 answers wait.
+
+## Open items (new)
+- **Pau Upa (proverbs) are not in the dataset.** The owner will go through them first, then decide; do not export them before that.
+- **References on `/about`:** the dataset README cites two Wikipedia pages and the NEHU thesis "Zomi identity among the Paite of Manipur". Not added: "Tedim" is a banned term on that page (test-guarded) and the thesis uses the Zomi framing that page was argued over. Ask before adding.
+- **Zenodo** (`.zenodo.json`) can carry one licence and says `cc-by-4.0`; its description points to LICENSE. Hugging Face card says `license: other`.
+- `training/*.jsonl` rows carry no licence field; the LICENSE explains how to find it.
+- Left uncommitted on purpose: `scripts/backup-d1.ps1` (owner's one-line change) and two test files that differ only in line endings.
+
+## Facts worth not rediscovering (12 Nov)
+- **Git here:** both repos say "dubious ownership" (created under another Windows profile). Pass `-c safe.directory=*` on each command; do not change global config. No git identity is set on this machine: commits were made with `-c user.name=khooptong-sudo -c user.email=khooptong@gmail.com`, the identity of the earlier history.
+- **D1 via wrangler:** a long `UNION ALL` of counts fails with "too many terms in compound SELECT"; use one `SELECT (subquery) AS a, (subquery) AS b`. An occasional `7403 not authorized` is transient; retry. `CI=1` makes `migrations apply` non-interactive.
+- **`wrangler deployments list` only keeps the last 10**, so an old deploy time cannot be read back; use commit times and the data.
+- **Node 26 runs `.ts` files directly** (type stripping) when imports carry the `.ts` extension; that is why `src/audiomanifest.ts` has no runtime imports, so a one-off script can share the worker's exact output rules.
+- The dataset clone checks files out with CRLF (`core.autocrlf=true`); a local `build_training.py` run shows `training/parallel.jsonl` as changed with no content diff. Discard it.
+
+
 
 ## Where things stand
 - Live worker version **`55956746`**, from `main` at the latest commit, pushed. Live site, GitHub and `main` all match. Service worker cache **`v62`**. The English lane and the name ask are `880b587`; the What's New entries (`0d8c17a`) and this handoff follow it.
