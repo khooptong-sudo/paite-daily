@@ -46,6 +46,8 @@ const STYLE = `<style>
 .about .steps{list-style:none;counter-reset:s;display:grid;gap:12px;margin:1.25rem 0 1.25rem;padding:0}
 .about .steps li{counter-increment:s;margin:0;padding:16px 16px 16px 64px;position:relative;border:1px solid var(--line);border-radius:14px}
 .about .steps li::before{content:counter(s);position:absolute;left:16px;top:16px;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:#fff;font:400 1rem/1 var(--display)}
+.about .steps li:nth-child(1)::before{background:var(--red);color:#fff}
+.about .steps li:nth-child(2)::before{background:var(--yel);color:#000;box-shadow:inset 0 0 0 1px rgba(0,0,0,.25)}
 .about .steps li:last-child::before{background:var(--grn);color:#000}
 .about .steps p{margin:0;font-size:.95rem;color:var(--muted)}
 .about .note{padding:14px 16px;border-left:4px solid var(--red);background:var(--surface);border-radius:0 12px 12px 0}
@@ -200,9 +202,9 @@ ${STYLE}
 <section aria-labelledby="open">
 <p class="kicker"><b>05</b> Open data</p>
 <h2 id="open">Free to use, and built to outlast this site</h2>
-<p>Everything lives in two public GitHub repositories. Every night at 03:00 UTC, this site sends its newly verified pairs to the dataset repository. The second repository holds the code that runs this site.</p>
+<p>Everything lives in two public GitHub repositories. Every night at 03:00 UTC, this site sends its newly verified pairs and voice recordings to the dataset repository. The second repository holds the code that runs this site.</p>
 <div class="cards">
-<a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>The data, on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The verified pairs from this site, together with the Paite Bible, a dictionary, hymns, corrections and ready-to-train files.</span></a>
+<a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>The data, on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The verified pairs and voice recordings from this site, together with the Paite Bible, a dictionary, hymns, corrections and ready-to-train files.</span></a>
 <a class="card2" href="https://github.com/khooptong-sudo/paite-daily" target="_blank" rel="noopener"><small>The code, on GitHub</small><strong>khooptong-sudo/paite-daily</strong><span>This site: a Cloudflare Worker with a D1 database. MIT or Apache 2.0, your choice.</span></a>
 <a class="card2" href="https://huggingface.co/datasets/LamkaLabs/paite-open-language-data" target="_blank" rel="noopener"><small>The same data, on Hugging Face</small><strong>LamkaLabs/paite-open-language-data</strong><span>Copied from GitHub every Monday, ready for <code>load_dataset</code>.</span></a>
 <a class="card2" href="https://doi.org/10.5281/zenodo.23349155" target="_blank" rel="noopener"><small>Citable releases on Zenodo</small><strong>doi.org/10.5281/zenodo.23349155</strong><span>This DOI always points to the latest release (now v1.1.0).</span></a>
@@ -213,6 +215,8 @@ ${STYLE}
 <dl class="rights">
 <dt>Verified pairs from this site <code>community/</code></dt>
 <dd>Each line has a <code>licence</code> field. Pairs sent before 21 October 2026, 18:47 UTC, when the form said “public domain”, are <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 1.0</a>: use them with no conditions at all. Pairs sent since then, and every new one, are <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>: use them for any purpose, including commercial work, as long as you give credit.</dd>
+<dt>Voice recordings <code>audio/</code></dt>
+<dd>Speakers reading verified Paite lines aloud. Each speaker agreed to CC BY 4.0 before recording, and a reviewer listened to every clip first. <code>audio/recordings.jsonl</code> gives each clip’s line and speaker.</dd>
 <dt>Corrections, grammar notes and documentation</dt>
 <dd>CC BY 4.0.</dd>
 <dt>Paite Bible <code>bible/laisiangthou/</code></dt>
@@ -226,7 +230,6 @@ ${STYLE}
 <dt>The code of this site</dt>
 <dd>Your choice of the <a href="https://github.com/khooptong-sudo/paite-daily/blob/main/LICENSE-MIT" target="_blank" rel="noopener">MIT licence</a> or the <a href="https://github.com/khooptong-sudo/paite-daily/blob/main/LICENSE-APACHE" target="_blank" rel="noopener">Apache License 2.0</a>. The same goes for the scripts in the dataset repository.</dd>
 </dl>
-<p>The proverbs and idioms and the voice recordings are on this site but not yet in the dataset. You can download the proverbs as <a href="/proverbs.json">JSON</a>.</p>
 <p>Use the data for a Paite keyboard dictionary, a spellchecker, a concordance, a school workbook or a translation model. For the open parts, you do not need to ask us. Credit “Paite Open Language Data, Lamka Labs” and link to the dataset, or cite the Zenodo DOI.</p>
 <p>The data does not depend on this site. It is on GitHub, with copies on Hugging Face and Zenodo. The code is open too, so anyone can run the site again. If this project stops, the sentences do not.</p>
 </section>
@@ -234,7 +237,7 @@ ${STYLE}
 <section aria-labelledby="who">
 <p class="kicker"><b>06</b> The people behind it</p>
 <h2 id="who">Who runs this</h2>
-<p>Min Khooptong (<a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a>) builds and maintains Paite Daily in Lamka, with 5 volunteer reviewers. It is not a company, and it has no funding. Reviewers give their time for free, and hosting is paid out of pocket.</p>
+<p>Min Khooptong (<a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a>) builds and maintains Paite Daily in Lamka, with five volunteer reviewers. It is not a company, and it has no funding. Reviewers give their time for free, and hosting is paid out of pocket.</p>
 <p>This site carries no advertising and never will. Ads on a page about a 79,000-speaker language would earn a few dollars a month at best. The reader’s attention would pay for them, not people who care about Paite.</p>
 <p>If you want to help with running costs, there is a UPI code in the footer. It is entirely optional.</p>
 </section>

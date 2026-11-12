@@ -1,4 +1,5 @@
-import { activeReviewers } from "./access";
+import { activeReviewers, publicReviewerNames } from "./access";
+import { audioPath, bytesToBase64, manifestText, PUBLISHED_CLIPS, type Clip } from "./audiomanifest";
 import { runBackup } from "./backup";
 import { runDigest } from "./digest";
 import { getContributors, renderMarkdown } from "./contributors";
@@ -128,6 +129,69 @@ export async function putGlossary(env: Env, fetcher: typeof fetch): Promise<bool
   return true;
 }
 
+// Voice clips to audio/ in the dataset repo, then audio/recordings.jsonl. One commit per file (contents API), so at most
+// `limit` clips go up per night. A clip that was undone or rejected after it went up is taken down again.
+export async function exportRecordings(env: Env, fetcher: typeof fetch, limit = 10): Promise<{ uploaded: number; removed: number; manifest: boolean } | null> {
+  const base = `https://api.github.com/repos/${env.CORPUS_REPO}/contents/`;
+  const ref = `?ref=${encodeURIComponent(env.CORPUS_BRANCH)}`;
+  const put = (path: string, content: string, message: string, sha?: string) => fetcher(base + path, {
+    method: "PUT",
+    headers: { ...ghHeaders(env), "content-type": "application/json" },
+    body: JSON.stringify({ message, content, branch: env.CORPUS_BRANCH, sha }),
+    signal: AbortSignal.timeout(20_000),
+  });
+
+  const { results: gone } = await env.DB.prepare(
+    `SELECT id, mime FROM recordings WHERE exported_at IS NOT NULL AND id NOT IN (SELECT id FROM (${PUBLISHED_CLIPS})) ORDER BY id LIMIT ?1`,
+  ).bind(limit).all<{ id: number; mime: string }>();
+  for (const g of gone) {
+    const path = audioPath(g.id, g.mime);
+    const cur = await fetcher(base + path + ref, { headers: ghHeaders(env), signal: AbortSignal.timeout(15_000) });
+    if (cur.ok) {
+      const { sha } = (await cur.json()) as { sha: string };
+      const del = await fetcher(base + path, {
+        method: "DELETE",
+        headers: { ...ghHeaders(env), "content-type": "application/json" },
+        body: JSON.stringify({ message: `audio: take down clip ${g.id}`, sha, branch: env.CORPUS_BRANCH }),
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (!del.ok) throw new Error(`GitHub DELETE ${path} ${del.status}`);
+    } else if (cur.status !== 404) throw new Error(`GitHub GET ${path} ${cur.status}`);
+    await env.DB.prepare("UPDATE recordings SET exported_at = NULL WHERE id = ?1").bind(g.id).run();
+  }
+
+  const { results: todo } = await env.DB.prepare(`SELECT * FROM (${PUBLISHED_CLIPS}) WHERE exported_at IS NULL ORDER BY id LIMIT ?1`).bind(limit).all<Clip>();
+  for (const c of todo) {
+    const obj = await env.AUDIO.get(c.r2_key);
+    if (!obj) throw new Error(`R2 ${c.r2_key} missing`);
+    const path = audioPath(c.id, c.mime);
+    const res = await put(path, bytesToBase64(new Uint8Array(await obj.arrayBuffer())), `audio: clip ${c.id} (${c.duration_ms} ms, ${c.consent})`);
+    if (!res.ok) {
+      // 422: the file is already there (an earlier run saved it but did not mark it). Trust it only if it reads back.
+      if (res.status !== 422) throw new Error(`GitHub PUT ${path} ${res.status}`);
+      const check = await fetcher(base + path + ref, { headers: ghHeaders(env), signal: AbortSignal.timeout(15_000) });
+      if (check.status !== 200) throw new Error(`GitHub PUT ${path} 422`);
+    }
+    await env.DB.prepare("UPDATE recordings SET exported_at = datetime('now') WHERE id = ?1").bind(c.id).run();
+  }
+
+  const { results: live } = await env.DB.prepare(`SELECT * FROM (${PUBLISHED_CLIPS}) WHERE exported_at IS NOT NULL ORDER BY id`).all<Clip>();
+  if (!live.length && !todo.length && !gone.length) return null; // nothing published, nothing to check
+  const name = await publicReviewerNames(env);
+  const content = toBase64Utf8(manifestText(live, (e) => name(e) ?? "Reviewer"));
+  const mpath = "audio/recordings.jsonl";
+  const cur = await fetcher(base + mpath + ref, { headers: ghHeaders(env), signal: AbortSignal.timeout(15_000) });
+  if (!cur.ok && cur.status !== 404) throw new Error(`GitHub GET ${mpath} ${cur.status}`);
+  const old = cur.ok ? ((await cur.json()) as { sha?: string; content?: string }) : {};
+  let manifest = false;
+  if ((live.length || cur.ok) && (old.content ?? "").replace(/\s/g, "") !== content) {
+    const res = await put(mpath, content, `audio: update recordings.jsonl (${live.length} clips)`, old.sha);
+    if (!res.ok) throw new Error(`GitHub PUT ${mpath} ${res.status}`);
+    manifest = true;
+  }
+  return todo.length || gone.length || manifest ? { uploaded: todo.length, removed: gone.length, manifest } : null;
+}
+
 export async function exportVerified(env: Env, fetcher: typeof fetch): Promise<{ exported: number; path: string | null }> {
   const r = await exportRanges(env, fetcher);
   if (r.exported > 0) await putContributors(env, fetcher);
@@ -235,6 +299,7 @@ https://paite.lamkalabs.com/review`,
 
 export async function runNightly(env: Env, fetcher: typeof fetch): Promise<void> {
   await logged(env, "export", () => exportVerified(env, fetcher));
+  await logged(env, "audio", () => exportRecordings(env, fetcher));
   await logged(env, "retire_owner", () => retireOwnerTranslations(env, fetcher));
   await logged(env, "reverse", () => runReverse(env));
   await logged(env, "glossary", async () => {
