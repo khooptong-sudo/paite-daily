@@ -3,7 +3,7 @@
 Start a new session with: **Read this top section, then do "First thing next session", then ask the owner what to work on.** The earlier 12 November section below still holds for everything not mentioned here.
 
 ## Where things stand
-- `main` at **`0b629ff`**, pushed. Live worker **`14bd8346`** = `5af43af`. **`0b629ff` (What's New items, SW cache `v73`) is pushed but NOT deployed**: the session's permission check blocked `wrangler deploy`. Run `npx wrangler deploy` first thing.
+- `main` at **`2c777a4`** (handoff), pushed. Live worker **`8bd084b6`** = `0b629ff` (What's New, SW cache `v73`). Live site, GitHub and `main` all match.
 - Remote D1 has every migration through **`0034_admin.sql`** (0033 chat_ai + chat_wants.vetted, 0034 admin tables + ai_settings). Nothing pending.
 - **353 tests pass** (43 files), `tsc` clean.
 - DeepSeek had run out of credit (HTTP 402) on 12 Nov evening; the owner topped it up and the chat's AI matching worked afterwards.
@@ -27,10 +27,9 @@ Start a new session with: **Read this top section, then do "First thing next ses
 - **Wanted lines** (`src/wants.ts`): every 15 min the most-asked unanswered chat lines are vetted by the AI and queued as `source = 'want'` sentences; `nextSentence` serves them first.
 
 ## First thing next session
-1. `npx wrangler deploy` to put `0b629ff` (What's New, SW `v73`) live, then check the What's New box on the front page.
-2. Owner: sign in to `/admin` once (email link) and press **Test connection**.
-3. Check the wants job: `SELECT job, ok, detail, created_at FROM job_runs WHERE job = 'wants' ORDER BY id DESC LIMIT 5` and `SELECT count(*) FROM sentences WHERE source = 'want'`.
-4. Before 5 Dec: share the link in a fresh WhatsApp chat to see the new preview card; preview `?season=christmas`.
+1. Owner: sign in to `/admin` once (email link) and press **Test connection**.
+2. Check the wants job: `SELECT job, ok, detail, created_at FROM job_runs WHERE job = 'wants' ORDER BY id DESC LIMIT 5` and `SELECT count(*) FROM sentences WHERE source = 'want'`.
+3. Before 5 Dec: share the link in a fresh WhatsApp chat to see the new preview card; preview `?season=christmas`.
 
 ## Open items (new)
 - Uncommitted on purpose (not this session's work): `scripts/backup-d1.ps1`, `test/prereview.test.ts`, `test/turnstile.test.ts`.
