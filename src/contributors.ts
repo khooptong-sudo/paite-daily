@@ -122,16 +122,36 @@ if(!matchMedia("(prefers-reduced-motion: reduce)").matches&&"IntersectionObserve
 const INVITE_EN = "Help write Paite into the future. One sentence a day:";
 // Flip to true to show the "Become a reviewer" invitation again.
 const APPLY_OPEN = false;
+// The Name Wall: everyone who has ever given Paite here (a verified sentence or word) and every
+// listed reviewer, A to Z, shown on both tabs so even a quiet week shows who made the site.
+// Names typed all in capitals or all in lower case are shown in title case. To keep a name off
+// the wall (it stays on the leaderboard), add it here in lower case.
+const HIDE_FROM_WALL = new Set<string>([]);
+const tidyName = (s: string) => (s === s.toUpperCase() || s === s.toLowerCase())
+  ? s.toLowerCase().replace(/(^|[\s.'-])(\p{L})/gu, (_m, a: string, b: string) => a + b.toUpperCase())
+  : s;
+export function wallNames(d: Pick<Contributors, "contributors" | "reviewers">): string[] {
+  const seen = new Map<string, string>();
+  for (const n of [...d.contributors.map((c) => c.name), ...d.reviewers.map((r) => r.name)]) {
+    const key = n.trim().replace(/\s+/g, " ").toLowerCase();
+    if (!key || HIDE_FROM_WALL.has(key) || seen.has(key)) continue;
+    seen.set(key, tidyName(n.trim().replace(/\s+/g, " ")));
+  }
+  return [...seen.values()].sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }));
+}
+
 // The ranking shows this many places; everyone below folds into one compact box.
 const TOP = 10;
 const goalBar = (g: { verified: number; goal: number }) =>
   `<div class="goal"><div class="goal-t"><b>${g.verified}</b> / ${g.goal} <span data-s="goalLine">Verified Sentences</span></div><div class="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${g.goal}" aria-valuenow="${g.verified}"><i style="width:${Math.min(100, Math.round((g.verified / g.goal) * 100))}%"></i></div></div>`;
 
 export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="/contributors.css">', siteKey = ""): string {
+  const names = wallNames(d);
   const count = (n: number, key: string, en: string) => `<span class="c"><b data-n="${n}">${n}</b><span class="u" data-s="${key}">${en}</span></span>`;
   const pills = (x: Row) => `${x.badge ? `<span class="badge t${x.badge}">${x.badge}+</span>` : ""}${x.reviewer ? '<span class="badge seal" data-s="reviewerBadge">Reviewer</span>' : ""}`;
   const contributors = (xs: Row[], empty: string) => {
-    if (!xs.length) return `<p class="empty" data-s="${empty}">${empty === "emptyWeek" ? "No one yet this week. Be the first!" : "No one yet. Be the first!"}</p>`;
+    if (!xs.length) return `<p class="empty" data-s="${empty}">${empty === "emptyWeek" ? "No one yet this week. Be the first!" : "No one yet. Be the first!"}</p>`
+      + (empty === "emptyWeek" && names.length ? `<p class="to-wall"><a href="#wall">Here is everyone who got us here <span aria-hidden="true">&darr;</span></a></p>` : "");
     // A phone counts once for the sentences a reviewer accepted and once for the words.
     const cnt = (x: Row) => `${x.sentences ? count(x.sentences, "sentences", "sentences") : ""}${x.words ? count(x.words, "words", "words") : ""}`;
     const podium = xs.slice(0, 3).map((x, i) => `<li class="p p${i + 1}" style="--i:${i}"><span class="ring"><b class="rk">${i + 1}</b></span><span class="nm">${esc(x.name)}</span><span class="bg">${pills(x)}</span>${cnt(x)}</li>`).join("");
@@ -147,6 +167,9 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
     ? `<h3 data-s="reviewers">Reviewers</h3><ol class="rows">${xs.map((x, i) => `<li style="--i:${i}">${SEAL}<span class="nm">${esc(x.name)}</span>${count(x.n, "reviewed", "reviewed")}</li>`).join("")}</ol>`
     : "";
   const view = (k: "thisWeek" | "allTime") => `<section class="view" data-view="${k}" aria-labelledby="h-${k}"><h2 id="h-${k}" data-s="${k}">${k === "thisWeek" ? "This week" : "All time"}</h2>${contributors(d[k].contributors, k === "thisWeek" ? "emptyWeek" : "emptyAll")}${reviewers(d[k].reviewers)}</section>`;
+  const wall = names.length
+    ? `<section class="wall-sec" id="wall" aria-labelledby="h-wall"><p class="wk">Lungdamna &middot; With thanks</p><h2 id="h-wall">The people who wove this</h2><p class="ws"><b>${names.length}</b> ${names.length === 1 ? "person has" : "people have"} given their Paite to this site. Every name, A to Z.</p><p class="wall">${names.map((n) => `<span>${esc(n)}</span>`).join(" ")}</p></section>`
+    : "";
   const start = d.thisWeek.contributors.length + d.thisWeek.reviewers.length ? "thisWeek" : "allTime";
   // Kept whole so the invitation can come back with one flag, but not shown for now.
   const applyCard = `<section class="card apply" aria-labelledby="h-apply"><h2 id="h-apply" data-s="applyTitle">Become a reviewer</h2><p data-s="applyNote">Reviewers check translations. Tell us who you are.</p>
@@ -197,6 +220,7 @@ ${goalBar(d.goal)}
 <div class="seg" role="group" aria-label="Period"><button type="button" data-v="thisWeek" aria-pressed="false" data-s="thisWeek">This Week</button><button type="button" data-v="allTime" aria-pressed="false" data-s="allTime">All Time</button></div>
 ${view("thisWeek")}
 ${view("allTime")}
+${wall}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a Sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="cta glass-btn" href="/glossary"><span data-s="glossaryTitle">Paite Word List</span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="cta glass-btn" id="invite" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(INVITE_EN + " https://paite.lamkalabs.com")}"><span data-s="invite">Send to a friend</span><span class="go" aria-hidden="true">&rarr;</span></a>
