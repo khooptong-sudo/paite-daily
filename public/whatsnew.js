@@ -3,6 +3,13 @@
 // item is added. Add new items at the top of NEWS.
 (() => {
   const NEWS = [
+    { id: "2026-11-12-look", date: "2026-11-12", title: "A whole new look", text: "Ink on warm paper, with a moon switch for night. The shawl band now runs edge to edge, and every page has the same editorial style." },
+    { id: "2026-11-12-greet", date: "2026-11-12", title: "Zingpha, Sunpha, Nitaklampha, Nitakpha", text: "The greeting at the top changes with the time of day on your phone." },
+    { id: "2026-11-12-shawl", date: "2026-11-12", title: "One BA / Siamsin Puan, woven by all of us", text: "The goal is now a shawl we weave together: every verified sentence is one thread. Tap or hover to find a thread's number." },
+    { id: "2026-11-12-mypuan", date: "2026-11-12", title: "Your shawl grows on", text: "At 50 threads your Nampuan Liangbat Gat is finished and the next goes on the loom: BA / Siamsin Puan, then Aksi Puan, the star shawl." },
+    { id: "2026-11-12-wall", date: "2026-11-12", title: "The people who wove this", text: "Panlate now names everyone who has ever given Paite here, A to Z, even in a quiet week.", href: "/contributors" },
+    { id: "2026-11-12-chat", date: "2026-11-12", title: "A smarter chat, still only verified Paite", text: "Type a line in your own words: the chat now finds the verified sentence that means the same. Lines it cannot answer go to the community to translate, first." },
+    { id: "2026-11-12-footer", date: "2026-11-12", title: "Buy us Coffee", text: "A new footer, woven in silk colours. It helps cover the AI and server costs, so the data stays free for everyone." },
     { id: "2026-10-31-english", date: "2026-10-31", title: "Paite sayings, in English", text: "Paite proverbs and idioms now ask for their English version. Open one on the Pau Upa page and give it in your own words." },
     { id: "2026-10-31-name", date: "2026-10-31", title: "Your name, if you want it", text: "After you contribute, we ask whether your name may go on the contributors list. The box now comes into view by itself, so you see it instead of missing it below the form." },
     { id: "2026-10-31-ask", date: "2026-10-31", title: "Asked after every contribution", text: "The name question now follows a sentence, a word, a meaning, a saying, an answer saved with no signal and a recording, and the Pau Upa page asks too. It stops once you give a name or say no thanks." },
