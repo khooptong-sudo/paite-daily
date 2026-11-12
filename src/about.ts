@@ -1,12 +1,11 @@
 // The About page. Static prose only: no DB, no session, no Turnstile.
 // The shell below is copied from renderGlossary() on purpose: same header, same
-// PUAN band, same footer, same font links, so /about cannot drift visually.
+// footer, same font links, so /about cannot drift visually.
 // It also carries the Dataset JSON-LD, so the corpus is machine-readable to
 // anyone who indexes it (keyboard projects, MT researchers, archive crawlers).
 // The section styling borrows the Puandum colours (red, yellow, green, black)
 // and the charcoal bands of the shawl itself.
 import { FOOTER } from "./footer";
-import { PUAN } from "./puan";
 
 const TITLE = "About Paite Daily";
 const DESC =
@@ -134,7 +133,7 @@ export function renderAbout(): string {
 ${STYLE}
 </head>
 <body class="cp blue">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1>About Paite Daily</h1><p>A free, volunteer-reviewed corpus of Paite.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div><h1>About Paite Daily</h1><p>A free, volunteer-reviewed corpus of Paite.</p></header>
 <main class="gl about">
 
 <div>

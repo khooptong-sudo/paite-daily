@@ -1,7 +1,6 @@
 import { publicReviewerNames } from "./access";
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
-import { PUAN } from "./puan";
 import { cap, cleanText, isId } from "./text";
 import { json, type Env } from "./types";
 
@@ -290,7 +289,7 @@ export function renderProverbs(xs: Proverb[], siteKey = ""): string {
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 </head>
 <body class="cp blue pauupa">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="proverbsTitle">Proverbs &amp; Idioms</h1><p data-s="proverbsLine">Pau Upa: the proverbs and idioms our elders use, and what each one means.</p><p class="you" id="you" hidden></p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div><h1 data-s="proverbsTitle">Proverbs &amp; Idioms</h1><p data-s="proverbsLine">Pau Upa: the proverbs and idioms our elders use, and what each one means.</p><p class="you" id="you" hidden></p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
 <p class="filters"><button type="button" data-dir="all" aria-pressed="false" data-s="filterAll">All</button><button type="button" data-dir="pai2en" aria-pressed="true" data-s="filterPai2En">Paite &rarr; English</button><button type="button" data-dir="en2pai" aria-pressed="false" data-s="filterEn2Pai">English &rarr; Paite</button></p>

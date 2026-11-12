@@ -1,6 +1,5 @@
 import { activeReviewers } from "./access";
 import { FOOTER } from "./footer";
-import { PUAN } from "./puan";
 import { getGoal } from "./goal";
 import type { Env } from "./types";
 
@@ -214,7 +213,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <script src="/theme.js"></script>
 ${css}</head>
 <body class="cp blue panlate" data-sitekey="${esc(siteKey)}">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="contributorsTitle">Contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div><h1 data-s="contributorsTitle">Contributors</h1><p data-s="heroLine">The people writing Paite into the future.</p></header>
 ${goalBar(d.goal)}
 <main data-start="${start}">
 <div class="seg" role="group" aria-label="Period"><button type="button" data-v="thisWeek" aria-pressed="false" data-s="thisWeek">This Week</button><button type="button" data-v="allTime" aria-pressed="false" data-s="allTime">All Time</button></div>

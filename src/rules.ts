@@ -1,6 +1,5 @@
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
-import { PUAN } from "./puan";
 import { distance } from "./spelling";
 import { json, type Env } from "./types";
 
@@ -98,7 +97,7 @@ export function renderRules(rules: Rule[]): string {
 </style>
 </head>
 <body class="cp blue">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1>Spelling Danbu<small>Spelling Rulebook</small></h1><p>Every spelling a reviewer corrected, most common first. It writes itself as they work.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div><h1>Spelling Danbu<small>Spelling Rulebook</small></h1><p>Every spelling a reviewer corrected, most common first. It writes itself as they work.</p></header>
 <main class="gl">
 <div class="style-note"><p class="rule">House style</p><p>Leave off <b>uh</b>, <b>uhi</b>, <b>ahi</b> or <b>hi</b> at the end of a sentence. It is an older way of writing that is dying out, and the sentence is complete without it.</p></div>
 ${body}

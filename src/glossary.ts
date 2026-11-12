@@ -3,7 +3,6 @@ import { finalPaite } from "./final";
 import { publicReviewerNames } from "./access";
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
-import { PUAN } from "./puan";
 import { cap } from "./text";
 import type { Env } from "./types";
 
@@ -144,7 +143,7 @@ export function renderGlossary(xs: Entry[]): string {
 <link rel="stylesheet" href="/contributors.css">
 </head>
 <body class="cp blue">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1 data-s="glossaryTitle">Paite Word List</h1><p data-s="glossaryLine">Words from the notes of our contributors.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div><h1 data-s="glossaryTitle">Paite Word List</h1><p data-s="glossaryLine">Words from the notes of our contributors.</p></header>
 <main class="gl">
 <input id="q" type="search" placeholder="Search" aria-label="Search">
 ${rail}${body}

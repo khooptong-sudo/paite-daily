@@ -6,7 +6,7 @@ import index from "../public/index.html?raw";
 
 // The footer is shared by every page with one, in two forms: the FOOTER string for the
 // server-rendered pages, and hand-kept copies in the static pages. Everything sits in one
-// dark band: the Liquid Silk canvas, the note, a row of hairline links, then the credit line.
+// paper band: the Paper Silk canvas, the note, a row of hairline links, then the credit line.
 
 const band = (html: string) => html.slice(html.indexOf('<div class="reach">'), html.indexOf("</footer>"));
 const links = (html: string) => html.slice(html.indexOf('<p class="links">'), html.indexOf("</p>", html.indexOf('<p class="links">')));

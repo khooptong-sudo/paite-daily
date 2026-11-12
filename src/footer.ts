@@ -3,7 +3,7 @@
 // 500.html carry a short one. The reviewer page has no footer.
 // One full-width dark band (styles in style.css): title, note, a row of three hairline links
 // (coffee, email, WhatsApp), the desktop UPI panel, then the credit line.
-// footer.js paints the Liquid Silk shader behind it and opens the UPI panel.
+// footer.js paints the Paper Silk shader and weaves the loom behind it and opens the UPI panel.
 // `data-s` keys come from public/strings.js; the English text here is the fallback, since these
 // pages only replace it when the owner has filled in a Paite translation.
 export const FOOTER = `

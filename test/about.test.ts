@@ -18,8 +18,8 @@ describe("about page", () => {
     // the footer is shared with /glossary, /proverbs and /contributors
     expect(html).toContain('class="foot"');
     expect(html).toContain("mailto:theconcierge@lamkalabs.com");
-    // the shawl band in the hero, same as the other pages
-    expect(html).toContain('class="puan"');
+    // no shawl band in the hero: the liangbat is woven in the footer now
+    expect(html).not.toContain('class="puan"');
   });
 
   it("carries the canonical and social metadata", () => {

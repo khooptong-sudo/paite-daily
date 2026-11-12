@@ -1,6 +1,5 @@
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
-import { PUAN } from "./puan";
 import { cleanText } from "./text";
 import type { Env } from "./types";
 
@@ -76,7 +75,7 @@ export function renderPlaces(ps: PlaceCount[]): string {
 </style>
 </head>
 <body class="cp blue">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/contributors">Contributors <span aria-hidden="true">&rarr;</span></a></div>${PUAN}<h1>Where Paite Comes From</h1><p>The villages and towns where our contributors learned their Paite, counted by verified translations.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/contributors">Contributors <span aria-hidden="true">&rarr;</span></a></div><h1>Where Paite Comes From</h1><p>The villages and towns where our contributors learned their Paite, counted by verified translations.</p></header>
 <main class="gl">
 <svg class="map" viewBox="0 0 ${BOX.w + 80} ${BOX.h}" role="img" aria-label="Places by number of verified translations">${[1, 2, 3].map((i) => `<line class="grid" x1="0" x2="${BOX.w + 80}" y1="${(BOX.h * i) / 4}" y2="${(BOX.h * i) / 4}"/><line class="grid" y1="0" y2="${BOX.h}" x1="${(BOX.w * i) / 4}" x2="${(BOX.w * i) / 4}"/>`).join("")}${dots}</svg>
 ${ps.length ? `<ol class="places">${rows}</ol>` : '<p class="empty">No places yet. Add yours with your next translation on the front page.</p>'}
