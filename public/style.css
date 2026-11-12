@@ -516,13 +516,10 @@ body.blue:not(.cp) main > header h1 { font: 500 .8rem/1.2 var(--body); letter-sp
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .blue .card { background: transparent; } }
 body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback) { counter-increment: sec; }
-@media (min-width: 760px) {
-  body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback) { grid-template-columns: 120px minmax(0, 1fr); column-gap: 40px; }
-  body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback) > * { grid-column: 2; }
-  body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback)::before {
-    content: counter(sec, decimal-leading-zero); grid-column: 1; grid-row: 1 / span 2; align-self: start;
-    font: 400 4.2rem/.9 var(--display); color: var(--fg); opacity: .22; letter-spacing: -.03em;
-  }
+/* The number sits above its section, on the same left edge as everything else. */
+body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback)::before {
+  content: counter(sec, decimal-leading-zero); display: block; margin-bottom: -4px;
+  font: 400 clamp(2.4rem, 5vw, 3.4rem)/.9 var(--display); color: var(--fg); opacity: .2; letter-spacing: -.03em;
 }
 .blue .card h2, .blue .sentence, .blue .word-prompt, .blue .news-title { color: var(--fg); }
 .blue .card h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
@@ -714,3 +711,13 @@ html[data-theme=light] body.blue { --disc-arrow: url("data:image/svg+xml,%3Csvg 
 .blue.pauupa .gl .send > small { display: inline; margin: 0; }
 .blue.pauupa button.primary:hover:not(:disabled), .blue.pauupa .gl .send:hover, .blue.pauupa .cta:hover { background: var(--bg); transform: translate(2px, 2px); box-shadow: 3px 3px 0 var(--fg); }
 .blue.pauupa button.primary:active, .blue.pauupa .gl .send:active, .blue.pauupa .cta:active { transform: translate(5px, 5px); box-shadow: 0 0 0 var(--fg); }
+/* Fields in focus: a softer ring than buttons get, so typing does not shout (owner, 12 Nov). */
+.blue textarea:focus-visible, .blue input:not([type=radio]):not([type=checkbox]):focus-visible, .blue select:focus-visible,
+.blue .card textarea:focus-visible, .blue .card input:not([type=radio]):not([type=checkbox]):focus-visible, .blue .card select:focus-visible {
+  outline: 1.5px solid color-mix(in srgb, var(--ring) 55%, transparent); outline-offset: 4px;
+}
+/* Front-page header: the theme switch sits beside Reviewer, About This Project under both. */
+.hdr-links:has(.theme-toggle) { display: grid; grid-template-columns: auto auto; align-items: center; justify-items: end; column-gap: 10px; row-gap: 8px; }
+.hdr-links .back { grid-column: 1; grid-row: 1; }
+.hdr-links .theme-toggle { grid-column: 2; grid-row: 1; }
+.hdr-links .about-chip { grid-column: 1 / -1; grid-row: 2; }
