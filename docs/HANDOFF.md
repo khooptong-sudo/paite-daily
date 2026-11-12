@@ -1,3 +1,45 @@
+# Handoff, 12 November 2026, evening (Ink redesign, admin dashboard, any-provider AI, dataset-only chat)
+
+Start a new session with: **Read this top section, then do "First thing next session", then ask the owner what to work on.** The earlier 12 November section below still holds for everything not mentioned here.
+
+## Where things stand
+- `main` at **`0b629ff`**, pushed. Live worker **`14bd8346`** = `5af43af`. **`0b629ff` (What's New items, SW cache `v73`) is pushed but NOT deployed**: the session's permission check blocked `wrangler deploy`. Run `npx wrangler deploy` first thing.
+- Remote D1 has every migration through **`0034_admin.sql`** (0033 chat_ai + chat_wants.vetted, 0034 admin tables + ai_settings). Nothing pending.
+- **353 tests pass** (43 files), `tsc` clean.
+- DeepSeek had run out of credit (HTTP 402) on 12 Nov evening; the owner topped it up and the chat's AI matching worked afterwards.
+- Owner's talk on this site: **5 December**. Christmas theme turns on by itself 1 to 31 Dec (`?season=christmas` previews).
+
+## Shipped 12 November (afternoon and evening)
+- **Ink design, every page** (`public/style.css`, layers at the end: INK, INK LIGHT, MAIN BUTTONS, CHRISTMAS ON INK, COMMUNITY SHAWL, PAITE UPRIGHT / ENGLISH ITALIC). **Light ("paper") is the default**; moon/sun switch in the header (`theme.js`, key `pd:mode`, `?theme=dark|light`); `theme-color` follows it. All pages still carry `body.blue`; the Ink layers are scoped to it.
+- **Footer**: full-bleed dark band, Liquid Silk WebGL shader (`footer.js`), hairline links "Buy us Coffee · Email · WhatsApp". Same markup in `index.html`, `src/footer.ts`, 404/500 (`test/footer.test.ts` keeps them equal).
+- **Liangbat band edge to edge**: seamless tile `public/liangbat-tile.webp` (x 378 to 1527 of the 1680px image); `ripple.js` tiles it and rebuilds on resize.
+- **Greeting by time of day** (inline script in `index.html`): Zingpha 4-9, Sunpha 9-12, Nitaklampha 12-17, Nitakpha 17-4.
+- **Buttons**: Arrow Disc everywhere; **Stamp on Pau Upa only** (`body.pauupa`). Hover fills ink with paper text.
+- **Front page**: sections numbered 01, 02 above their label, one left edge. **Panlate** (`body.panlate`) title block centred.
+- **Community shawl** (`public/shawl.js`): the goal as one **BA / Siamsin Puan** (paite.org colours #1725d4, #ec008c, #00a651, black), 20 threads a pass, weaves in when seen. Front page and Panlate.
+- **Personal shawl journey** (`mypuan.js`): finished at 50 threads; name's pick, then BA / Siamsin Puan (skipped if first), then **Aksi Puan** (stars on navy), round again. Owner decided to keep the name "BA / Siamsin Puan".
+- **Name Wall** on Panlate (`wallNames` in `src/contributors.ts`), A to Z, every contributor and listed reviewer; `HIDE_FROM_WALL` empty (owner did not ask to hide "Madafacha").
+- **Typography**: Instrument Serif Italic for every English gloss; Paite upright in Young Serif.
+- **Share image** `public/og.png` (1200x630, made with a PIL script; fonts were downloaded to the session scratchpad, not the repo). `og:image` URLs end `?v=2`.
+- **Admin dashboard** `/admin` (`src/admin.ts`, `public/admin/`): own accounts, sessions, links, cookie `__Host-paite_admin`, separate from reviewers. Super-user = `OWNER_EMAIL`, alone adds/removes admins (invite link, 7 days). Admins and owner set the AI. First sign-in: `/admin/login`, owner email, "Email me a link".
+- **Any-provider AI** (`src/ai.ts`): presets DeepSeek, GLM (bigmodel.cn, Z.ai), Claude (Anthropic Messages API, raw fetch), OpenAI, Qwen, OpenRouter, custom OpenAI-compatible https. Key AES-GCM encrypted (HKDF from `SESSION_SECRET`; changing that secret means re-entering the key), never returned. `DEEPSEEK_API_KEY` secret still works until a dashboard key is saved. Every AI caller goes through `askJSON`.
+- **Chat** (`src/chat.ts`): exact line answers at once; otherwise the AI picks a verified pair by id or none, never writes; cached in `chat_ai`; 600 model calls a day; lines over 160 chars never reach the model. Pronouns and negations now count in word matching. About page "Where AI helps" updated.
+- **Wanted lines** (`src/wants.ts`): every 15 min the most-asked unanswered chat lines are vetted by the AI and queued as `source = 'want'` sentences; `nextSentence` serves them first.
+
+## First thing next session
+1. `npx wrangler deploy` to put `0b629ff` (What's New, SW `v73`) live, then check the What's New box on the front page.
+2. Owner: sign in to `/admin` once (email link) and press **Test connection**.
+3. Check the wants job: `SELECT job, ok, detail, created_at FROM job_runs WHERE job = 'wants' ORDER BY id DESC LIMIT 5` and `SELECT count(*) FROM sentences WHERE source = 'want'`.
+4. Before 5 Dec: share the link in a fresh WhatsApp chat to see the new preview card; preview `?season=christmas`.
+
+## Open items (new)
+- Uncommitted on purpose (not this session's work): `scripts/backup-d1.ps1`, `test/prereview.test.ts`, `test/turnstile.test.ts`.
+- Git needs `-c safe.directory=...` on this machine (folder owner mismatch); the owner may run `git config --global --add safe.directory "H:/Paite Corpus/paite-daily"`.
+- Mockups live in `.claude/footer-preview/` (not committed).
+- The 720 waiting answers and reviewer passwords from the earlier section are still open.
+
+---
+
 # Handoff, 12 November 2026 (health check, licence by answer, voice recordings in the dataset, About page covers both repos)
 
 Start a new session with: **Read this top section, then do "First thing next session" below, then ask the owner what to work on.** The 31 October section below still holds for everything not mentioned here, including its open items.
