@@ -543,6 +543,8 @@ body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week
 .blue .card h2 { font-size: clamp(1.6rem, 4vw, 2.2rem); }
 .blue .label { color: var(--muted); }
 .blue .sentence { font-size: clamp(1.7rem, 5vw, 2.6rem); line-height: 1.15; }
+/* The reviewer queue count and notes under the header: the blue theme made them pale blue, unreadable on paper. */
+.blue main > .queue, .blue main > .meta, .blue main > .status { color: var(--muted); }
 
 /* The greeting is the hero: huge, with the silk colours drifting through the letters. */
 .blue .card.chat { border-top: 0; padding-top: 8px; }
