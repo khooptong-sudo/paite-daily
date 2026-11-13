@@ -139,7 +139,16 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .foot .links img { display: block; width: 18px; height: 18px; }
 .foot .links .arr { opacity: .5; transition: transform .4s cubic-bezier(.2, .7, .2, 1), opacity .3s; }
 .foot .links a:hover .arr, .foot .links a[aria-expanded="true"] .arr { opacity: 1; transform: translate(2px, -2px); }
-@media (max-width: 420px) { .foot .links a { padding: 0 14px; } }
+/* Phones: the three links stay on one row (a wrapped link carried its rule to the start of the
+   second line). Tighter spacing and no arrow; on the narrowest screens each icon sits above its word. */
+@media (max-width: 480px) {
+  .foot .links { flex-wrap: nowrap; }
+  .foot .links a { gap: 8px; padding: 0 clamp(8px, 2.6vw, 16px); font-size: .9rem; white-space: nowrap; }
+  .foot .links .arr { display: none; }
+}
+@media (max-width: 350px) {
+  .foot .links a { flex-direction: column; justify-content: center; gap: 4px; padding: 8px 12px; }
+}
 .foot a:focus-visible { outline: 2px solid #15120f; outline-offset: 2px; }
 .foot .coffee-note { max-width: 38ch; margin-top: -10px; font-size: .78rem; line-height: 1.4; color: rgba(21, 18, 15, .58); }
 #upi { justify-items: center; width: min(100%, 360px); background: rgba(255, 255, 255, .55); border-color: rgba(21, 18, 15, .14); box-shadow: none; color: rgba(21, 18, 15, .8); }

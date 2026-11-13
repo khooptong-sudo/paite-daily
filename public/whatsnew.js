@@ -3,6 +3,7 @@
 // item is added. Add new items at the top of NEWS.
 (() => {
   const NEWS = [
+    { id: "2026-11-13-footer-phone", date: "2026-11-13", title: "The footer, fixed on phones", text: "The silk colours now show on phones too, and Buy us Coffee, Email and WhatsApp sit on one line." },
     { id: "2026-11-12-look", date: "2026-11-12", title: "A whole new look", text: "Ink on warm paper, with a moon switch for night. The shawl band now runs edge to edge, and every page has the same editorial style." },
     { id: "2026-11-12-greet", date: "2026-11-12", title: "Zingpha, Sunpha, Nitaklampha, Nitakpha", text: "The greeting at the top changes with the time of day on your phone." },
     { id: "2026-11-12-shawl", date: "2026-11-12", title: "One BA / Siamsin Puan, woven by all of us", text: "The goal is now a shawl we weave together: every verified sentence is one thread. Tap or hover to find a thread's number." },

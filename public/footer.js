@@ -27,10 +27,10 @@
 // It answers touch too: the pointer (or a finger dragging) stirs the colour around it and lights
 // it a little, and each tap or click drops a ring that spreads through the silk and fades.
 (() => {
-  const c = document.querySelector(".foot .silk");
+  let c = document.querySelector(".foot .silk");
   if (!c) return;
   const band = c.parentNode, still = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const gl = c.getContext && c.getContext("webgl", { alpha: false, antialias: false, powerPreference: "low-power" });
+  let gl = c.getContext && c.getContext("webgl", { alpha: false, antialias: false, powerPreference: "low-power" });
   const place = () => {
     // Measured against the body box, which the absolutely placed canvas cannot stretch.
     const b = band.getBoundingClientRect(), root = document.documentElement;
@@ -38,14 +38,22 @@
     c.style.left = -b.left + "px"; c.style.width = root.clientWidth + "px"; c.style.height = b.height + below + "px";
     return c.getBoundingClientRect();
   };
-  if (!gl) {
+  const flat = () => {
     place();
     c.style.background = "radial-gradient(120% 70% at 20% 100%, #f0c7b8, transparent 70%), radial-gradient(90% 60% at 85% 100%, #cfd6ea, transparent 70%), #f3efe6";
-    return;
-  }
+  };
+  if (!gl) { flat(); return; }
+  // Phones run mediump as 16-bit floats, where a sin()-based hash and large noise coordinates
+  // collapse to one value and the silk comes out as plain paper. So: highp wherever the GPU has it,
+  // and a hash without sin() that holds up when it does not.
   const VS = "attribute vec2 p;void main(){gl_Position=vec4(p,0.,1.);}";
-  const FS = `precision mediump float;uniform vec2 r;uniform float t;uniform vec3 m;uniform vec2 v;uniform vec4 k[4];
-    float h(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
+  const FS = `#ifdef GL_FRAGMENT_PRECISION_HIGH
+    precision highp float;
+    #else
+    precision mediump float;
+    #endif
+    uniform vec2 r;uniform float t;uniform vec3 m;uniform vec2 v;uniform vec4 k[4];
+    float h(vec2 p){vec3 q=fract(vec3(p.xyx)*.1031);q+=dot(q,q.yzx+33.33);return fract((q.x+q.y)*q.z);}
     float n(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);
       return mix(mix(h(i),h(i+vec2(1,0)),f.x),mix(h(i+vec2(0,1)),h(i+vec2(1,1)),f.x),f.y);}
     float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<5;i++){v+=a*n(p);p=p*2.02+vec2(1.7,9.2);a*=.5;}return v;}
@@ -70,7 +78,11 @@
       gl_FragColor=vec4(col,1.);}`;
   const sh = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s); return s; };
   const pr = gl.createProgram();
-  gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr); gl.useProgram(pr);
+  gl.attachShader(pr, sh(gl.VERTEX_SHADER, VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, FS)); gl.linkProgram(pr);
+  // A GPU that will not build the shader would leave a black box; give it the gradient instead.
+  // (An opaque WebGL canvas would paint black over it, so swap in a fresh canvas first.)
+  if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) { const n = c.cloneNode(); c.replaceWith(n); c = n; gl = null; flat(); return; }
+  gl.useProgram(pr);
   gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
   const at = gl.getAttribLocation(pr, "p"); gl.enableVertexAttribArray(at); gl.vertexAttribPointer(at, 2, gl.FLOAT, false, 0, 0);
