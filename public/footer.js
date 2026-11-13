@@ -115,8 +115,10 @@
   draw(0);
   // Watch the page box, not the window: phones rotate and zoom without a resize event.
   const redo = () => { size(); draw(performance.now()); };
-  if ("ResizeObserver" in window) new ResizeObserver(redo).observe(document.documentElement);
+  // The band too: the Loom, fonts and the UPI panel change its height without always resizing the page box.
+  if ("ResizeObserver" in window) { const ro = new ResizeObserver(redo); ro.observe(document.documentElement); ro.observe(band); }
   else addEventListener("resize", redo);
+  addEventListener("load", redo);
   if (still || !("IntersectionObserver" in window)) return;
   const at01 = (e) => { const b = c.getBoundingClientRect(); return [(e.clientX - b.left) / b.width, 1 - (e.clientY - b.top) / b.height]; };
   band.addEventListener("pointermove", (e) => { const [x, y] = at01(e); if (!pt.on) { pt.x = x; pt.y = y; } pt.tx = x; pt.ty = y; pt.on = 1; });
