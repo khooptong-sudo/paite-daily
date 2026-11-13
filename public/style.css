@@ -750,7 +750,9 @@ html[data-theme=light] body.blue { --disc-arrow: url("data:image/svg+xml,%3Csvg 
 .hdr-links:has(.theme-toggle) { display: grid; grid-template-columns: auto auto; align-items: center; justify-items: end; column-gap: 10px; row-gap: 8px; }
 .hdr-links .back { grid-column: 1; grid-row: 1; }
 .hdr-links .theme-toggle { grid-column: 2; grid-row: 1; }
-.hdr-links .about-chip { grid-column: 1 / -1; grid-row: 2; }
+/* About This Project sits under the Paite Daily title, on the left (owner, 13 Nov). */
+.hdr-title { display: grid; justify-items: start; gap: 10px; }
+.hdr-title .about-chip { margin-left: 0; }
 
 /* CHRISTMAS ON INK (12 Nov). The season sits on the editorial page instead of the old boxed cards:
    the greeting set in the serif with festive colours drifting through it, the Santa hat on the
