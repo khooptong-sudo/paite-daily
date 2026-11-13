@@ -157,8 +157,8 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .qr { background: #fff; padding: 12px; border-radius: 16px; width: min(100%, 220px); line-height: 0; }
 .foot .built { width: 100%; margin-top: 52px; padding-top: 20px; border-top: 1px solid rgba(21, 18, 15, .14); font-size: .8rem; color: rgba(21, 18, 15, .58); }
 .foot .built a { display: inline-block; padding: 6px 2px; color: #15120f; text-decoration: none; }
-/* "Lamka Labs" in ink, underlined in red as one name, so it reads on every wash the silk passes through. */
-.foot .built a.lab { text-decoration: underline 2px #e8424a; text-underline-offset: 4px; text-decoration-skip-ink: none; }
+/* "Lamka Labs" in bold ink, no underline (owner, 13 Nov). */
+.foot .built a.lab { text-decoration: none; }
 .foot .lab span { color: #15120f; }
 .lab { color:#000; font-weight:700; text-decoration:none; }
 .lab:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
