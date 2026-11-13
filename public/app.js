@@ -86,6 +86,20 @@
   let sharedId = Number(new URLSearchParams(location.search).get("s")) || null;
   if (sharedId) { const u = new URL(location.href); u.searchParams.delete("s"); history.replaceState(null, "", u); }
 
+  // The answer box takes focus without the browser scrolling to it, which used to stop halfway and
+  // cut the greeting in two. On arrival the page stays at the top, greeting whole. After a send or a
+  // skip, if the box is out of view, the section is brought up to the top edge, greeting fully gone.
+  let firstCard = true;
+  function focusAnswer() {
+    const box = $("paite");
+    box.focus({ preventScroll: true });
+    if (firstCard) { firstCard = false; return; }
+    const r = box.getBoundingClientRect();
+    if (r.top >= 0 && r.bottom <= innerHeight) return;
+    const sec = box.closest(".card") || box;
+    sec.scrollIntoView({ block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }
+
   async function next(polling = false) {
     clearTimeout(pollTimer); pollTimer = null; $("retry").hidden = true;
     if (!polling) $("sentence").innerHTML = tBoth("loading");
@@ -115,7 +129,7 @@
       $("shared-note").innerHTML = current.shared ? tBoth("sharedHello") : current.sharedGone ? tBoth("sharedGone") : "";
       $("send").disabled = false;
       // While the name ask is open, do not pull focus (and the scroll) back to the answer box.
-      if ($("ask-name").hidden) $("paite").focus();
+      if ($("ask-name").hidden) focusAnswer();
       if (window.pdTrack) window.pdTrack("card");
     } catch (e) {
       current = null;
