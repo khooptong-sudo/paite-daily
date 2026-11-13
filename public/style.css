@@ -840,3 +840,7 @@ body.blue { --italic: "Instrument Serif", Georgia, "Times New Roman", serif; }
 .blue .chat .hello-en { font-family: var(--italic); font-style: italic; font-size: clamp(1.35rem, 3.6vw, 2rem); }
 .blue .bub .eng, .blue .chat-note .answer .eng, .blue #fb-list .en { font-family: var(--italic); font-style: italic; font-size: 1.08rem; }
 .blue .kp-unit small { display: inline; }
+
+/* The footer band ends the page on every layout: no padding or margin under the column that holds it
+   (on About, Panlate and the other .cp pages they showed as a plain strip below the silk). */
+body.blue main:has(> .foot) { padding-bottom: 0; margin-bottom: 0; }
