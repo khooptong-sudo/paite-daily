@@ -159,6 +159,8 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .foot .built a { display: inline-block; padding: 6px 2px; color: #15120f; text-decoration: none; }
 /* "Lamka Labs" in bold ink, no underline (owner, 13 Nov). */
 .foot .built a.lab { text-decoration: none; }
+/* "About This Project" carries the red underline instead. */
+.foot .built a[href="/about"] { text-decoration: underline 2px #e8424a; text-underline-offset: 4px; text-decoration-skip-ink: none; }
 .foot .lab span { color: #15120f; }
 .lab { color:#000; font-weight:700; text-decoration:none; }
 .lab:focus-visible { outline: 2px solid #000; outline-offset: 2px; }
