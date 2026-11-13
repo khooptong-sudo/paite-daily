@@ -167,7 +167,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
     : "";
   const view = (k: "thisWeek" | "allTime") => `<section class="view" data-view="${k}" aria-labelledby="h-${k}"><h2 id="h-${k}" data-s="${k}">${k === "thisWeek" ? "This week" : "All time"}</h2>${contributors(d[k].contributors, k === "thisWeek" ? "emptyWeek" : "emptyAll")}${reviewers(d[k].reviewers)}</section>`;
   const wall = names.length
-    ? `<section class="wall-sec" id="wall" aria-labelledby="h-wall"><p class="wk">Lungdamna &middot; With thanks</p><h2 id="h-wall">The people who wove this</h2><p class="ws"><b>${names.length}</b> ${names.length === 1 ? "person has" : "people have"} given their Paite to this site. Every name, A to Z.</p><p class="wall">${names.map((n) => `<span>${esc(n)}</span>`).join(" ")}</p></section>`
+    ? `<section class="wall-sec" id="wall" aria-labelledby="h-wall"><p class="wk">Kipahthu Aw &middot; With thanks</p><h2 id="h-wall">The people who wove this</h2><p class="ws"><b>${names.length}</b> ${names.length === 1 ? "person has" : "people have"} given their Paite to this site. Every name, A&nbsp;to&nbsp;Z.</p><p class="wall">${names.map((n) => `<span>${esc(n)}</span>`).join(" ")}</p></section>`
     : "";
   const start = d.thisWeek.contributors.length + d.thisWeek.reviewers.length ? "thisWeek" : "allTime";
   // Kept whole so the invitation can come back with one flag, but not shown for now.
@@ -208,7 +208,7 @@ export function renderPage(d: Contributors, css = '<link rel="stylesheet" href="
 <script>document.documentElement.className="js"</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@1&family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="/style.css">
 <script src="/theme.js"></script>
 ${css}</head>

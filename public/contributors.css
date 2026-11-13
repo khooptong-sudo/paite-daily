@@ -270,15 +270,17 @@
 }
 @media (prefers-reduced-motion: reduce) { .p1 .rk.pop, .spark { animation: none; } .spark { display: none; } }
 
-/* The Name Wall (Lungdamna): every contributor and reviewer, A to Z, in one centred serif
+/* The Name Wall (Kipahthu Aw): every contributor and reviewer, A to Z, in one centred serif
    paragraph with a woven-colour diamond after each name. The diamond lives inside the name's
    own nowrap span, so a line never starts with one. */
 .wall-sec { text-align: center; padding: 56px 0 8px; border-top: 1px solid var(--line); }
 .wall-sec .wk { margin: 0 0 10px; font: 500 .72rem var(--body); letter-spacing: .3em; text-transform: uppercase; color: var(--muted); }
 .wall-sec h2 { margin: 0 0 8px; font: 400 clamp(2rem, 6vw, 3.4rem)/1.02 var(--display); letter-spacing: -.03em; color: var(--fg); position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; }
-.wall-sec .ws { margin: 0 auto 28px; max-width: 46ch; color: var(--muted); }
+.wall-sec .ws { margin: 0 auto 28px; max-width: 46ch; color: var(--muted); text-wrap: balance; }
 .wall-sec .ws b { color: var(--fg); font-weight: 600; }
-.wall { margin: 0 auto; max-width: 860px; font: 400 clamp(1.2rem, 2.6vw, 1.7rem)/1.65 var(--display); color: var(--fg); text-wrap: pretty; }
+/* Names in upright Instrument Serif (light), not the heavy Young Serif (owner trying it, 13 Nov).
+   To revert: font: 400 clamp(1.2rem, 2.6vw, 1.7rem)/1.65 var(--display). */
+.wall { margin: 0 auto; max-width: 860px; font: 400 clamp(1.4rem, 3vw, 2rem)/1.5 "Instrument Serif", Georgia, "Times New Roman", serif; color: var(--fg); text-wrap: pretty; }
 .wall span { white-space: nowrap; transition: color .3s; }
 .wall span:hover { color: #c8102e; }
 .wall span:not(:last-child)::after { content: ""; display: inline-block; width: .3em; height: .3em; margin: 0 .2em .18em .6em; transform: rotate(45deg); background: #d71920; }
