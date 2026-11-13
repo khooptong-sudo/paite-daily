@@ -4,7 +4,10 @@
 (() => {
   const NEWS = [
     { id: "2026-11-13-own", date: "2026-11-13", title: "Every line checked by someone else", text: "When a reviewer sends a sentence, word, saying or recording, another reviewer now checks it, never the person who sent it." },
-    { id: "2026-11-13-footer-phone", date: "2026-11-13", title: "The footer, fixed on phones", text: "The silk colours now show on phones too, and Buy us Coffee, Email and WhatsApp sit on one line." },
+    { id: "2026-11-13-footer", date: "2026-11-13", title: "A tidier footer", text: "The silk colours now show on phones, and they run all the way to the bottom of the page. Buy us Coffee, Email and WhatsApp sit on one line, and About This Project is underlined in red." },
+    { id: "2026-11-13-totop", date: "2026-11-13", title: "Back to the top, quietly", text: "Scroll down and a small arrow appears on the right. Its thin line fills as you read; tap it to go back to the top." },
+    { id: "2026-11-13-wall", date: "2026-11-13", title: "Kipahthu Aw, with thanks", text: "The name wall on Panlate has a new heading and lighter type, so every name reads easily.", href: "/contributors" },
+    { id: "2026-11-13-fixes", date: "2026-11-13", title: "Small fixes", text: "The page opens at the top with the greeting whole. Your Week has its Share button beside the title, and the English under some buttons can be read again." },
     { id: "2026-11-12-look", date: "2026-11-12", title: "A whole new look", text: "Ink on warm paper, with a moon switch for night. The shawl band now runs edge to edge, and every page has the same editorial style." },
     { id: "2026-11-12-greet", date: "2026-11-12", title: "Zingpha, Sunpha, Nitaklampha, Nitakpha", text: "The greeting at the top changes with the time of day on your phone." },
     { id: "2026-11-12-shawl", date: "2026-11-12", title: "One BA / Siamsin Puan, woven by all of us", text: "The goal is now a shawl we weave together: every verified sentence is one thread. Tap or hover to find a thread's number." },
