@@ -1,3 +1,36 @@
+# Handoff, 13 November 2026 (footer on phones, own-submission review rule, back-to-top, polish)
+
+Start a new session with: **Read this top section, then do "First thing next session", then ask the owner what to work on.** The 12 November sections below still hold for everything not mentioned here.
+
+## Where things stand
+- `main` at the handoff commit after **`What's New: 13 November`**, pushed. Live worker **`3161dd77`** (SW cache **`v89`**). Live site, GitHub and `main` match.
+- Remote D1 unchanged: every migration through **`0034_admin.sql`**. Nothing pending.
+- **364 tests pass** (44 files), `tsc` clean. New: `test/own.test.ts` (11 tests).
+
+## Shipped 13 November
+- **Footer silk on phones** (`public/footer.js`): phone GPUs ran the shader in 16-bit `mediump`, where the `sin()` hash collapsed and only plain paper showed. Now `highp` when available plus a sin-free hash; if the program fails to link, the canvas is swapped for a fresh one with the CSS gradient (a failed opaque WebGL canvas paints black).
+- **Footer layout** (`public/style.css`): the three links stay on one row at ≤480px (coffee arrow hidden only below 380px; icons stack ≤350px). Lamka Labs no underline; **About This Project** carries the red underline. Silk now re-measures on band resize and `load` (it was ~70px short because the Loom canvas is inserted after the first measure); no body/main padding under the band on any page, so it ends exactly at the page bottom.
+- **Back to top** (`footer.js` + end of `style.css`, class `.totop`): chevron over a 1.5px rail that fills as you scroll; shows a screen down, 62% opacity, ink over the paper band, lifted above the Christmas mute button. On every page with the footer.
+- **Reviewers never get their own submissions** (`src/own.ts`, used by `reviewdb.ts`, `digest.ts`, `dashboard.ts`, `proverbreview.ts`, `words.ts`, `recordings.ts`, `review.ts`). "Own" = from a phone in `reviewer_phones` for that reviewer, or `contributor_name` equal to their reviewer name (case and spaces ignored). The whole card (sentence or saying) goes to others if any open line on it is theirs. After **14 days** (`OWN_DAYS`) it comes back to everyone. **Owner exempt.** Decisions on own items are refused with 409 `own_submission` (409, not 403, because the review pages treat 403 as signed-out). Dashboard returns `own: n` and shows "N of your own submissions are waiting for another reviewer". Known limit: a short common reviewer name over-matches; an unlinked phone with no name is not recognised.
+- **Review page**: the "N waiting" line and notes under the header use `--muted` (an old blue-theme rule made them pale blue); `#english` has no `min-height`, so one-line sentences leave no gap.
+- **Light theme**: English `<small>` under outlined `.cta` links was paper on paper; now muted ink (Panlate "Paite Daily / Add a Sentence", "Paite Kammal Kaihkhawm").
+- **Name wall** (`src/contributors.ts`, `public/contributors.css`): kicker **"Kipahthu Aw · With thanks"** (owner's words); names in upright Instrument Serif 400 (font URL now `ital@0;1`), revert note in the CSS; "A&nbsp;to&nbsp;Z" plus `text-wrap: balance`, so no lone "Z."
+- **Your Week**: Share chip sits right after the title (`.week-top`).
+- **Front page focus** (`public/app.js` `focusAnswer`): the answer box takes focus with `preventScroll`; on arrival the page stays at the top (greeting whole); after Send/Skip, if the box is off screen, the section scrolls to the top edge.
+- Tried and reverted at the owner's request: About This Project under the Paite Daily title (`367ce7b`, reverted in `e9da1ef`).
+- What's New: five items dated 13 Nov.
+
+## First thing next session
+1. Ask the owner how the back-to-top rail and the arrival scroll look on his phone (the rail's background wash and the focus-on-arrival were not seen in a screenshot).
+2. The 12 Nov "First thing" items still stand: owner signs in to `/admin` and presses **Test connection**; check the `wants` job; share-preview check before 5 Dec.
+3. Tell reviewers (sut.tonsing especially) to link their phone on `/review` so the own-submission rule recognises them by phone, not only by name.
+
+## Open items (new)
+- Brain: `brain.py status` reports **nightly MISSING** (scheduled task "Brain sync" does not exist). Only manual `eos` runs push the vault. Recreate it (see `EOS.md`, "Setup on this machine") when the owner agrees.
+- Headless Edge here will not render a window narrower than ~500px with `--window-size`; use CDP `Emulation.setDeviceMetricsOverride` for phone-size checks.
+
+---
+
 # Handoff, 12 November 2026, evening (Ink redesign, admin dashboard, any-provider AI, dataset-only chat)
 
 Start a new session with: **Read this top section, then do "First thing next session", then ask the owner what to work on.** The earlier 12 November section below still holds for everything not mentioned here.
