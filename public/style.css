@@ -667,7 +667,9 @@ html[data-theme=light] .blue header, html[data-theme=light] .blue header a, html
 html[data-theme=light] .blue .mypuan h2, html[data-theme=light] .blue .mypuan-how, html[data-theme=light] .blue .mypuan-how b,
 html[data-theme=light] .blue .mypuan-note, html[data-theme=light] .blue .hero .back, html[data-theme=light] .blue header a[style] { color: var(--fg) !important; }
 html[data-theme=light] .blue .mypuan h2 small, html[data-theme=light] .blue .mypuan-how, html[data-theme=light] .blue .mypuan-note { color: var(--muted) !important; }
-html[data-theme=light] .blue button.primary small, html[data-theme=light] .blue .seg button[aria-pressed="true"] small, html[data-theme=light] .blue .cta small { color: rgba(245, 241, 232, .7); }
+/* Paper-coloured English only on filled ink buttons. The .cta links are outlined on paper now, so their
+   English keeps the muted ink from the MAIN BUTTONS layer (it was paper on paper, invisible). */
+html[data-theme=light] .blue button.primary small, html[data-theme=light] .blue .seg button[aria-pressed="true"] small { color: rgba(245, 241, 232, .7); }
 html[data-theme=light] .blue .share-chip img, html[data-theme=light] .blue .card .share-chip img, html[data-theme=light] .blue .p .pod-share img { filter: none; }
 html[data-theme=light] .blue .share-chip:hover:not(:disabled) { background: rgba(21, 18, 15, .06); }
 html[data-theme=light] .blue .bub, html[data-theme=light] .blue .chat-note .answer, html[data-theme=light] .blue .answer, html[data-theme=light] .blue .clip { background: rgba(21, 18, 15, .035); }
