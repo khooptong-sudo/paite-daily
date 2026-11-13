@@ -267,3 +267,35 @@
   if ("ResizeObserver" in window) new ResizeObserver(() => size()).observe(document.documentElement);
   else addEventListener("resize", size);
 })();
+
+// Back to top: a quiet rail on the right edge. A small chevron over a hairline that fills with ink as
+// you read down the page, so it doubles as a reading gauge. It shows once you are a screen down and
+// fades out near the top. Over the paper footer band it turns ink, since the band is paper on both themes.
+(() => {
+  const b = document.createElement("button");
+  b.type = "button"; b.className = "totop"; b.setAttribute("aria-label", "Back to top"); b.title = "Back to top";
+  b.innerHTML = '<svg viewBox="0 0 12 8" aria-hidden="true"><path d="M1 7l5-5 5 5"/></svg><i aria-hidden="true"><b></b></i>';
+  document.body.appendChild(b);
+  const fill = b.querySelector("b"), smooth = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let raf = 0;
+  const tick = () => {
+    raf = 0;
+    const root = document.documentElement, max = root.scrollHeight - innerHeight, y = scrollY;
+    b.classList.toggle("on", y > innerHeight * .9);
+    fill.style.transform = "scaleY(" + (max > 0 ? Math.min(1, y / max) : 0) + ")";
+  };
+  addEventListener("scroll", () => { if (!raf) raf = requestAnimationFrame(tick); }, { passive: true });
+  addEventListener("resize", tick);
+  tick();
+  b.addEventListener("click", () => {
+    const kb = document.activeElement === b && !b.matches(":hover");
+    scrollTo({ top: 0, behavior: smooth ? "smooth" : "auto" });
+    // Keyboard users land on the page title, not back on a button that is about to fade.
+    const h = document.querySelector("h1");
+    if (kb && h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+  });
+  const band = document.querySelector(".foot .reach");
+  if (band && "IntersectionObserver" in window) {
+    new IntersectionObserver(([e]) => b.classList.toggle("paper", e.isIntersecting), { rootMargin: "0px 0px -60px 0px" }).observe(band);
+  }
+})();

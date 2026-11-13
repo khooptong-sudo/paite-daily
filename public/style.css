@@ -847,3 +847,25 @@ body.blue { --italic: "Instrument Serif", Georgia, "Times New Roman", serif; }
 /* The footer band ends the page on every layout: no padding or margin under the column that holds it
    (on About, Panlate and the other .cp pages they showed as a plain strip below the silk). */
 body.blue main:has(> .foot) { padding-bottom: 0; margin-bottom: 0; }
+
+/* Back to top (footer.js): a quiet rail on the right edge, a chevron over a hairline that fills with
+   ink as you read down. No disc, no shadow; it fades in a screen down and steps aside for the Christmas bells. */
+.totop {
+  position: fixed; z-index: 55; right: max(6px, env(safe-area-inset-right)); bottom: max(22px, calc(env(safe-area-inset-bottom) + 10px));
+  display: grid; justify-items: center; align-content: start; gap: 7px; width: 36px; height: 78px; padding: 10px 0 0 !important; min-height: 0 !important;
+  /* A faint wash of the page colour behind it, so text it passes over does not show through the rail. */
+  border: 0 !important; border-radius: 18px; background: color-mix(in srgb, var(--bg, #f5f1e8) 82%, transparent) !important; box-shadow: none !important;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+  color: var(--fg); cursor: pointer; opacity: 0; visibility: hidden; transform: translateY(8px);
+  transition: opacity .35s, transform .35s cubic-bezier(.2, .7, .2, 1), visibility 0s .35s, color .3s;
+}
+.totop.on { opacity: .62; visibility: visible; transform: none; transition-delay: 0s; }
+.totop.on:hover, .totop.on:focus-visible { opacity: 1; }
+.totop.paper { color: #15120f; background: color-mix(in srgb, #f3efe6 82%, transparent) !important; }
+.totop svg { width: 12px; height: 8px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; transition: transform .35s cubic-bezier(.2, .7, .2, 1); }
+.totop:hover svg { transform: translateY(-3px); }
+.totop i { position: relative; display: block; width: 1.5px; height: 42px; border-radius: 1px; background: color-mix(in srgb, currentColor 22%, transparent); overflow: hidden; }
+.totop i b { position: absolute; inset: 0; background: currentColor; transform: scaleY(0); transform-origin: top; }
+.totop:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+body:has(.xmas-mute) .totop { bottom: max(76px, calc(env(safe-area-inset-bottom) + 66px)); }
+@media print { .totop { display: none; } }
