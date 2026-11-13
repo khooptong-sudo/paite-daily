@@ -4,7 +4,7 @@ import { handleLogin } from "./login";
 import { failingJobs } from "./export";
 import { waitingCounts } from "./digest";
 import { reviewDashboard } from "./dashboard";
-import { REQUIRED_REVIEWERS, decideProverbAnswer, decideProverbPair, getProverbReviewList, skipProverbSaying, undoProverbReview } from "./proverbreview";
+import { REQUIRED_REVIEWERS, decideProverbAnswer, decideProverbPair, getProverbReviewList, ownSaying, skipProverbSaying, undoProverbReview } from "./proverbreview";
 import { saveProverbReview } from "./proverbcard";
 
 /**
@@ -39,7 +39,8 @@ import { handleRecordingReview } from "./recordings";
 import { checkGrammar } from "./grammar";
 import { checkSpelling } from "./spelling";
 import { getRules } from "./rules";
-import { claimNext, decide, skipCard, undo, type Decision } from "./reviewdb";
+import { NOT_OWN_SENTENCE, claimNext, decide, skipCard, undo, type Decision } from "./reviewdb";
+import { whoReviews } from "./own";
 import { json, type Deps, type Env } from "./types";
 
 export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: ExecutionContext): Promise<Response> {
@@ -54,6 +55,9 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
   if (!(await reviewerName(env, email))) return json({ error: "not_a_reviewer" }, 403);
   let b: Record<string, unknown> = {};
   if (req.method === "POST") { try { b = (await req.json()) as Record<string, unknown>; } catch {} }
+  // Who is reviewing, so their own submissions go to the other reviewers (own.ts).
+  const me = await whoReviews(env, email, deps.now());
+  const OWN = () => json({ error: "own_submission", message: "This is your own submission. Another reviewer will check it." }, 409);
 
   const owned = await handleOwnerReview(pathname, req.method, b, env, email, deps.now());
   if (owned) return owned;
@@ -62,18 +66,18 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
   if (pathname === "/review/api/spelling" && req.method === "POST") return checkSpelling(env, b, deps.now());
   if (pathname === "/review/api/grammar" && req.method === "POST") return checkGrammar(env, email.toLowerCase(), b, deps.now(), deps.fetch ?? ((u, i) => fetch(u, i)));
 
-  const heard = await handleRecordingReview(req, pathname, b, env, email);
+  const heard = await handleRecordingReview(req, pathname, b, env, email, me);
   if (heard) return heard;
 
-  const words = await handleWords(pathname, req.method, b, env, email);
+  const words = await handleWords(pathname, req.method, b, env, email, me);
   if (words) return words;
 
   if (pathname === "/review/api/next" && req.method === "GET") {
-    const card = await claimNext(env.DB, email, deps.now());
+    const card = await claimNext(env.DB, email, deps.now(), me);
     return card ? json(card) : new Response(null, { status: 204 });
   }
-  if (pathname === "/review/api/queue" && req.method === "GET") return json({ waiting: (await waitingCounts(env.DB, email, deps.now())).answers });
-  if (pathname === "/review/api/dashboard" && req.method === "GET") return json(await reviewDashboard(env.DB, email, deps.now()));
+  if (pathname === "/review/api/queue" && req.method === "GET") return json({ waiting: (await waitingCounts(env.DB, email, deps.now(), me)).answers });
+  if (pathname === "/review/api/dashboard" && req.method === "GET") return json(await reviewDashboard(env.DB, email, deps.now(), me));
   // Pass on this sentence without deciding it: it stays in the queue for others.
   if (pathname === "/review/api/skip" && req.method === "POST") {
     if (!isId(b.sentenceId)) return json({ error: "bad_request" }, 400);
@@ -105,10 +109,12 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
     }
   }
   // Sayings: the lane that was missing. Candidates and whole submitted pairs, listed.
-  if (pathname === "/review/api/proverbs" && req.method === "GET") return json(await getProverbReviewList(env, email, deps.now()));
+  if (pathname === "/review/api/proverbs" && req.method === "GET") return json(await getProverbReviewList(env, email, deps.now(), me));
   if (pathname === "/review/api/proverbs/answer" && req.method === "POST") {
     const d = readProverbDecision(b);
     if (d === null) return json({ error: "bad_request" }, 400);
+    const of = await env.DB.prepare("SELECT proverb_id FROM proverb_answers WHERE id = ?1").bind(b.id).first<{ proverb_id: number }>();
+    if (of && (await ownSaying(env, me, of.proverb_id))) return OWN();
     const r = await decideProverbAnswer(env, email, b.id as number, d.accept, d.opts);
     if (r === "not_found") return json({ error: "not_found" }, 404);
     if (r === "duplicate") return json({ error: "duplicate", message: "That line already belongs to another saying." }, 409);
@@ -139,6 +145,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
     if (b.finalEnglish !== undefined && typeof b.finalEnglish !== "string") return json({ error: "bad_request" }, 400);
     if (b.note !== undefined && typeof b.note !== "string") return json({ error: "bad_request" }, 400);
     if (b.alsoCorrect !== undefined && !isIdList(b.alsoCorrect)) return json({ error: "bad_request" }, 400);
+    if (await ownSaying(env, me, b.proverbId as number)) return OWN();
     const r = await saveProverbReview(env, email, {
       proverbId: b.proverbId as number,
       acceptAnswerId: b.acceptAnswerId as number | undefined,
@@ -158,12 +165,18 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
   if (pathname === "/review/api/proverbs/pair" && req.method === "POST") {
     const d = readProverbDecision(b);
     if (d === null) return json({ error: "bad_request" }, 400);
+    if (await ownSaying(env, me, b.id as number)) return OWN();
     const r = await decideProverbPair(env, email, b.id as number, d.accept, d.opts);
     if (r === "not_found") return json({ error: "not_found" }, 404);
     return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
   }
   if (pathname === "/review/api/decide" && req.method === "POST") {
     if (!isId(b.sentenceId) || !["accept", "reject", "retire", "variant"].includes(b.decision as string) || !isIdList(b.answerIds) || (b.alsoCorrect !== undefined && !isIdList(b.alsoCorrect)) || (b.decision === "accept" && !isId(b.answerId))) return json({ error: "bad_request" }, 400);
+    if (!me.owner) {
+      const own = await env.DB.prepare(`SELECT 1 AS ok FROM sentences s WHERE s.id = ?2${NOT_OWN_SENTENCE.replace(" AND NOT EXISTS", " AND EXISTS")}`)
+        .bind(me.now, b.sentenceId, me.email, me.name, me.owner).first();
+      if (own) return OWN();
+    }
     const result = await decide(env.DB, email, deps.now(), b as unknown as Decision);
     if (result === "no_lock") return json({ error: "lock_lost" }, 409);
     if (result === "bad_answer") return json({ error: "bad_answer" }, 400);

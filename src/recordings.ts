@@ -1,6 +1,7 @@
 import { isOwner } from "./access";
 import { cleanText, isId } from "./text";
 import { json, type Env } from "./types";
+import { ownBinds, ownSql, type Me } from "./own";
 
 // Hear it. Only someone who already has a verified sentence may record, every clip
 // carries the consent its speaker ticked, and one reviewer's accept publishes it.
@@ -79,14 +80,18 @@ export async function publicAudio(env: Env, pathname: string): Promise<Response>
 }
 
 /** The reviewer lane. Null when the path is not a recordings path. */
-export async function handleRecordingReview(req: Request, pathname: string, b: Record<string, unknown>, env: Env, email: string): Promise<Response | null> {
+export async function handleRecordingReview(req: Request, pathname: string, b: Record<string, unknown>, env: Env, email: string, me?: Me): Promise<Response | null> {
   if (!pathname.startsWith("/review/api/recordings")) return null;
+  // A reviewer's own fresh clips go to the other reviewers (own.ts). Slots ?1-?4.
+  const own = ownSql("r.phone_id", "r.contributor_name", "r.created_at", { e: 1, n: 2, o: 3, t: 4 });
+  const notOwn = me ? ` AND NOT ${own}` : "";
+  const binds = me ? ownBinds(me) : [];
   if (pathname === "/review/api/recordings" && req.method === "GET") {
     const { results } = await env.DB.prepare(
       `SELECT r.id, r.paite, s.english, r.contributor_name AS contributor, r.duration_ms AS durationMs, r.created_at AS createdAt
-       FROM recordings r JOIN sentences s ON s.id = r.sentence_id WHERE r.status = 'pending' ORDER BY r.id LIMIT 20`,
-    ).all();
-    const w = await env.DB.prepare("SELECT count(*) AS n FROM recordings WHERE status = 'pending'").first<{ n: number }>();
+       FROM recordings r JOIN sentences s ON s.id = r.sentence_id WHERE r.status = 'pending'${notOwn} ORDER BY r.id LIMIT 20`,
+    ).bind(...binds).all();
+    const w = await env.DB.prepare(`SELECT count(*) AS n FROM recordings r WHERE r.status = 'pending'${notOwn}`).bind(...binds).first<{ n: number }>();
     return json({ items: results, waiting: w!.n });
   }
   if (pathname === "/review/api/recordings/audio" && req.method === "GET") {
@@ -99,6 +104,9 @@ export async function handleRecordingReview(req: Request, pathname: string, b: R
     const blank = b.note === undefined || b.note === null || (typeof b.note === "string" && !b.note.trim());
     const note = blank ? null : cleanText(b.note, 300);
     if (!isId(b.id) || !["accept", "reject"].includes(b.decision as string) || (!blank && !note)) return json({ error: "bad_request" }, 400);
+    if (me && !me.owner && (await env.DB.prepare(`SELECT 1 AS ok FROM recordings r WHERE r.id = ?5 AND r.status = 'pending' AND ${own}`).bind(...binds, b.id).first())) {
+      return json({ error: "own_submission", message: "This is your own submission. Another reviewer will check it." }, 409);
+    }
     const r = await env.DB.prepare("UPDATE recordings SET status = ?2, reviewed_by = ?3, reviewed_at = datetime('now'), review_note = ?4 WHERE id = ?1 AND status = 'pending'")
       .bind(b.id, b.decision === "accept" ? "accepted" : "rejected", email, note).run();
     return r.meta.changes ? json({ ok: true }) : json({ error: "not_found" }, 404);

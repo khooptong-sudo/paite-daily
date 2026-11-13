@@ -176,6 +176,13 @@
         t.querySelector(".old").textContent = q.waiting && q.oldest ? "oldest: " + since(q.oldest) : "nothing waiting";
         t.classList.toggle("zero", !q.waiting);
       }
+      // Your own submissions are not in these counts: another reviewer checks them.
+      const own = $("dash-own"), n = d.own || 0;
+      own.hidden = !n;
+      own.textContent = n
+        ? (n === 1 ? "1 of your own submissions is" : n + " of your own submissions are")
+          + " waiting for another reviewer. Nobody checks their own work here. If no one has after 14 days, it comes back to you."
+        : "";
     } catch {}
   }
 

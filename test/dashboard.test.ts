@@ -28,18 +28,18 @@ describe("review dashboard", () => {
 
   it("is empty when nothing waits", async () => {
     const none = { waiting: 0, oldest: null };
-    expect(await get()).toEqual({ sentences: none, words: none, pauUpa: none, recordings: none });
+    expect(await get()).toEqual({ sentences: none, words: none, pauUpa: none, recordings: none, own: 0 });
   });
 
   it("counts one waiting item per queue and reports the oldest", async () => {
     await seed();
     const one = { waiting: 1, oldest: "2026-01-02 03:04:05" };
-    expect(await get()).toEqual({ sentences: one, words: one, pauUpa: one, recordings: one });
+    expect(await get()).toEqual({ sentences: one, words: one, pauUpa: one, recordings: one, own: 0 });
   });
 
   it("does not count decided items", async () => {
     await seed(true);
     const none = { waiting: 0, oldest: null };
-    expect(await get()).toEqual({ sentences: none, words: none, pauUpa: none, recordings: none });
+    expect(await get()).toEqual({ sentences: none, words: none, pauUpa: none, recordings: none, own: 0 });
   });
 });

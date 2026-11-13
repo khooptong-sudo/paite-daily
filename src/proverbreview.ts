@@ -15,6 +15,7 @@
 // No locks. The sentence lane locks a card so two reviewers do not collide;
 // this lane is a list a reviewer works down, like the glossary lane.
 import type { Env } from "./types";
+import { ownSql, type Me } from "./own";
 
 // One reviewer publishes. The second submission is a comparison, not a second
 // signature: it arrives later, beside the line that already published.
@@ -63,11 +64,30 @@ const clip = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(
 const cleanText = (v: unknown, n: number) => clip(v, n).replace(/\s+/g, " ");
 
 /** Everything waiting on a reviewer: candidate Paite lines first, then whole sayings. */
+/** A saying holding one of this reviewer's own fresh lines goes to the other reviewers (own.ts). Slots ?2 now, ?3-?5. */
+const NOT_OWN_SAYING = ` AND NOT EXISTS (SELECT 1 FROM proverb_answers o WHERE o.proverb_id = p.id AND o.status = 'new'
+  AND ${ownSql("o.phone_id", "o.contributor_name", "o.created_at", { e: 3, n: 4, o: 5, t: 2 })})`;
+const NOT_OWN_PAIR = ` AND NOT ${ownSql("p.submitted_by", "p.contributor_name", "p.created_at", { e: 3, n: 4, o: 5, t: 2 })}`;
+
+/** True when this saying, or one of its open lines, is this reviewer's own fresh submission. */
+export async function ownSaying(env: Env, me: Me | undefined, proverbId: number): Promise<boolean> {
+  if (!me || me.owner) return false;
+  const r = await env.DB.prepare(
+    `SELECT 1 AS ok FROM proverbs p WHERE p.id = ?1 AND (
+       ${ownSql("p.submitted_by", "p.contributor_name", "p.created_at", { e: 3, n: 4, o: 5, t: 2 })}
+       OR EXISTS (SELECT 1 FROM proverb_answers o WHERE o.proverb_id = p.id AND o.status = 'new'
+         AND ${ownSql("o.phone_id", "o.contributor_name", "o.created_at", { e: 3, n: 4, o: 5, t: 2 })}))`,
+  ).bind(proverbId, me.now, me.email, me.name, me.owner).first();
+  return !!r;
+}
+
 export async function getProverbReviewList(
   env: Env,
   email: string,
   now = Date.now(),
+  me?: Me,
 ): Promise<{ answers: ProverbAnswerRow[]; pairs: ProverbPairRow[]; required: number }> {
+  const extra = me ? [me.email, me.name, me.owner] : [];
   const answerRows = await env.DB.prepare(
     `SELECT a.id, a.proverb_id, a.paite, a.english AS answer_english, a.explainer, a.explainer_en, a.contributor_name, a.created_at,
             p.english, p.kind, p.paite AS current_paite,
@@ -81,11 +101,11 @@ export async function getProverbReviewList(
       WHERE a.status = 'new'
         AND (p.status IN ('open', 'pending') OR (p.status = 'live' AND p.accepting_more = 1))
         AND NOT EXISTS (SELECT 1 FROM proverb_skips k
-                         WHERE k.proverb_id = p.id AND k.until > ?2 AND lower(k.reviewer_email) = lower(?1))
+                         WHERE k.proverb_id = p.id AND k.until > ?2 AND lower(k.reviewer_email) = lower(?1))${me ? NOT_OWN_SAYING : ""}
       ORDER BY a.created_at, a.id
       LIMIT 200`,
   )
-    .bind(email, now)
+    .bind(email, now, ...extra)
     .all<ProverbAnswerRow>();
   const pairs = await env.DB.prepare(
     `SELECT p.id, p.kind, p.paite, p.english, p.explainer, p.explainer_en, p.contributor_name, p.created_at,
@@ -97,11 +117,11 @@ export async function getProverbReviewList(
        FROM proverbs p
       WHERE p.status = 'pending'
         AND NOT EXISTS (SELECT 1 FROM proverb_skips k
-                         WHERE k.proverb_id = p.id AND k.until > ?2 AND lower(k.reviewer_email) = lower(?1))
+                         WHERE k.proverb_id = p.id AND k.until > ?2 AND lower(k.reviewer_email) = lower(?1))${me ? NOT_OWN_PAIR : ""}
       ORDER BY p.created_at, p.id
       LIMIT 200`,
   )
-    .bind(email, now)
+    .bind(email, now, ...extra)
     .all<ProverbPairRow>();
   // One card per saying. Each candidate carries the side it fills, its own line,
   // the saying's other line (the source), and the line already published on its side.

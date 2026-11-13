@@ -1,5 +1,6 @@
 import { cap, cleanText, isId } from "./text";
 import { json, type Env } from "./types";
+import { ownBinds, ownSql, type Me } from "./own";
 
 const opt = (v: unknown, max: number) => (v === undefined || v === null || v === "" ? null : cleanText(v, max));
 
@@ -54,9 +55,12 @@ const corrections = (b: Record<string, unknown>): { paite: string; english: stri
 };
 
 // Reviewer routes. Returns null when the path is not a word route.
-export async function handleWords(pathname: string, method: string, b: Record<string, unknown>, env: Env, email: string): Promise<Response | null> {
+export async function handleWords(pathname: string, method: string, b: Record<string, unknown>, env: Env, email: string, me?: Me): Promise<Response | null> {
+  // A reviewer's own fresh words go to the other reviewers (own.ts). Slots ?1-?4.
+  const notOwn = me ? ` AND NOT ${ownSql("phone_id", "contributor_name", "created_at", { e: 1, n: 2, o: 3, t: 4 })}` : "";
+  const binds = me ? ownBinds(me) : [];
   if (pathname === "/review/api/words/pending" && method === "GET") {
-    const { results } = await env.DB.prepare("SELECT id, paite, english, note, contributor_name AS name, source FROM word_submissions WHERE status = 'pending' ORDER BY id LIMIT 50").all();
+    const { results } = await env.DB.prepare(`SELECT id, paite, english, note, contributor_name AS name, source FROM word_submissions WHERE status = 'pending'${notOwn} ORDER BY id LIMIT 50`).bind(...binds).all();
     return json({ words: results.map((r: any) => ({ ...r, paite: cap(r.paite), english: cap(r.english) })) });
   }
   if (pathname === "/review/api/words/decide" && method === "POST") {
@@ -64,6 +68,11 @@ export async function handleWords(pathname: string, method: string, b: Record<st
     const fix = corrections(b);
     const approve = b.decision === "approve";
     // Only the request that flips pending -> decided may insert, so a second decision cannot double-insert.
+    if (me && !me.owner) {
+      const own = await env.DB.prepare(`SELECT 1 AS ok FROM word_submissions WHERE id = ?5 AND status = 'pending' AND ${ownSql("phone_id", "contributor_name", "created_at", { e: 1, n: 2, o: 3, t: 4 })}`)
+        .bind(...binds, b.id).first();
+      if (own) return json({ error: "own_submission", message: "This is your own submission. Another reviewer will check it." }, 409);
+    }
     const r = await env.DB.prepare("UPDATE word_submissions SET status = ?1, decided_at = datetime('now'), decided_by = ?2 WHERE id = ?3 AND status = 'pending'")
       .bind(approve ? "approved" : "rejected", email, b.id).run();
     if (!r.meta.changes) return json({ error: "already_decided" }, 409);

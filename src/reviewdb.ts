@@ -1,4 +1,5 @@
 import { cleanText } from "./text";
+import { ownSql, type Me } from "./own";
 
 const LOCK_MS = 10 * 60_000;
 // Long enough that a skipped sentence does not come back in the same sitting,
@@ -21,21 +22,25 @@ export type Decision = {
   alsoCorrect?: number[];
 };
 
-export async function claimNext(db: D1Database, email: string, now: number): Promise<ReviewCard | null> {
+/** A sentence holding one of this reviewer's own fresh answers goes to the other reviewers (own.ts). Slots ?1 now, ?3-?5. */
+export const NOT_OWN_SENTENCE = ` AND NOT EXISTS (SELECT 1 FROM answers o WHERE o.sentence_id = s.id AND o.status = 'new'
+  AND ${ownSql("o.phone_id", "o.contributor_name", "o.created_at", { e: 3, n: 4, o: 5, t: 1 })})`;
+
+export async function claimNext(db: D1Database, email: string, now: number, me?: Me): Promise<ReviewCard | null> {
   const candidates = await db
     .prepare(
       `SELECT s.id, s.english, s.direction, s.paite_prompt FROM sentences s
        WHERE s.status IN ('open', 'full')
          AND EXISTS (SELECT 1 FROM answers a WHERE a.sentence_id = s.id AND a.status = 'new')
          AND NOT EXISTS (SELECT 1 FROM locks l WHERE l.sentence_id = s.id AND l.expires_at > ?1 AND l.reviewer_email <> ?2)
-         AND NOT EXISTS (SELECT 1 FROM skips k WHERE k.sentence_id = s.id AND k.reviewer_email = ?2 AND k.until > ?1)
+         AND NOT EXISTS (SELECT 1 FROM skips k WHERE k.sentence_id = s.id AND k.reviewer_email = ?2 AND k.until > ?1)${me ? NOT_OWN_SENTENCE : ""}
        ORDER BY CASE
            WHEN EXISTS (SELECT 1 FROM answers a WHERE a.sentence_id = s.id AND a.status = 'new' AND a.ai_flag IN ('junk', 'english')) THEN 2
            WHEN s.ai_agree = 1 THEN 0 ELSE 1 END,
          (s.status = 'full') DESC, s.id
        LIMIT 5`,
     )
-    .bind(now, email)
+    .bind(now, email, ...(me ? [me.email, me.name, me.owner] : []))
     .all<ReviewCard["sentence"]>();
   for (const s of candidates.results) {
     const lock = await db
