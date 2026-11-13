@@ -26,7 +26,8 @@ Start a new session with: **Read this top section, then do "First thing next ses
 3. Tell reviewers (sut.tonsing especially) to link their phone on `/review` so the own-submission rule recognises them by phone, not only by name.
 
 ## Open items (new)
-- Brain: `brain.py status` reports **nightly MISSING** (scheduled task "Brain sync" does not exist). Only manual `eos` runs push the vault. Recreate it (see `EOS.md`, "Setup on this machine") when the owner agrees.
+- Brain: the "Brain sync" task was missing; recreated 14 Nov 01:11 IST (daily 21:00, `H:\Vault the Brain\The Brain\scripts\brain-sync.ps1`), test run `LastTaskResult 0`, `EOS CLEAN`, `brain status` GREEN. On this machine `H:` is now a real drive (no `subst`; `F:` has no vault).
+- **Data chain check, 14 Nov 01:30 IST:** D1 1,350 live accepts; GitHub `community/` 1,229 (the other 121 were accepted on 13 Nov after the 03:00 UTC export and go out at the next one); glossary 1,824 visible vs 1,818 on GitHub (6 approved 13 Nov 16:48 UTC, same). 62 of 62 accepted clips exported. Hugging Face was last published 9 Nov, before the 12 Nov licence relabel and audio; a manual run of "Publish to Hugging Face" on 13 Nov 19:46 UTC succeeded and HF now matches GitHub byte for byte (21 of 22 files; README is the HF card by design). **Zenodo** is still v1.1.0 (26 Oct): a new version needs a GitHub release, waiting on the owner (suggested v1.2.0 after the 14 Nov 03:00 UTC export).
 - Headless Edge here will not render a window narrower than ~500px with `--window-size`; use CDP `Emulation.setDeviceMetricsOverride` for phone-size checks.
 
 ---
