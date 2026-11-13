@@ -140,12 +140,15 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .foot .links .arr { opacity: .5; transition: transform .4s cubic-bezier(.2, .7, .2, 1), opacity .3s; }
 .foot .links a:hover .arr, .foot .links a[aria-expanded="true"] .arr { opacity: 1; transform: translate(2px, -2px); }
 /* Phones: the three links stay on one row (a wrapped link carried its rule to the start of the
-   second line). Tighter spacing and no arrow; on the narrowest screens each icon sits above its word. */
+   second line). Tighter spacing; on the narrowest screens each icon sits above its word. */
 @media (max-width: 480px) {
   .foot .links { flex-wrap: nowrap; }
-  .foot .links a { gap: 8px; padding: 0 clamp(8px, 2.6vw, 16px); font-size: .9rem; white-space: nowrap; }
-  .foot .links .arr { display: none; }
+  .foot .links a { gap: 8px; padding: 0 clamp(6px, 2.2vw, 16px); font-size: .9rem; white-space: nowrap; }
+  /* The coffee arrow stays, a little smaller and tucked closer to its word. */
+  .foot .links .arr { width: 14px; height: 14px; margin-left: -3px; }
 }
+/* Below 380px the row would no longer fit with it, so the arrow goes there. */
+@media (max-width: 379px) { .foot .links .arr { display: none; } }
 @media (max-width: 350px) {
   .foot .links a { flex-direction: column; justify-content: center; gap: 4px; padding: 8px 12px; }
 }
