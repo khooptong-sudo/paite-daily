@@ -5,6 +5,7 @@ import { runPrereview } from "./prereview";
 import { lockedRefill } from "./refill";
 import { queueWanted } from "./wants";
 import { syncSiteSources } from "./kbsite";
+import { syncVectors } from "./kbvec";
 import { handleContributor } from "./contributor";
 import { getContributors, renderPage } from "./contributors";
 import { getGlossary, renderGlossary } from "./glossary";
@@ -65,7 +66,7 @@ export default {
   fetch: (req: Request, env: Env, ctx: ExecutionContext) => app(req, env, ctx),
   scheduled: async (c: ScheduledController, env: Env, ctx: ExecutionContext) => {
     ctx.waitUntil(
-      c.cron === "*/15 * * * *" ? logged(env, "prereview", () => runPrereview(env, fetch)).then(() => logged(env, "refill", () => lockedRefill(env, fetch, Date.now()))).then(() => logged(env, "wants", () => queueWanted(env, fetch))).then(() => logged(env, "wiki_site", () => syncSiteSources(env, Date.now())))
+      c.cron === "*/15 * * * *" ? logged(env, "prereview", () => runPrereview(env, fetch)).then(() => logged(env, "refill", () => lockedRefill(env, fetch, Date.now()))).then(() => logged(env, "wants", () => queueWanted(env, fetch))).then(() => logged(env, "wiki_site", () => syncSiteSources(env, Date.now()))).then(() => logged(env, "wiki_vectors", () => syncVectors(env, Date.now())))
       : c.cron === "0 2 * * *" ? logged(env, "refill", () => lockedRefill(env, fetch, Date.now()))
       : runNightly(env, fetch));
   },

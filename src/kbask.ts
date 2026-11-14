@@ -1,7 +1,7 @@
 import { askJSON, aiConfig } from "./ai";
 import { STOP, verifiedPairs } from "./chat";
 import { getGlossary } from "./glossary";
-import { searchChunks } from "./kb";
+import { hybridSearch } from "./kbvec";
 import { cleanText, isId } from "./text";
 import type { Env } from "./types";
 
@@ -170,7 +170,7 @@ export async function ask(env: Env, fetcher: typeof fetch, raw: unknown, who: { 
   }
 
   const lex = buildLexicon(await getGlossary(env), (await verifiedPairs(env)).map((p) => p.english));
-  const hits = await searchChunks(env, expandTerms(q, lex), 30);
+  const { hits } = await hybridSearch(env, expandTerms(q, lex), q, 30);
   const seen = new Set<string>();
   const seeAlso: Answer["seeAlso"] = [];
   for (const h of hits) {
