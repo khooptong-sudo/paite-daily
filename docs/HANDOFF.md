@@ -1,3 +1,43 @@
+# Handoff, 15 November 2026 (Claude Code: wiki plans 002 to 010 live, quiet boxes site-wide)
+
+Start a new session with: **Read this top section, then `plans/README.md` and `plans/HANDOFF-claude-code.md` (local only, not in git), then do "First thing next session".** The 14 November section below still holds for everything not mentioned here.
+
+## Where things stand
+- `main` at the handoff commit after **`c6227c5`**, **pushed**; GitHub, `main` and the live site match. Live worker **`3237d1f9`**, service worker cache **`v93`**.
+- **Remote D1:** `paite-daily` unchanged (through `0034_admin.sql`). `paite-wiki` has `migrations-wiki/0001` to **`0006`** (kb, ask, review, vectors, articles, tests).
+- **New Cloudflare resources:** Vectorize index **`paite-wiki`** (1,024 dims, cosine), bound as `WIKI_VECTORS`; Workers AI bound as `AI` (`@cf/baai/bge-m3`). Both in `wrangler.jsonc`.
+- **455 tests pass** (52 files), `tsc` clean. Test runs now do a Cloudflare account lookup at start-up because of the `ai`/`vectorize` bindings; `test/apply-migrations.ts` deletes `env.AI` and `env.WIKI_VECTORS` so no test ever calls them (tests that need them pass fakes, see `test/kbvec.test.ts`).
+- **`WIKI_PUBLIC` is NOT set:** visitors see no Tongdot | Tongsan, `/wiki` is 404, the About paragraph is hidden. Reviewers see everything.
+
+## Shipped 15 November (all deployed and pushed)
+- **Plan 002**, site data in the wiki (`src/kbsite.ts`): every 15 minutes `wiki_site` mirrors live sayings, visible words and verified pairs as approved `kind='site'` sources (2,911 at first run, 2,944 now). Never exportable.
+- **Plan 003**, ask engine (`src/kbask.ts`): English-only answers from up to 12 approved passages; quotes checked character for character (NFC, whitespace), Paite-only glossary words refused in the English, editorial line in the prompt; 7-day cache invalidated by passage change; 60/h per reviewer, 20/h per IP, 300 model calls a day. `kb_asks` log (no IP), `kb_flags`.
+- **Plan 004**, Tongdot | Tongsan in the front-page chat (`public/chat.js`): a mode switch shown only when `/api/ask/mode` says `review` (signed-in reviewer) or `public` (`WIKI_PUBLIC=1`); answer card with quote blocks, numbered sources, "Was this right?".
+- **Plan 005**, `/review/wiki` and `/admin/wiki` (`public/review/wiki.js`, one script, `data-api`): source queue (approve, reject, withdraw with confirm), add a pasted source, answers marked wrong (visitors shown as "visitor", never the IP hash), questions with no answer (dismissable), Sync now.
+- **Plan 007**, meaning search (`src/kbvec.ts`): `wiki_vectors` job embeds 300 passages a run (backfill was 900 of 2,944 at 22:15 UTC 14 Nov; check it finished), reciprocal-rank fusion with keyword search, every vector hit re-checked as approved in D1, keyword-only fallback.
+- **Plan 009**, wiki articles (`src/kbarticle.ts`): AI drafts from up to 20 passages, every paragraph cited, every quote checked; edits can only reuse the draft's passages; nobody publishes what they created or last edited (owner exempt); stale when a cited passage changes. Public `/wiki` and `/wiki/<slug>` only with `WIKI_PUBLIC=1`.
+- **Plan 010**, launch gate (`src/kbtest.ts`): Test questions on `/review/wiki` (owner lines `q | expect | note`, 20 automatic from site data, 12 fixed attack questions), runs of 3 per step with a per-kind report; visitors capped at 240 of the 300 daily calls; About paragraph when public.
+- **About page** now says dataset v1.2.0 (Zenodo `10.5281/zenodo.24212533`).
+- **Look:** every section and the woven-shawl panel sit in a quiet box (hairline `--line` border, `--surface` background, 20px radius, 20px gaps); every field has its own border. Block at the end of `public/style.css` ("Segments (owner, 15 Nov)"). The Pau Upa queue and both wiki pages now load `style.css` + `theme.js` with a shared `public/review/pages.css` (light and dark). Dropdown labels start with a capital; wiki Language shows "Paite and English / English / Paite".
+- **What's New (15 Nov):** A calmer layout; Tongdot | Tongsan, coming soon; Dataset version 1.2.0.
+
+## First thing next session
+1. **3D drop shadows on every box (owner, 15 Nov, "it is so nice").** Use the shawl canvas shadow as the model: `box-shadow: 0 10px 24px -16px rgba(0, 0, 0, .55)` (`public/style.css:268`, `.mypuan canvas`). Apply to the section boxes, the chat box, the shawl panel and the review/admin cards, tuned for dark mode; keep it quiet. Check light and dark at 360px.
+2. Check the vector backfill finished (`SELECT COUNT(*) FROM kb_vectors` vs `kb_chunks` in `paite-wiki`) and the Workers AI cost in the dashboard.
+3. Launch steps (owner): add 30+ test questions on `/review/wiki`, add the automatic and attack sets, run, read the report, publish at least one article, decide go/no-go. On go: `"WIKI_PUBLIC": "1"` in `wrangler.jsonc` vars, raise `CACHE`, What's New item, deploy, check `/api/ask/mode`, `/wiki`, `/about`. Checklist in `plans/010-launch-gate.md`.
+
+## Open decisions (owner)
+- **Plan 006, books:** how scanned pages become text (a scan app that embeds text + `pdftotext`, Tesseract here, or a cloud vision model). This machine has `pdftotext` and Python 3.14, no Tesseract.
+- **Article licence line:** today "This article is available under CC BY 4.0". Suggested: the article's own text CC BY 4.0, quoted passages under their sources' terms (matters for quote-only books).
+- "Say it in Paite" is my English label for the existing chat mode on the switch; change if wanted.
+
+## Lessons from this session
+- The first two real questions (reviewers, before meaning search) both came back "none" from the model, not from a failed check.
+- When chaining commit after tests, use `&&`, not `;`: a `;` chain committed with two failing tests once tonight (fixed in `cd6ea18`).
+- Coders in worktrees: paste the whole plan; tell them to `git merge --ff-only main` first (a worktree once started at `a9aeabc`); keep labels unique on `/review/wiki` (its `field()` derives ids from labels).
+
+---
+
 # Handoff, 14 November 2026, night (Paite Wiki foundations; work moves to Claude Code)
 
 Start a new session with: **Read this top section, then `plans/HANDOFF-claude-code.md` (local only, not in git), then ask the owner what to work on.** The 13 November section below still holds for everything not mentioned here.
