@@ -1,7 +1,8 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { runBackup } from "../src/backup";
-import { addSentences, PHONE_A } from "./helpers";
+import { runBackup, runWikiBackup } from "../src/backup";
+import { addChunks, addSource } from "../src/kb";
+import { addSentences, NOW, PHONE_A } from "./helpers";
 
 const gunzip = async (b: ArrayBuffer) => JSON.parse(await new Response(new Blob([b]).stream().pipeThrough(new DecompressionStream("gzip"))).text());
 
@@ -25,5 +26,16 @@ describe("nightly backup", () => {
     expect(data.tables.sentences.some((s: { english: string }) => s.english === "Backup me.")).toBe(true);
     expect(data.tables.answers.some((a: { paite: string }) => a.paite === "Ka kem")).toBe(true);
     expect(data.tables.d1_migrations).toBeUndefined();
+  });
+  it("backs up the wiki into its own bucket, without the full-text index tables", async () => {
+    const id = await addSource(env, { kind: "book", title: "Backup book", language: "en", rights: "open" }, "someone@example.org", NOW);
+    await addChunks(env, id, [{ text: "Some passage to keep." }]);
+    const now = Date.UTC(2026, 5, 30, 12);
+    const r = await runWikiBackup(env, now);
+    expect(r.key).toBe("backups/2026-06-30.json.gz");
+    const data = await gunzip(await (await env.WIKI_FILES.get(r.key))!.arrayBuffer());
+    expect(data.tables.kb_sources.map((s: { title: string }) => s.title)).toEqual(["Backup book"]);
+    expect(data.tables.kb_chunks.map((c: { text: string }) => c.text)).toEqual(["Some passage to keep."]);
+    expect(Object.keys(data.tables).filter((t) => t.startsWith("kb_chunks_fts"))).toEqual([]);
   });
 });
