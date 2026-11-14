@@ -28,7 +28,7 @@ const key = (s: string) => normaliseEnglish(s).replace(/[^\p{L}\p{N}'\s]/gu, " "
 // Words that carry no meaning on their own; matching on them produces noise.
 // Question words stay in: "how much is this" must not collapse to nothing. Pronouns and "not"
 // stay in too: "are you hungry?" is not "I am hungry.", and "I am not tired" is not "I am tired".
-const STOP = new Set(
+export const STOP = new Set(
   "a an the is are am was were be been being do does did done to of in on at for from by with and or but if this that these those have has had can could will would should shall may might must please there here".split(" "),
 );
 

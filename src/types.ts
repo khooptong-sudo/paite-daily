@@ -19,6 +19,7 @@ export interface Env {
   WIKI_FILES: R2Bucket;
   /** Bearer token for the owner's ingest scripts; unset or short means ingest is switched off. */
   WIKI_INGEST_TOKEN?: string;
+  WIKI_PUBLIC?: string; // "1" opens /api/ask to visitors
 }
 
 export interface Deps {

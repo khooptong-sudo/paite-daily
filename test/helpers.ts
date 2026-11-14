@@ -14,7 +14,7 @@ beforeEach(async () => {
   clearGapCache(); clearRulesCache(); clearSpellingCache();
   await env.DB.batch(["reviewer_login_attempts", "reviewer_password_links", "reviewer_sessions", "reviewer_passwords", "grammar_checks","recordings", "chat_wants", "job_locks", "word_submissions", "reviewer_applications", "reviewers", "proverb_answers", "proverbs", "glossary", "locks", "skips", "reviewer_phones", "reviews", "exports", "job_runs", "seen", "answers", "sentences", "errors", "events"].map((t) => env.DB.prepare(`DELETE FROM ${t}`)));
   // The wiki database too; chunks first so the FTS delete trigger clears the index.
-  await env.WIKI.batch(["kb_chunks", "kb_sources"].map((t) => env.WIKI.prepare(`DELETE FROM ${t}`)));
+  await env.WIKI.batch(["kb_flags", "kb_ask_cache", "kb_asks", "kb_counters", "kb_chunks", "kb_sources"].map((t) => env.WIKI.prepare(`DELETE FROM ${t}`)));
 });
 
 export const PHONE_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
