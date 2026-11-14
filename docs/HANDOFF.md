@@ -26,6 +26,14 @@ Start a new session with: **Read this top section, then `plans/README.md` and `p
 2. Check the vector backfill finished (`SELECT COUNT(*) FROM kb_vectors` vs `kb_chunks` in `paite-wiki`) and the Workers AI cost in the dashboard.
 3. Launch steps (owner): add 30+ test questions on `/review/wiki`, add the automatic and attack sets, run, read the report, publish at least one article, decide go/no-go. On go: `"WIKI_PUBLIC": "1"` in `wrangler.jsonc` vars, raise `CACHE`, What's New item, deploy, check `/api/ask/mode`, `/wiki`, `/about`. Checklist in `plans/010-launch-gate.md`.
 
+4. **Scaling fixes before books arrive (owner, 15 Nov), in order:**
+   1. `runWikiBackup` (`src/backup.ts`) builds the whole wiki DB as one gzip in memory; Workers have ~128 MB, so it breaks after a few dozen books. Stream it or write one file per table. The only real risk.
+   2. Every uncached ask rebuilds the lexicon from ~3,000 rows (`getGlossary` + `verifiedPairs` in `src/kbask.ts`); cache it for a few minutes.
+   3. `syncSiteSources` (`src/kbsite.ts`) re-hashes every site item each 15 minutes; move to change detection by `updated_at` past ~50,000 items.
+   4. `listArticles` (`src/kbarticle.ts`) runs one stale check per article; batch it before there are hundreds.
+   Fold 1 and 2 into plan 006 (books). Storage on 15 Nov: D1 main 4.5 MB, wiki 1.6 MB (ceiling 10 GB each), Vectorize 1,800 vectors, R2 nearly empty.
+5. **Make the vault get read, not just written:** add a session-start hook (or a line in this file) that runs a vault search for Paite Daily / Cloudflare / D1 before planning. Tonight the vault and RAG were only written to.
+
 ## Open decisions (owner)
 - **Plan 006, books:** how scanned pages become text (a scan app that embeds text + `pdftotext`, Tesseract here, or a cloud vision model). This machine has `pdftotext` and Python 3.14, no Tesseract.
 - **Article licence line:** today "This article is available under CC BY 4.0". Suggested: the article's own text CC BY 4.0, quoted passages under their sources' terms (matters for quote-only books).
