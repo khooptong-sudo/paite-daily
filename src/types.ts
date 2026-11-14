@@ -20,6 +20,10 @@ export interface Env {
   /** Bearer token for the owner's ingest scripts; unset or short means ingest is switched off. */
   WIKI_INGEST_TOKEN?: string;
   WIKI_PUBLIC?: string; // "1" opens /api/ask to visitors
+  /** Workers AI, for the embedding model. Optional: without it the wiki uses keyword search only. */
+  AI?: Ai;
+  /** Vectorize index of approved passages (1,024 dimensions, cosine). Optional, as AI. */
+  WIKI_VECTORS?: VectorizeIndex;
 }
 
 export interface Deps {
