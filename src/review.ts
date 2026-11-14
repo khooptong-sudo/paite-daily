@@ -42,6 +42,7 @@ import { getRules } from "./rules";
 import { NOT_OWN_SENTENCE, claimNext, decide, skipCard, undo, type Decision } from "./reviewdb";
 import { whoReviews } from "./own";
 import { handleWikiApi } from "./kbapi";
+import { ask, flagAnswer } from "./kbask";
 import { json, type Deps, type Env } from "./types";
 
 export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: ExecutionContext): Promise<Response> {
@@ -65,6 +66,10 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
   if (pathname.startsWith("/review/api/wiki/")) {
     const r = await handleWikiApi(env, req.method, pathname.slice("/review/api/wiki".length), new URL(req.url).searchParams, b, { email: email.toLowerCase(), owner: isOwner(env, email.toLowerCase()) }, deps.now());
     if (r) return r;
+  }
+  if (pathname === "/review/api/ask" && req.method === "POST") return json(await ask(env, deps.fetch ?? fetch, b.q, { via: "review", key: "rev:" + email.toLowerCase() }, deps.now()));
+  if (pathname === "/review/api/ask/flag" && req.method === "POST") {
+    return (await flagAnswer(env, b.askId, b.right, b.note, "rev:" + email.toLowerCase(), deps.now())) ? json({ ok: true }) : json({ error: "bad_request" }, 400);
   }
 
   if (pathname === "/review/api/rules" && req.method === "GET") return json({ rules: await getRules(env, deps.now()) });

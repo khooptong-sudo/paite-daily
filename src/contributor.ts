@@ -1,5 +1,6 @@
 import { buildScenes, matchChat, recordWant } from "./chat";
-import { handleApply } from "./apply";
+import { handleApply, hashIp } from "./apply";
+import { ask, flagAnswer } from "./kbask";
 import { getGoal } from "./goal";
 import { badgeFor, getContributors } from "./contributors";
 import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, sharedSentence, skipSentence, type Register } from "./db";
@@ -66,6 +67,14 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   if (pathname === "/api/chat/want" && req.method === "POST") {
     const b = await body(req);
     return (await recordWant(env, b.q)) ? json({ ok: true }) : json({ error: "bad_request" }, 400);
+  }
+
+  // The wiki answer engine, closed until WIKI_PUBLIC is "1". No session, like the chat.
+  if (env.WIKI_PUBLIC === "1" && (pathname === "/api/ask" || pathname === "/api/ask/flag") && req.method === "POST") {
+    const b = await body(req);
+    const key = "ip:" + (await hashIp(req.headers.get("CF-Connecting-IP") ?? "unknown", env.SESSION_SECRET));
+    if (pathname === "/api/ask") return json(await ask(env, deps.fetch ?? fetch, b.q, { via: "public", key }, deps.now()));
+    return (await flagAnswer(env, b.askId, b.right, b.note, key, deps.now())) ? json({ ok: true }) : json({ error: "bad_request" }, 400);
   }
 
   const phoneId = await readSession(req.headers.get("X-Session"), deps.now(), env.SESSION_SECRET);
