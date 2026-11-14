@@ -13,6 +13,12 @@ export interface Env {
   COMMUNITY_GOAL: string;
   DEEPSEEK_API_KEY?: string;
   ALERT_EMAIL?: SendEmail;
+  /** The Paite Wiki's own database: sources and their passages, kept apart from the main one. */
+  WIKI: D1Database;
+  /** Private bucket for the wiki's original files (PDFs, scans) and its nightly backups. */
+  WIKI_FILES: R2Bucket;
+  /** Bearer token for the owner's ingest scripts; unset or short means ingest is switched off. */
+  WIKI_INGEST_TOKEN?: string;
 }
 
 export interface Deps {
