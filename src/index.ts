@@ -15,6 +15,7 @@ import { errorPage, handleEvent, recordError } from "./observability";
 import { publicAudio } from "./recordings";
 import { handleReview } from "./review";
 import { handleAdmin } from "./admin";
+import { handleIngest } from "./kbapi";
 import { verifyTurnstile } from "./turnstile";
 import type { Deps, Env } from "./types";
 
@@ -33,6 +34,7 @@ export function createApp(deps: Deps) {
       if (pathname === "/places") return new Response(renderPlaces(await getPlaces(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/about") return new Response(renderAbout(), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600" } });
       if (pathname.startsWith("/audio/") && req.method === "GET") return await publicAudio(env, pathname);
+      if (pathname.startsWith("/wiki/api/ingest/")) return await handleIngest(req, env, deps.now());
       if (pathname.startsWith("/api/")) return await handleContributor(req, env, deps, ctx);
       if (pathname.startsWith("/review/api/")) return await handleReview(req, env, deps, ctx);
       if (pathname.startsWith("/admin/api/")) return await handleAdmin(req, env, deps, ctx);

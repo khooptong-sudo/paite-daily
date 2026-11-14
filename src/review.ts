@@ -41,6 +41,7 @@ import { checkSpelling } from "./spelling";
 import { getRules } from "./rules";
 import { NOT_OWN_SENTENCE, claimNext, decide, skipCard, undo, type Decision } from "./reviewdb";
 import { whoReviews } from "./own";
+import { handleWikiApi } from "./kbapi";
 import { json, type Deps, type Env } from "./types";
 
 export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: ExecutionContext): Promise<Response> {
@@ -61,6 +62,10 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
 
   const owned = await handleOwnerReview(pathname, req.method, b, env, email, deps.now());
   if (owned) return owned;
+  if (pathname.startsWith("/review/api/wiki/")) {
+    const r = await handleWikiApi(env, req.method, pathname.slice("/review/api/wiki".length), new URL(req.url).searchParams, b, { email: email.toLowerCase(), owner: isOwner(env, email.toLowerCase()) }, deps.now());
+    if (r) return r;
+  }
 
   if (pathname === "/review/api/rules" && req.method === "GET") return json({ rules: await getRules(env, deps.now()) });
   if (pathname === "/review/api/spelling" && req.method === "POST") return checkSpelling(env, b, deps.now());
