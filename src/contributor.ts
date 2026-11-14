@@ -1,5 +1,6 @@
 import { buildScenes, matchChat, recordWant } from "./chat";
 import { handleApply, hashIp } from "./apply";
+import { reviewerName } from "./access";
 import { ask, flagAnswer } from "./kbask";
 import { getGoal } from "./goal";
 import { badgeFor, getContributors } from "./contributors";
@@ -67,6 +68,13 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   if (pathname === "/api/chat/want" && req.method === "POST") {
     const b = await body(req);
     return (await recordWant(env, b.q)) ? json({ ok: true }) : json({ error: "bad_request" }, 400);
+  }
+
+  // Which ask endpoint this visitor may use: everyone once WIKI_PUBLIC is "1", before that signed-in reviewers only.
+  if (pathname === "/api/ask/mode" && req.method === "GET") {
+    if (env.WIKI_PUBLIC === "1") return json({ mode: "public" });
+    const email = await deps.verifyReviewer(req, env);
+    return json({ mode: email && (await reviewerName(env, email)) ? "review" : null });
   }
 
   // The wiki answer engine, closed until WIKI_PUBLIC is "1". No session, like the chat.

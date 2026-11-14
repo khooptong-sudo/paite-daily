@@ -95,6 +95,10 @@
       <div class="chat-body">
         <div class="chips" id="chat-chips" role="group" aria-label="Sample conversations"></div>
         <div class="thread" id="chat-thread" aria-live="polite"></div>
+        <div class="chips modes" id="chat-modes" role="group" hidden>
+          <button type="button" class="chip" data-mode="line" aria-pressed="true" data-s="askModeLine">Say it in Paite</button>
+          <button type="button" class="chip" data-mode="ask" aria-pressed="false" data-s="askMode">Tongdot | Tongsan</button>
+        </div>
         <form class="ask" id="chat-form" novalidate>
           <input id="chat-q" aria-label="Type an English line" data-lang="en" data-check="off" type="text" autocomplete="off" autocapitalize="sentences" maxlength="120">
           <button type="submit" class="primary" data-s="chatAsk"></button>
