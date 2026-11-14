@@ -904,3 +904,9 @@ html[data-theme=light] .blue .ask-card { background: rgba(21, 18, 15, .035); }
 }
 .blue textarea:focus, .blue input:not([type=radio]):not([type=checkbox]):not([type=range]):focus, .blue select:focus,
 .blue .gl input[type=search]:focus, .blue .gl textarea:focus { border-color: var(--hair); box-shadow: none; }
+/* Same box and the same 20px rhythm for the woven-shawl panel and around the chat, as for every section. */
+.blue .mypuan {
+  max-width: none; margin: 20px 0 0; border: 1px solid var(--line); border-radius: 20px; background: var(--surface);
+  padding: 28px clamp(18px, 4vw, 32px); gap: 10px;
+}
+.blue .card.chat { padding: 0; margin-top: 20px; }

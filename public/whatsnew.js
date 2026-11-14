@@ -3,7 +3,8 @@
 // item is added. Add new items at the top of NEWS.
 (() => {
   const NEWS = [
-    { id: "2026-11-15-boxes", date: "2026-11-15", title: "A calmer layout", text: "Each part of the page now sits in its own quiet box, and every place you type has a clear border, so it is easy to see where one thing ends and the next begins." },
+    { id: "2026-11-15-boxes", date: "2026-11-15", title: "A calmer layout", text: "Each part of the page, your woven shawl included, now sits in its own quiet box, and every place you type has a clear border, so it is easy to see where one thing ends and the next begins." },
+    { id: "2026-11-15-tongdot", date: "2026-11-15", title: "Tongdot | Tongsan, coming soon", text: "Reviewers are now testing a new mode in the chat: ask about Paite words, sayings, culture or history, and get an answer written only from our reviewed sources, with every Paite quote checked word for word. It opens to everyone once testing is done." },
     { id: "2026-11-15-zenodo", date: "2026-11-15", title: "Dataset version 1.2.0", text: "Zenodo has a new citable version of the open dataset: 1,361 verified pairs, 62 voice recordings and 1,868 words.", href: "https://doi.org/10.5281/zenodo.24212533" },
     { id: "2026-11-13-own", date: "2026-11-13", title: "Every line checked by someone else", text: "When a reviewer sends a sentence, word, saying or recording, another reviewer now checks it, never the person who sent it." },
     { id: "2026-11-13-footer", date: "2026-11-13", title: "A tidier footer", text: "The silk colours now show on phones, and they run all the way to the bottom of the page. Buy us Coffee, Email and WhatsApp sit on one line, and About This Project is underlined in red." },
