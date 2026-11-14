@@ -205,6 +205,9 @@ const safeUrl = (u: string | null): u is string => !!u && ((u.startsWith("/") &&
 const STYLE = `<style>
 .wiki{max-width:44rem;margin:0 auto}
 .wiki p,.wiki li{line-height:1.65}
+.wiki h2{margin:1.8rem 0 .5rem}
+.wiki p{margin:.5rem 0}
+.wiki ol{list-style:decimal;padding-left:1.4em}
 .wiki blockquote{margin:1rem 0;padding:.4rem 1rem;border-left:3px solid var(--line)}
 .wiki sup a{margin-left:.15rem;text-decoration:none}
 .wiki .note{margin-top:2.5rem;font-size:.9rem;color:var(--muted)}
