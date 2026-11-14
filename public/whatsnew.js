@@ -3,6 +3,7 @@
 // item is added. Add new items at the top of NEWS.
 (() => {
   const NEWS = [
+    { id: "2026-11-15-zenodo", date: "2026-11-15", title: "Dataset version 1.2.0", text: "Zenodo has a new citable version of the open dataset: 1,361 verified pairs, 62 voice recordings and 1,868 words.", href: "https://doi.org/10.5281/zenodo.24212533" },
     { id: "2026-11-13-own", date: "2026-11-13", title: "Every line checked by someone else", text: "When a reviewer sends a sentence, word, saying or recording, another reviewer now checks it, never the person who sent it." },
     { id: "2026-11-13-footer", date: "2026-11-13", title: "A tidier footer", text: "The silk colours now show on phones, and they run all the way to the bottom of the page. Buy us Coffee, Email and WhatsApp sit on one line, and About This Project is underlined in red." },
     { id: "2026-11-13-totop", date: "2026-11-13", title: "Back to the top, quietly", text: "Scroll down and a small arrow appears on the right. Its thin line fills as you read; tap it to go back to the top." },

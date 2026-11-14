@@ -206,7 +206,7 @@ ${STYLE}
 <a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>The data, on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The verified pairs and voice recordings from this site, together with the Paite Bible, a dictionary, hymns, corrections and ready-to-train files.</span></a>
 <a class="card2" href="https://github.com/khooptong-sudo/paite-daily" target="_blank" rel="noopener"><small>The code, on GitHub</small><strong>khooptong-sudo/paite-daily</strong><span>This site: a Cloudflare Worker with a D1 database. MIT or Apache 2.0, your choice.</span></a>
 <a class="card2" href="https://huggingface.co/datasets/LamkaLabs/paite-open-language-data" target="_blank" rel="noopener"><small>The same data, on Hugging Face</small><strong>LamkaLabs/paite-open-language-data</strong><span>Copied from GitHub every Monday, ready for <code>load_dataset</code>.</span></a>
-<a class="card2" href="https://doi.org/10.5281/zenodo.23349155" target="_blank" rel="noopener"><small>Citable releases on Zenodo</small><strong>doi.org/10.5281/zenodo.23349155</strong><span>This DOI always points to the latest release (now v1.1.0).</span></a>
+<a class="card2" href="https://doi.org/10.5281/zenodo.23349155" target="_blank" rel="noopener"><small>Citable releases on Zenodo</small><strong>doi.org/10.5281/zenodo.23349155</strong><span>This DOI always points to the latest release (now v1.2.0).</span></a>
 </div>
 
 <h3 id="rights" style="margin-top:2rem">What you may do with each part</h3>
