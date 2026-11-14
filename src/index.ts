@@ -18,6 +18,7 @@ import { publicAudio } from "./recordings";
 import { handleReview } from "./review";
 import { handleAdmin } from "./admin";
 import { handleIngest } from "./kbapi";
+import { renderArticlePage, renderWikiIndex } from "./kbarticle";
 import { verifyTurnstile } from "./turnstile";
 import type { Deps, Env } from "./types";
 
@@ -37,6 +38,10 @@ export function createApp(deps: Deps) {
       if (pathname === "/about") return new Response(renderAbout(), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600" } });
       if (pathname.startsWith("/audio/") && req.method === "GET") return await publicAudio(env, pathname);
       if (pathname.startsWith("/wiki/api/ingest/")) return await handleIngest(req, env, deps.now());
+      if (env.WIKI_PUBLIC === "1" && req.method === "GET" && (pathname === "/wiki" || /^\/wiki\/[a-z0-9-]{1,80}$/.test(pathname))) {
+        const page = pathname === "/wiki" ? await renderWikiIndex(env) : await renderArticlePage(env, pathname.slice(6));
+        if (page !== null) return new Response(page, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=300" } });
+      }
       if (pathname.startsWith("/api/")) return await handleContributor(req, env, deps, ctx);
       if (pathname.startsWith("/review/api/")) return await handleReview(req, env, deps, ctx);
       if (pathname.startsWith("/admin/api/")) return await handleAdmin(req, env, deps, ctx);

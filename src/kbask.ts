@@ -128,7 +128,7 @@ async function log(env: Env, q: string, qKey: string, via: string, status: strin
 }
 
 // One more use of a counter, unless it is already at its limit.
-async function bump(env: Env, name: string, limit: number): Promise<boolean> {
+export async function bump(env: Env, name: string, limit: number): Promise<boolean> {
   const r = await env.WIKI.prepare("INSERT INTO kb_counters (name, n) VALUES (?1, 1) ON CONFLICT(name) DO UPDATE SET n = n + 1 WHERE n < ?2").bind(name, limit).run();
   return r.meta.changes === 1;
 }

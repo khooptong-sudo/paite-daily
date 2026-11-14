@@ -1,4 +1,5 @@
 import { addChunks, addSource, chunkText, decideSource, getSource, listSources, readChunks, readNewSource, sha256Hex, STATUSES, withdrawSource, type SourceStatus } from "./kb";
+import { draftArticle, getArticle, listArticles, saveArticle, setStatus } from "./kbarticle";
 import { dismissQuestion, listFlagged, listOpen } from "./kbask";
 import { syncSiteSources } from "./kbsite";
 import { cleanText, isId } from "./text";
@@ -12,6 +13,7 @@ const FILE_TYPES = new Set([
 ]);
 const OWN_MESSAGE = "This is your own submission. Another reviewer will check it.";
 const STATUS_OF: Record<string, number> = { not_found: 404, not_pending: 409, own_submission: 409, no_text: 409, already_withdrawn: 409, bad_request: 400 };
+const ART_STATUS: Record<string, number> = { bad_request: 400, limited: 429, no_passages: 409, no_ai: 503, draft_failed: 422, not_found: 404, not_editable: 409, check_failed: 422, wrong_status: 409, own_submission: 409, stale: 409 };
 function fail(error: string): Response {
   return json(error === "own_submission" ? { error, message: OWN_MESSAGE } : { error }, STATUS_OF[error] ?? 400);
 }
@@ -29,7 +31,7 @@ async function addAll(env: Env, id: number, chunks: { text: string; locator: str
  * The caller has already signed the person in; sub is the path after the prefix. Null means unknown path.
  */
 export async function handleWikiApi(
-  env: Env, method: string, sub: string, q: URLSearchParams, b: Record<string, unknown>, who: { email: string; owner: boolean }, now: number,
+  env: Env, method: string, sub: string, q: URLSearchParams, b: Record<string, unknown>, who: { email: string; owner: boolean }, now: number, fetcher: typeof fetch = fetch,
 ): Promise<Response | null> {
   if (!b || typeof b !== "object") b = {};
   if (sub === "/sources" && method === "GET") {
@@ -71,6 +73,25 @@ export async function handleWikiApi(
     }
     const r = await withdrawSource(env, b.id, who, reason, now);
     return "ok" in r ? json({ ok: true }) : fail(r.error);
+  }
+  if (sub === "/articles" && method === "GET") return json({ articles: await listArticles(env) });
+  if (sub === "/article" && method === "GET") {
+    const id = Number(q.get("id"));
+    const article = isId(id) ? await getArticle(env, id) : null;
+    return article ? json({ article }) : json({ error: "not_found" }, 404);
+  }
+  if (sub === "/articles/draft" && method === "POST") {
+    const r = await draftArticle(env, fetcher, { title: b.title, topic: b.topic }, who, now);
+    return "id" in r ? json({ id: r.id }) : json(r, ART_STATUS[r.error] ?? 400);
+  }
+  if (sub === "/articles/save" && method === "POST") {
+    const r = await saveArticle(env, { id: b.id, blocks: b.blocks, note: b.note }, who, now);
+    return "ok" in r ? json({ ok: true }) : json(r, ART_STATUS[r.error] ?? 400);
+  }
+  const act = /^\/articles\/(submit|publish|return|withdraw)$/.exec(sub);
+  if (act && method === "POST") {
+    const r = await setStatus(env, b.id, act[1] as "submit" | "publish" | "return" | "withdraw", who, now);
+    return "ok" in r ? json({ ok: true }) : json(r, ART_STATUS[r.error] ?? 400);
   }
   if (sub === "/asks/flagged" && method === "GET") return json({ asks: await listFlagged(env) });
   if (sub === "/asks/open" && method === "GET") return json({ questions: await listOpen(env) });

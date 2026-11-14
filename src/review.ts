@@ -64,7 +64,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
   const owned = await handleOwnerReview(pathname, req.method, b, env, email, deps.now());
   if (owned) return owned;
   if (pathname.startsWith("/review/api/wiki/")) {
-    const r = await handleWikiApi(env, req.method, pathname.slice("/review/api/wiki".length), new URL(req.url).searchParams, b, { email: email.toLowerCase(), owner: isOwner(env, email.toLowerCase()) }, deps.now());
+    const r = await handleWikiApi(env, req.method, pathname.slice("/review/api/wiki".length), new URL(req.url).searchParams, b, { email: email.toLowerCase(), owner: isOwner(env, email.toLowerCase()) }, deps.now(), deps.fetch ?? fetch);
     if (r) return r;
   }
   if (pathname === "/review/api/ask" && req.method === "POST") return json(await ask(env, deps.fetch ?? fetch, b.q, { via: "review", key: "rev:" + email.toLowerCase() }, deps.now()));

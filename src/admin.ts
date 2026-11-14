@@ -160,7 +160,7 @@ export async function handleAdmin(req: Request, env: Env, deps: Deps, ctx?: Exec
 
   if (pathname === "/admin/api/me" && req.method === "GET") return json({ email: me, superuser: owner });
   if (pathname.startsWith("/admin/api/wiki/")) {
-    const r = await handleWikiApi(env, req.method, pathname.slice("/admin/api/wiki".length), new URL(req.url).searchParams, b, { email: me, owner }, now);
+    const r = await handleWikiApi(env, req.method, pathname.slice("/admin/api/wiki".length), new URL(req.url).searchParams, b, { email: me, owner }, now, deps.fetch ?? fetch);
     if (r) return r;
   }
 

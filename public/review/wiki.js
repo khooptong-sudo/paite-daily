@@ -228,6 +228,145 @@
     loadSources();
   });
 
+  // ---- 6. Articles
+  const secArt = $("sec-articles");
+  const artDraftMsg = el("div");
+  const artTitle = el("input", { maxlength: "120" });
+  const artTopic = el("textarea", { maxlength: "500", rows: "3" });
+  const artDraftBtn = el("button", { class: "go", type: "button", text: "Draft" });
+  const artList = el("div");
+  const artView = el("div");
+  secArt.append(
+    el("p", { class: "eyebrow", text: "Draft with AI" }),
+    ...field("Title", artTitle), ...field("Topic (what it should cover, at most 500 characters)", artTopic),
+    el("div", { class: "row" }, artDraftBtn), artDraftMsg, artList, artView,
+  );
+  const STATUS_TEXT = { draft: "draft", pending: "waiting for another reviewer", published: "published", withdrawn: "withdrawn" };
+
+  async function loadArticles() {
+    clear(artList);
+    const r = await call("/articles");
+    if (!r.ok) { note(artList, problem(r)); return; }
+    if (!r.data.articles.length) { artList.append(el("p", { class: "empty", text: "No articles yet." })); return; }
+    for (const a of r.data.articles) {
+      const open = el("button", { class: "title", type: "button", text: a.title, on: { click: () => openArticle(a.id) } });
+      const tags = el("p", { class: "meta" }, el("span", { class: "tag", text: STATUS_TEXT[a.status] || a.status }), a.stale ? el("span", { class: "tag", text: "sources changed" }) : null, el("span", { text: date(a.updatedAt) }));
+      artList.append(el("div", { class: "item" }, open, tags));
+    }
+  }
+
+  artDraftBtn.addEventListener("click", async () => {
+    clear(artDraftMsg);
+    artDraftBtn.disabled = true;
+    note(artDraftMsg, "Drafting… this can take up to 30 seconds.", true);
+    const r = await call("/articles/draft", { title: artTitle.value, topic: artTopic.value });
+    artDraftBtn.disabled = false;
+    clear(artDraftMsg);
+    if (r.ok) { artTitle.value = ""; artTopic.value = ""; await loadArticles(); openArticle(r.data.id); return; }
+    const e = r.data.error;
+    note(artDraftMsg,
+      e === "draft_failed" ? "The draft did not pass the checks (" + (r.data.reason || "unknown") + "). Try a narrower topic."
+      : e === "bad_request" ? "The title needs 3 to 120 characters and the topic 3 to 500."
+      : e === "limited" ? "The daily limit for drafts is used up. Try again tomorrow."
+      : e === "no_passages" ? "No approved passages match this topic."
+      : e === "no_ai" ? "The AI helper is not set up."
+      : problem(r));
+  });
+
+  function previewBlocks(blocks, sources) {
+    const box = el("div", { class: "block" });
+    const num = new Map(sources.map((s, i) => [s.chunk, i + 1]));
+    const sup = (id) => (num.has(id) ? el("sup", { text: String(num.get(id)) }) : null);
+    for (const b of blocks) {
+      if (b.type === "heading") box.append(el("h2", { text: b.text }));
+      else if (b.type === "quote") box.append(el("blockquote", { lang: "pck" }, b.text, sup(b.chunk)));
+      else box.append(el("p", null, b.text, ...(b.cites || []).map(sup)));
+    }
+    if (sources.length) {
+      const ol = el("ol");
+      for (const s of sources) {
+        const label = s.title + (s.locator ? " · " + s.locator : "");
+        ol.append(el("li", null, safeHref(s.url) ? el("a", { href: s.url, target: s.url.startsWith("https://") ? "_blank" : null, rel: "noopener", text: label }) : label));
+      }
+      box.append(el("h2", { text: "Sources" }), ol);
+    }
+    return box;
+  }
+
+  async function openArticle(id) {
+    clear(artView);
+    const r = await call("/article?id=" + id);
+    if (!r.ok) { note(artView, problem(r)); return; }
+    const a = r.data.article;
+    const blocks = a.blocks.map((b) => ({ ...b }));
+    const rows = el("div");
+    const preview = el("div");
+    const msg = el("div");
+    const editable = a.status === "draft" || a.status === "pending";
+    const srcNum = (id2) => a.sources.findIndex((s) => s.chunk === id2) + 1;
+    const draw = () => {
+      clear(rows);
+      blocks.forEach((b, i) => {
+        const row = el("div", { class: "block" });
+        if (b.type === "heading") {
+          const inp = el("input", { maxlength: "120", "aria-label": "Heading", value: b.text });
+          inp.addEventListener("input", () => { b.text = inp.value; });
+          row.append(inp);
+        } else if (b.type === "text") {
+          const ta = el("textarea", { "aria-label": "Paragraph" });
+          ta.value = b.text;
+          ta.addEventListener("input", () => { b.text = ta.value; });
+          row.append(ta, el("p", { class: "meta", text: "Sources: " + (b.cites || []).map(srcNum).filter(Boolean).join(", ") }));
+        } else {
+          row.append(el("blockquote", { lang: "pck", text: b.text }), el("p", { class: "meta", text: "Quote from source " + (srcNum(b.chunk) || "?") }));
+        }
+        if (editable) {
+          const move = (d) => { const j = i + d; if (j < 0 || j >= blocks.length) return; [blocks[i], blocks[j]] = [blocks[j], blocks[i]]; draw(); };
+          row.append(el("div", { class: "row" },
+            el("button", { type: "button", text: "Up", on: { click: () => move(-1) } }),
+            el("button", { type: "button", text: "Down", on: { click: () => move(1) } }),
+            el("button", { class: "danger", type: "button", text: "Remove", on: { click: () => { blocks.splice(i, 1); draw(); } } }),
+          ));
+        }
+        rows.append(row);
+      });
+    };
+    draw();
+    const noteBox = el("input", { maxlength: "300", "aria-label": "Note" });
+    const act = async (path, body, okText) => {
+      clear(msg);
+      const r2 = await call(path, body);
+      if (r2.ok) { await loadArticles(); if (okText) { await openArticle(id); note(artView, okText, true); } else await openArticle(id); return; }
+      const e = r2.data.error;
+      note(msg, e === "check_failed" ? "The edit did not pass the checks (" + (r2.data.reason || "unknown") + ")." : e === "stale" ? "A source this article cites has changed or been withdrawn." : problem(r2));
+    };
+    const btn = (text, fn, cls) => el("button", { class: cls || null, type: "button", text, on: { click: fn } });
+    const actions = el("div", { class: "row" });
+    if (editable) {
+      actions.append(btn("Save", () => act("/articles/save", { id, blocks, note: noteBox.value.trim() || undefined }, "Saved."), "go"));
+    }
+    actions.append(btn("Preview", () => { clear(preview); preview.append(previewBlocks(blocks, a.sources)); }));
+    if (a.status === "draft") actions.append(btn("Submit for review", () => act("/articles/submit", { id }, "Submitted. Another reviewer must publish it.")));
+    if (a.status === "pending") actions.append(btn("Publish", () => act("/articles/publish", { id }, "Published."), "go"), btn("Return to draft", () => act("/articles/return", { id })));
+    if (a.status === "published") {
+      actions.append(btn("Return to draft", () => act("/articles/return", { id })));
+    }
+    if (a.status !== "withdrawn") actions.append(btn("Withdraw", () => act("/articles/withdraw", { id }), "danger"));
+    const revs = el("div");
+    for (const v of a.revs) revs.append(el("p", { class: "meta", text: date(v.at) + " · " + v.author + (v.note ? " · " + v.note : "") }));
+    artView.append(
+      el("h2", { text: a.title }),
+      el("p", { class: "meta" }, el("span", { class: "tag", text: STATUS_TEXT[a.status] || a.status }), a.stale ? el("span", { class: "tag", text: "sources changed" }) : null),
+      rows,
+      editable ? el("div", null, ...field("Note about this change (optional)", noteBox)) : null,
+      actions, msg,
+      a.status === "published" ? el("p", { class: "meta" }, el("a", { href: "/wiki/" + a.slug, text: "Open public page" }), " (works only after launch)") : null,
+      preview,
+      el("p", { class: "eyebrow", text: "Revisions" }), revs,
+    );
+  }
+
+  loadArticles();
   loadSources();
   loadFlagged();
   loadOpen();
