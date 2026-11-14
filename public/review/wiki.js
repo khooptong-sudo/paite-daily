@@ -238,7 +238,7 @@
   const artView = el("div");
   secArt.append(
     el("p", { class: "eyebrow", text: "Draft with AI" }),
-    ...field("Title", artTitle), ...field("Topic (what it should cover, at most 500 characters)", artTopic),
+    ...field("Article title", artTitle), ...field("Topic (what it should cover, at most 500 characters)", artTopic),
     el("div", { class: "row" }, artDraftBtn), artDraftMsg, artList, artView,
   );
   const STATUS_TEXT = { draft: "draft", pending: "waiting for another reviewer", published: "published", withdrawn: "withdrawn" };
