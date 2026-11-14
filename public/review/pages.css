@@ -1,0 +1,51 @@
+/* Review pages that have their own layout (Pau Upa queue, Paite Wiki for reviewers and admins).
+   Colours, fonts, section boxes and field borders come from /style.css (the site theme, light and
+   dark); this file only adds what these pages need, in the same tokens. Scoped to body.rv. */
+body.rv { --rv-red: #ff8a8a; --rv-ok: #9fd3a8; }
+html[data-theme=light] body.rv { --rv-red: #b3253c; --rv-ok: #4f6b4a; }
+body.blue.rv:not(.cp) main { max-width: 42rem; margin: 0 auto; padding: 26px 16px 90px; display: block; }
+body.rv [hidden] { display: none !important; }
+body.rv .top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+body.rv .top h1 { font: 400 1.7rem/1.2 var(--display); margin: 0; color: var(--fg); letter-spacing: 0; text-transform: none; }
+body.rv .card h2 { font: 400 1.3rem/1.3 var(--display); margin: 0 0 12px; }
+body.rv main > h2 { font: 400 1.15rem/1.3 var(--display); margin: 2rem 0 .3rem; color: var(--fg); }
+body.rv main > h2 span { font: 400 .78rem var(--body); color: var(--muted); margin-left: .4rem; }
+body.rv .who, body.rv .count, body.rv .meta, body.rv .help, body.rv .empty { color: var(--muted); }
+body.rv .who { font-size: .85rem; }
+body.rv .count { font-size: .9rem; margin: .5rem 0 1.4rem; }
+body.rv .back { color: var(--muted); font-size: .86rem; text-decoration: none; border-bottom: 1px solid var(--line); }
+body.rv .eyebrow { font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+body.rv .prompt { font: 400 1.6rem/1.22 var(--display); margin: 0 0 10px; color: var(--fg); }
+body.rv .help { font-size: .83rem; margin: 4px 0 16px; }
+body.rv .meta { font-size: .78rem; margin: 0 0 10px; }
+body.rv .block { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; margin: 0 0 12px; }
+body.rv .block.sel { border-color: var(--hair); }
+body.rv .txt { font-size: 1.12rem; margin: 0 0 4px; }
+body.rv .pre { white-space: pre-wrap; margin: 6px 0 0; }
+body.rv .row, body.rv .actions { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+body.rv .check { display: flex; align-items: center; gap: 8px; font-size: .86rem; color: var(--muted); margin: 10px 0 12px; }
+body.rv label { display: block; font-size: .8rem; color: var(--muted); margin: 12px 0 4px; }
+body.rv input:not([type=radio]):not([type=checkbox]), body.rv textarea { width: 100%; font-size: 1rem; }
+body.rv textarea { min-height: 110px; resize: vertical; font-family: var(--body); }
+body.rv select { width: auto; max-width: 100%; font-size: 1rem; }
+/* Buttons: quiet outlined pills; the main action is solid. */
+body.blue.rv main button:not(.theme-toggle) { font: inherit; font-size: .9rem; padding: 9px 16px; border-radius: 12px; border: 1px solid var(--line); background: transparent; color: var(--fg); cursor: pointer; box-shadow: none; text-decoration: none; }
+body.blue.rv main button:not(.theme-toggle):hover:not(:disabled) { border-color: var(--hair); }
+body.blue.rv main button:not(.theme-toggle):disabled { opacity: .45; cursor: default; }
+body.blue.rv main button.go:not(.theme-toggle), body.blue.rv main button.accept:not(.theme-toggle) { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+body.blue.rv main button.accept:not(.theme-toggle) { flex: 1; }
+body.blue.rv main button.danger:not(.theme-toggle) { color: var(--rv-red); }
+body.rv .item { border-top: 1px solid var(--line); padding: 12px 0; }
+body.rv .item:first-of-type { border-top: 0; }
+body.blue.rv main .item button.title:not(.theme-toggle) { font-weight: 600; margin: 0 0 2px; background: none; border: 0; padding: 0; text-align: left; font-size: 1rem; color: var(--fg); }
+body.rv .tag { display: inline-block; font-size: .72rem; border: 1px solid var(--line); border-radius: 99px; padding: 1px 9px; margin: 0 6px 4px 0; color: var(--muted); }
+body.rv blockquote { margin: 8px 0; padding: 2px 0 2px 12px; border-left: 3px solid var(--rv-red); }
+body.rv #status:not(.status) { min-height: 1.4em; color: var(--rv-red); font-size: .9rem; margin: .6rem 0 1rem; }
+body.rv .msg { color: var(--rv-red); font-size: .85rem; margin: 6px 0; }
+body.rv .msg.ok, body.rv .yes { color: var(--rv-ok); }
+body.rv .no { color: var(--rv-red); font-weight: 600; }
+body.rv .yes { font-weight: 600; }
+body.rv .vote { font-size: .85rem; margin: 2px 0; }
+/* Pau Upa: the floating status toast. */
+body.rv .status { position: fixed; left: 50%; transform: translateX(-50%); bottom: 18px; background: var(--fg); color: var(--bg); padding: 9px 16px; border-radius: 99px; font-size: .86rem; opacity: 0; transition: opacity .2s; z-index: 9; }
+body.rv .status.on { opacity: 1; }
