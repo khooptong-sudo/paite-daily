@@ -888,3 +888,19 @@ body:has(.xmas-mute) .totop { bottom: max(76px, calc(env(safe-area-inset-bottom)
 .ask-flag textarea { flex: 1 1 100%; min-width: 0; min-height: 3.2em; }
 .blue .ask-card { background: rgba(244, 241, 234, .04); border-color: var(--line); }
 html[data-theme=light] .blue .ask-card { background: rgba(21, 18, 15, .035); }
+
+/* Segments (owner, 15 Nov): each section sits in a quiet box and each field has its own border.
+   Hairline borders in the line colour and a faint surface only: clean and minimal, nothing loud.
+   The greeting stays open as the hero; its chat box is boxed instead. */
+.blue .card:not(.chat) {
+  border: 1px solid var(--line); border-radius: 20px; background: var(--surface);
+  padding: 28px clamp(18px, 4vw, 32px); margin-top: 20px;
+}
+.blue .card .card { border: 0; border-radius: 0; background: none; padding: 0; margin: 0; }
+.blue .card.chat .chat-box { border: 1px solid var(--line); border-radius: 20px; background: var(--surface); padding: 6px clamp(16px, 3vw, 24px); }
+.blue textarea, .blue input:not([type=radio]):not([type=checkbox]):not([type=range]), .blue select,
+.blue .gl input[type=search], .blue .gl textarea {
+  border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; background: var(--bg);
+}
+.blue textarea:focus, .blue input:not([type=radio]):not([type=checkbox]):not([type=range]):focus, .blue select:focus,
+.blue .gl input[type=search]:focus, .blue .gl textarea:focus { border-color: var(--hair); box-shadow: none; }

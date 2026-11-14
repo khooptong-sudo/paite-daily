@@ -47,7 +47,7 @@
   // ---- 1. Sources
   const secSources = $("sec-sources");
   const picker = el("select", { "aria-label": "Status" });
-  for (const s of ["pending", "approved", "rejected", "withdrawn"]) picker.append(el("option", { value: s, text: s }));
+  for (const [s, label] of [["pending", "Pending"], ["approved", "Approved"], ["rejected", "Rejected"], ["withdrawn", "Withdrawn"]]) picker.append(el("option", { value: s, text: label }));
   const list = el("div");
   secSources.append(el("div", { class: "row" }, picker), list);
   picker.addEventListener("change", loadSources);
@@ -114,9 +114,10 @@
   // ---- 2. Add a source
   const secAdd = $("sec-add");
   const field = (label, input) => { const id = "f-" + label.replace(/\W+/g, "-").toLowerCase(); input.id = id; return [el("label", { for: id, text: label }), input]; };
-  const pick = (opts) => { const s = el("select"); for (const o of opts) s.append(el("option", { value: o, text: o })); return s; };
-  const kind = pick(["book", "article", "web", "other"]);
-  const rights = pick(["open", "permission", "quote-only", "index-only"]);
+  // Each option is [value sent to the server, label shown]. Labels start with a capital, site-wide.
+  const pick = (opts) => { const s = el("select"); for (const [value, label] of opts) s.append(el("option", { value, text: label })); return s; };
+  const kind = pick([["book", "Book"], ["article", "Article"], ["web", "Web page"], ["other", "Other"]]);
+  const rights = pick([["open", "Open"], ["permission", "Permission"], ["quote-only", "Quote only"], ["index-only", "Index only"]]);
   const RIGHTS_HELP = {
     open: "Open: free to use, quote and share in full.",
     permission: "Permission: we have the owner's permission to use it.",
@@ -125,7 +126,7 @@
   };
   const rightsHelp = el("p", { class: "help", text: RIGHTS_HELP.open });
   rights.addEventListener("change", () => { rightsHelp.textContent = RIGHTS_HELP[rights.value]; });
-  const inputs = { title: el("input", { maxlength: "300" }), author: el("input", { maxlength: "200" }), publisher: el("input", { maxlength: "200" }), year: el("input", { maxlength: "20" }), url: el("input", { type: "url", placeholder: "https://" }), language: pick(["mixed", "en", "pck"]), rightsNote: el("input", { maxlength: "1000" }), text: el("textarea", { rows: "8" }) };
+  const inputs = { title: el("input", { maxlength: "300" }), author: el("input", { maxlength: "200" }), publisher: el("input", { maxlength: "200" }), year: el("input", { maxlength: "20" }), url: el("input", { type: "url", placeholder: "https://" }), language: pick([["mixed", "Paite and English"], ["en", "English"], ["pck", "Paite"]]), rightsNote: el("input", { maxlength: "1000" }), text: el("textarea", { rows: "8" }) };
   const addMsg = el("div");
   const addBtn = el("button", { class: "go", type: "button", text: "Add source" });
   secAdd.append(
