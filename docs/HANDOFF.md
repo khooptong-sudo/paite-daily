@@ -32,7 +32,7 @@ Start a new session with: **Read this top section, then `plans/README.md` and `p
    3. `syncSiteSources` (`src/kbsite.ts`) re-hashes every site item each 15 minutes; move to change detection by `updated_at` past ~50,000 items.
    4. `listArticles` (`src/kbarticle.ts`) runs one stale check per article; batch it before there are hundreds.
    Fold 1 and 2 into plan 006 (books). Storage on 15 Nov: D1 main 4.5 MB, wiki 1.6 MB (ceiling 10 GB each), Vectorize 1,800 vectors, R2 nearly empty.
-5. **Make the vault get read, not just written:** add a session-start hook (or a line in this file) that runs a vault search for Paite Daily / Cloudflare / D1 before planning. Tonight the vault and RAG were only written to.
+5. **Read the vault only when the task needs it (owner: token frugality first).** No session-start hook that loads pages every time. Instead, before planning or debugging something new (a new Cloudflare service, a schema change, an unfamiliar failure), run one targeted vault search on that topic and read only the hits that match. Routine fixes and UI tweaks skip it.
 
 ## Open decisions (owner)
 - **Plan 006, books:** how scanned pages become text (a scan app that embeds text + `pdftotext`, Tesseract here, or a cloud vision model). This machine has `pdftotext` and Python 3.14, no Tesseract.
