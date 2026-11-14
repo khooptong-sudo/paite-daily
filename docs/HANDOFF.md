@@ -1,3 +1,24 @@
+# Handoff, 14 November 2026, night (Paite Wiki foundations; work moves to Claude Code)
+
+Start a new session with: **Read this top section, then `plans/HANDOFF-claude-code.md` (local only, not in git), then ask the owner what to work on.** The 13 November section below still holds for everything not mentioned here.
+
+## Where things stand
+- `main` at the commit after **`44780ff`** (this handoff), **not pushed**: the owner has not yet said whether the wiki code goes to GitHub. `origin/main` is still `a9aeabc`. Live worker **`fab95c7d`** = `44780ff`. Live site is ahead of GitHub until a push.
+- Remote D1 `paite-daily` unchanged (through `0034_admin.sql`). New D1 **`paite-wiki`** (binding `WIKI`, migrations in `migrations-wiki/`) has `0001_kb.sql`; FTS5 checked live. New private R2 **`paite-wiki-raw`** (binding `WIKI_FILES`).
+- **377 tests pass** (45 files), `tsc` clean.
+- **`plans/` is private** (owner, 14 Nov): ignored through `.git/info/exclude`, never committed, never pushed. Backup in `C:\Users\MinK\AppData\Local\PaiteDaily\plans-backup-20261114\`.
+
+## Shipped 14 November
+- Wiki foundations (`src/kb.ts`, `src/kbapi.ts`): source registry with rights, approval by reviewers and admins (never one's own; owner exempt), takedown, full-text search over approved sources, an ingest API for local scripts (off until `WIKI_INGEST_TOKEN` is set), nightly `wiki_backup`. Signed-in routes only; nothing visible to contributors, so no What's New item.
+- Dataset **v1.2.0** released 10:00 IST; Zenodo `10.5281/zenodo.24212533` (1,361 pairs, 62 clips, 1,868 words). `src/about.ts:209` still says "now v1.1.0".
+
+## First thing next session
+1. Ask the owner whether the wiki code may be pushed (code only, never `plans/`).
+2. Continue with plan 002 as described in `plans/HANDOFF-claude-code.md`.
+3. The 13 Nov "First thing" items still stand.
+
+---
+
 # Handoff, 13 November 2026 (footer on phones, own-submission review rule, back-to-top, polish)
 
 Start a new session with: **Read this top section, then do "First thing next session", then ask the owner what to work on.** The 12 November sections below still hold for everything not mentioned here.
