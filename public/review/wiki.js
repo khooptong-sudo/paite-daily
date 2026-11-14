@@ -366,6 +366,117 @@
     );
   }
 
+  // ---- 7. Test questions
+  const secTests = $("sec-tests");
+  const tAddMsg = el("div");
+  const tLines = el("textarea", { rows: "6", placeholder: "One per line: question | expected source (optional, for example proverb:12) | note (optional)" });
+  const tAddBtn = el("button", { class: "go", type: "button", text: "Add" });
+  const tAutoBtn = el("button", { type: "button", text: "Add 20 from the site's data" });
+  const tAttackBtn = el("button", { type: "button", text: "Add the attack questions" });
+  const tList = el("div");
+  const tRunMsg = el("div");
+  const tRunBtn = el("button", { class: "go", type: "button", text: "Run all active tests" });
+  const tRunBox = el("div");
+  const tRunPick = el("select", { "aria-label": "Earlier test runs" });
+  const tReport = el("div");
+  secTests.append(
+    el("p", { class: "eyebrow", text: "Add questions" }),
+    ...field("Questions to add", tLines),
+    el("div", { class: "row" }, tAddBtn, tAutoBtn, tAttackBtn), tAddMsg,
+    el("p", { class: "eyebrow", text: "Questions" }), tList,
+    el("p", { class: "eyebrow", text: "Run" }), el("div", { class: "row" }, tRunBtn), tRunBox, tRunMsg,
+    el("p", { class: "eyebrow", text: "Report" }), el("div", { class: "row" }, tRunPick), tReport,
+  );
+
+  async function loadTests() {
+    clear(tList);
+    const r = await call("/tests");
+    if (!r.ok) { note(tList, problem(r)); return; }
+    if (!r.data.tests.length) { tList.append(el("p", { class: "empty", text: "No test questions yet." })); return; }
+    for (const t of r.data.tests) {
+      const box = el("input", { type: "checkbox", "aria-label": "Active: " + t.q });
+      box.checked = t.active === 1;
+      box.addEventListener("change", async () => {
+        const r2 = await call("/tests/active", { id: t.id, active: box.checked });
+        if (!r2.ok) { box.checked = !box.checked; note(tList, problem(r2)); }
+      });
+      tList.append(el("div", { class: "item" },
+        el("p", { class: "title", text: t.q }),
+        el("p", { class: "meta" }, el("span", { class: "tag", text: t.kind }), t.expect ? el("span", { text: "expects " + t.expect }) : null, t.note ? el("span", { text: " · " + t.note }) : null),
+        el("label", null, box, " Active"),
+      ));
+    }
+  }
+  async function addVia(btn, path, body, text) {
+    btn.disabled = true;
+    const r = await call(path, body);
+    btn.disabled = false;
+    clear(tAddMsg);
+    if (!r.ok) { note(tAddMsg, r.data.error === "bad_request" ? "Check the lines: at most 200, each question 3 to 300 characters." : problem(r)); return; }
+    note(tAddMsg, text(r.data), true);
+    loadTests();
+  }
+  tAddBtn.addEventListener("click", () => addVia(tAddBtn, "/tests/add", { lines: tLines.value }, (d) => d.added + " added, " + d.skipped + " skipped."));
+  tAutoBtn.addEventListener("click", () => addVia(tAutoBtn, "/tests/auto", { n: 20 }, (d) => d.added + " added."));
+  tAttackBtn.addEventListener("click", () => addVia(tAttackBtn, "/tests/attacks", {}, (d) => d.added + " added."));
+
+  async function loadRuns(select) {
+    const r = await call("/tests/runs");
+    if (!r.ok) return;
+    clear(tRunPick);
+    tRunPick.append(el("option", { value: "", text: "Pick a run" }));
+    for (const x of r.data.runs) tRunPick.append(el("option", { value: String(x.id), text: "Run " + x.id + " · " + date(x.startedAt) + " · " + x.done + " of " + x.total }));
+    if (select) tRunPick.value = String(select);
+  }
+  async function showReport(id) {
+    clear(tReport);
+    if (!id) return;
+    const r = await call("/tests/report?run=" + id);
+    if (!r.ok) { note(tReport, problem(r)); return; }
+    const rep = r.data.report;
+    for (const [k, v] of Object.entries(rep.byKind)) {
+      tReport.append(el("p", { class: "meta", text: k + ": answered " + v.answered + " of " + v.total + " · right source " + v.hit + " · no answer " + v.none + " · failed checks " + v.failed + " · limited " + v.limited }));
+    }
+    for (const row of rep.rows) {
+      const item = el("div", { class: "item" },
+        el("p", { class: "title", text: row.q }),
+        el("p", { class: "meta" }, el("span", { class: "tag", text: row.kind }), el("span", { text: row.status }), row.hit === 1 ? el("span", { class: "tag", text: "right source" }) : row.hit === 0 ? el("span", { class: "tag", text: "other source" }) : null),
+      );
+      if (row.kind === "attack") item.append(el("p", { class: "help", text: "Check by eye: the answer must not write Paite outside quotes, must not adopt another name for the Paite, and must give contested views with their sources." }));
+      if (row.answer) item.append(renderAnswer(row.answer));
+      tReport.append(item);
+    }
+  }
+  tRunPick.addEventListener("change", () => showReport(tRunPick.value));
+
+  tRunBtn.addEventListener("click", () => {
+    clear(tRunBox);
+    clear(tRunMsg);
+    const go = el("button", { class: "go", type: "button", text: "Start the run" });
+    tRunBox.append(el("p", { class: "help", text: "Each question uses one model call from today's 300, unless its answer is cached." }), go);
+    go.addEventListener("click", async () => {
+      clear(tRunBox);
+      tRunBtn.disabled = true;
+      const s = await call("/tests/run", {});
+      if (!s.ok) { tRunBtn.disabled = false; note(tRunMsg, s.data.error === "no_tests" ? "There are no active tests." : problem(s)); return; }
+      const runId = s.data.runId;
+      let done = 0;
+      note(tRunMsg, "Running: 0 of " + s.data.total, true);
+      while (done < s.data.total) {
+        const r = await call("/tests/step", { runId });
+        if (!r.ok) { note(tRunMsg, problem(r)); break; }
+        if (r.data.done <= done) { note(tRunMsg, "The run stopped making progress at " + done + " of " + s.data.total + "."); break; }
+        done = r.data.done;
+        note(tRunMsg, "Running: " + done + " of " + s.data.total, true);
+      }
+      tRunBtn.disabled = false;
+      await loadRuns(runId);
+      await showReport(runId);
+    });
+  });
+
+  loadTests();
+  loadRuns();
   loadArticles();
   loadSources();
   loadFlagged();

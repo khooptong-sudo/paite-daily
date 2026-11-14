@@ -2,6 +2,7 @@ import { addChunks, addSource, chunkText, decideSource, getSource, listSources, 
 import { draftArticle, getArticle, listArticles, saveArticle, setStatus } from "./kbarticle";
 import { dismissQuestion, listFlagged, listOpen } from "./kbask";
 import { syncSiteSources } from "./kbsite";
+import { addTests, autoTests, lastRuns, listTests, runReport, seedAttacks, setActive, startRun, stepRun } from "./kbtest";
 import { cleanText, isId } from "./text";
 import { json, type Env } from "./types";
 const MAX_TEXT = 2_000_000;
@@ -97,6 +98,29 @@ export async function handleWikiApi(
   if (sub === "/asks/open" && method === "GET") return json({ questions: await listOpen(env) });
   if (sub === "/asks/dismiss" && method === "POST") {
     return (await dismissQuestion(env, b.qKey, who.email, now)) ? json({ ok: true }) : json({ error: "bad_request" }, 400);
+  }
+  if (sub === "/tests" && method === "GET") return json({ tests: await listTests(env) });
+  if (sub === "/tests/add" && method === "POST") {
+    const r = await addTests(env, b.lines, who, now);
+    return "error" in r ? json(r, 400) : json(r);
+  }
+  if (sub === "/tests/auto" && method === "POST") return json(await autoTests(env, b.n === undefined ? 20 : Number(b.n), who, now));
+  if (sub === "/tests/attacks" && method === "POST") return json(await seedAttacks(env, who, now));
+  if (sub === "/tests/active" && method === "POST") {
+    return (await setActive(env, b.id, b.active)) ? json({ ok: true }) : json({ error: "bad_request" }, 400);
+  }
+  if (sub === "/tests/run" && method === "POST") {
+    const r = await startRun(env, who, now);
+    return "error" in r ? json(r, 409) : json(r);
+  }
+  if (sub === "/tests/step" && method === "POST") {
+    const r = await stepRun(env, fetcher, b.runId, now);
+    return "error" in r ? json(r, 404) : json(r);
+  }
+  if (sub === "/tests/runs" && method === "GET") return json({ runs: await lastRuns(env) });
+  if (sub === "/tests/report" && method === "GET") {
+    const report = await runReport(env, Number(q.get("run")));
+    return report ? json({ report }) : json({ error: "not_found" }, 404);
   }
   return null;
 }

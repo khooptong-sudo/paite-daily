@@ -35,7 +35,7 @@ export function createApp(deps: Deps) {
       if (pathname === "/rules.json") { const r = rulesJson(await getRules(env, deps.now())); r.headers.set("cache-control", "public, max-age=300"); return r; }
       if (pathname === "/words.tsv" || pathname === "/paite-wordlist.xml" || pathname === "/paite-gboard.zip") return (await keyboardFile(env, pathname, deps.now()))!;
       if (pathname === "/places") return new Response(renderPlaces(await getPlaces(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
-      if (pathname === "/about") return new Response(renderAbout(), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600" } });
+      if (pathname === "/about") return new Response(renderAbout(env.WIKI_PUBLIC === "1"), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600" } });
       if (pathname.startsWith("/audio/") && req.method === "GET") return await publicAudio(env, pathname);
       if (pathname.startsWith("/wiki/api/ingest/")) return await handleIngest(req, env, deps.now());
       if (env.WIKI_PUBLIC === "1" && req.method === "GET" && (pathname === "/wiki" || /^\/wiki\/[a-z0-9-]{1,80}$/.test(pathname))) {

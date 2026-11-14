@@ -19,7 +19,7 @@ export type Answer = {
   cached: boolean;
 };
 
-export const ASK = { perHourPublic: 20, perHourReviewer: 60, perDay: 300, passages: 12, passageChars: 1500, timeoutMs: 12_000, cacheDays: 7, noneCacheDays: 1 } as const;
+export const ASK = { perHourPublic: 20, perHourReviewer: 60, perDay: 300, perDayPublic: 240, passages: 12, passageChars: 1500, timeoutMs: 12_000, cacheDays: 7, noneCacheDays: 1 } as const;
 
 const DAY = 86_400_000;
 
@@ -166,6 +166,10 @@ export async function ask(env: Env, fetcher: typeof fetch, raw: unknown, who: { 
 
   if (!(await bump(env, `ask:d:${iso.slice(0, 10)}`, ASK.perDay))) {
     const askId = await log(env, q, qKey, who.via, "limited", now, { reason: "day" });
+    return { ...none(askId), status: "limited" };
+  }
+  if (who.via === "public" && !(await bump(env, `ask:dp:${iso.slice(0, 10)}`, ASK.perDayPublic))) {
+    const askId = await log(env, q, qKey, who.via, "limited", now, { reason: "day_public" });
     return { ...none(askId), status: "limited" };
   }
 

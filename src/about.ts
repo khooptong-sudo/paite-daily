@@ -95,7 +95,7 @@ const JSONLD = JSON.stringify({
   spatialCoverage: { "@type": "Place", name: "Churachandpur, Manipur, India" },
 });
 
-export function renderAbout(): string {
+export function renderAbout(publicWiki = false): string {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${TITLE}</title>
@@ -196,6 +196,7 @@ ${STYLE}
 </ol>
 <p>Proverbs and idioms (<em>pau upa</em>) go through the same loop, in both directions, under the same rule: a reviewer approves each one before it appears. Nothing is published without review. No model writes our data, and no model decides what counts as correct Paite.</p>
 <p><strong>Where AI helps.</strong> We do use an AI model (DeepSeek) behind the scenes, and it is part of what the coffee button pays for. It suggests new everyday English sentences for people to translate. It leaves reviewers a short advisory note on each answer, which they are free to ignore. It powers the Check English button, which only suggests a fix and changes nothing until you tap Use this. And it lifts word-list entries out of the notes contributors write, keeping only words that appear in their verified Paite; reviewers correct or hide any that are wrong. In the chat, it reads the English you type and picks, from our verified lines, the one that means the same, or none; the Paite you see is always the reviewed Paite, word for word. When nothing matches and you ask for the line, it checks that the line is clean everyday English before it joins the queue for people to translate. It never writes, corrects or approves Paite.</p>
+${publicWiki ? `<p><strong>Tongdot | Tongsan and the Paite Wiki.</strong> In the chat you can also ask a question about Paite words, sayings, culture or history. The answer is written in English from the Paite Wiki: our reviewed sayings, word list and verified sentences, and books and articles that reviewers have approved. The AI writes only English. Any Paite in an answer is quoted word for word from a source, and the server checks every quote against that source before you see it; if a check fails, you get no answer rather than a wrong one. Every answer shows its sources, and you can tell us if it was wrong. The same rules apply to the articles on the <a href="/wiki">Paite Wiki</a>, which a reviewer checks before they are published.</p>` : ""}
 </section>
 
 <section aria-labelledby="open">
