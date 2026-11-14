@@ -48,9 +48,9 @@ const PAIRS = `SELECT s.english, ${finalPaite("a")} AS paite,
                               ORDER BY r.id DESC LIMIT 1)
   WHERE s.status = 'verified'`;
 
-type Pair = { english: string; paite: string; audio: number | null };
+export type Pair = { english: string; paite: string; audio: number | null };
 
-async function pairs(env: Env): Promise<Pair[]> {
+export async function verifiedPairs(env: Env): Promise<Pair[]> {
   const { results } = await env.DB.prepare(PAIRS).all<Pair>();
   // A rendering that repeats the English was never translated; two question marks
   // means two alternatives were accepted at once. Neither belongs in a demo.
@@ -60,7 +60,7 @@ async function pairs(env: Env): Promise<Pair[]> {
 }
 
 export async function buildScenes(env: Env): Promise<Scene[]> {
-  const have = new Map((await pairs(env)).map((p) => [key(p.english), p]));
+  const have = new Map((await verifiedPairs(env)).map((p) => [key(p.english), p]));
   return SCENES.map((s) => {
     const turns: Turn[] = [];
     for (const line of s.lines) {
@@ -92,7 +92,7 @@ export async function matchChat(env: Env, q: string, fetcher: typeof fetch = fet
   const want = tokens(q);
   if (!want.length) return null;
   const asked = key(q);
-  const all = await pairs(env);
+  const all = await verifiedPairs(env);
   let best: Match | null = null;
   for (const p of all) {
     const have = tokens(p.english);

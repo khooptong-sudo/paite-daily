@@ -1,4 +1,5 @@
 import { addChunks, addSource, chunkText, decideSource, getSource, listSources, readChunks, readNewSource, sha256Hex, STATUSES, withdrawSource, type SourceStatus } from "./kb";
+import { syncSiteSources } from "./kbsite";
 import { cleanText, isId } from "./text";
 import { json, type Env } from "./types";
 const MAX_TEXT = 2_000_000;
@@ -54,6 +55,7 @@ export async function handleWikiApi(
     const id = await addSource(env, s, who.email, now);
     return json({ id, chunks: await addAll(env, id, chunks) });
   }
+  if (sub === "/sync" && method === "POST") return json({ result: await syncSiteSources(env, now) });
   if (sub === "/decide" && method === "POST") {
     if (!isId(b.id) || (b.decision !== "approve" && b.decision !== "reject")) return json({ error: "bad_request" }, 400);
     const r = await decideSource(env, b.id, b.decision, who, now);
