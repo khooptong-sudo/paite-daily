@@ -121,9 +121,9 @@ const SYSTEM = `You answer questions about the Paite language, its sayings, cult
 6. Keep the answer short: at most a few sentences of English plus the quotes that support it.
 Reply with JSON only: {"status":"answer"|"none","parts":[{"type":"text","text":"..."}|{"type":"quote","chunk":<id>,"text":"..."}],"sources":[<passage ids used>]}`;
 
-async function log(env: Env, q: string, qKey: string, via: string, status: string, now: number, x: { reason?: string; retrieved?: number[]; model?: string; ms?: number } = {}): Promise<number> {
-  const r = await env.WIKI.prepare("INSERT INTO kb_asks (q, q_key, via, retrieved, status, reason, model, ms, at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) RETURNING id")
-    .bind(q, qKey, via, JSON.stringify(x.retrieved ?? []), status, x.reason ?? null, x.model ?? null, x.ms ?? null, now).first<{ id: number }>();
+async function log(env: Env, q: string, qKey: string, via: string, status: string, now: number, x: { reason?: string; retrieved?: number[]; model?: string; ms?: number; answer?: { parts: Part[]; sources: Cited[] } } = {}): Promise<number> {
+  const r = await env.WIKI.prepare("INSERT INTO kb_asks (q, q_key, via, retrieved, status, reason, model, ms, at, answer) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10) RETURNING id")
+    .bind(q, qKey, via, JSON.stringify(x.retrieved ?? []), status, x.reason ?? null, x.model ?? null, x.ms ?? null, now, x.answer ? JSON.stringify(x.answer) : null).first<{ id: number }>();
   return r!.id;
 }
 
@@ -158,7 +158,7 @@ export async function ask(env: Env, fetcher: typeof fetch, raw: unknown, who: { 
       valid = cited.every(([id, sha]) => now_.get(id) === sha);
     }
     if (valid) {
-      const askId = await log(env, q, qKey, who.via, "cached", now);
+      const askId = await log(env, q, qKey, who.via, "cached", now, { answer: { parts: stored.parts, sources: stored.sources } });
       return { ...stored, askId, cached: true };
     }
     await env.WIKI.prepare("DELETE FROM kb_ask_cache WHERE q_key = ?1").bind(qKey).run();
@@ -202,7 +202,7 @@ export async function ask(env: Env, fetcher: typeof fetch, raw: unknown, who: { 
     const h = byId.get(id)!;
     return { chunk: id, title: h.title, url: h.url, locator: h.locator, kind: h.kind };
   });
-  const askId = await log(env, q, qKey, who.via, checked.status, now, { retrieved, model: cfg.model, ms });
+  const askId = await log(env, q, qKey, who.via, checked.status, now, { retrieved, model: cfg.model, ms, answer: { parts: checked.parts, sources } });
   const answer: Answer = { status: checked.status, parts: checked.parts, sources, seeAlso, askId: null, cached: false };
   let cited: [number, string][] = [];
   if (checked.sources.length) {
@@ -221,5 +221,43 @@ export async function flagAnswer(env: Env, askId: unknown, right: unknown, note:
   if (note !== undefined && note !== null && note !== "" && n === null) return false;
   await env.WIKI.prepare("INSERT INTO kb_flags (ask_id, right, note, by_key, at) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT(ask_id, by_key) DO UPDATE SET right = excluded.right, note = excluded.note, at = excluded.at")
     .bind(askId, right ? 1 : 0, n, byKey, now).run();
+  return true;
+}
+
+export type FlagRow = { askId: number; q: string; status: string; at: number; answer: { parts: Part[]; sources: Cited[] } | null; votes: { by: string; right: boolean; note: string | null; at: number }[] };
+export async function listFlagged(env: Env, limit = 100): Promise<FlagRow[]> {
+  const { results: asks } = await env.WIKI.prepare(
+    `SELECT a.id, a.q, a.status, a.at, a.answer FROM kb_asks a JOIN kb_flags f ON f.ask_id = a.id WHERE f.right = 0
+     GROUP BY a.id ORDER BY MAX(f.at) DESC LIMIT ?1`,
+  ).bind(limit).all<{ id: number; q: string; status: string; at: number; answer: string | null }>();
+  if (!asks.length) return [];
+  const { results: votes } = await env.WIKI.prepare(
+    `SELECT ask_id, right, note, by_key, at FROM kb_flags WHERE ask_id IN (${asks.map((_, i) => `?${i + 1}`).join(",")}) ORDER BY at DESC`,
+  ).bind(...asks.map((a) => a.id)).all<{ ask_id: number; right: number; note: string | null; by_key: string; at: number }>();
+  return asks.map((a) => ({
+    askId: a.id, q: a.q, status: a.status, at: a.at, answer: a.answer ? JSON.parse(a.answer) : null,
+    votes: votes.filter((v) => v.ask_id === a.id).map((v) => ({ by: v.by_key.startsWith("rev:") ? v.by_key.slice(4) : "visitor", right: v.right === 1, note: v.note, at: v.at })),
+  }));
+}
+
+export type OpenRow = { qKey: string; q: string; asks: number; lastAt: number; reasons: string[] };
+export async function listOpen(env: Env, limit = 100): Promise<OpenRow[]> {
+  const { results } = await env.WIKI.prepare(
+    `SELECT g.q_key, g.n, g.last_at, g.reasons,
+       (SELECT q FROM kb_asks WHERE q_key = g.q_key AND status IN ('none','failed') ORDER BY at DESC, id DESC LIMIT 1) AS q
+     FROM (SELECT q_key, COUNT(*) AS n, MAX(at) AS last_at, GROUP_CONCAT(DISTINCT reason) AS reasons
+           FROM kb_asks WHERE status IN ('none','failed') GROUP BY q_key) g
+     WHERE NOT EXISTS (SELECT 1 FROM kb_asks b WHERE b.q_key = g.q_key AND b.status IN ('answer','cached') AND b.at > g.last_at)
+       AND NOT EXISTS (SELECT 1 FROM kb_ask_dismissed d WHERE d.q_key = g.q_key AND d.dismissed_at >= g.last_at)
+     ORDER BY g.n DESC, g.last_at DESC LIMIT ?1`,
+  ).bind(limit).all<{ q_key: string; n: number; last_at: number; reasons: string | null; q: string }>();
+  return results.map((r) => ({ qKey: r.q_key, q: r.q, asks: r.n, lastAt: r.last_at, reasons: r.reasons ? r.reasons.split(",") : [] }));
+}
+
+export async function dismissQuestion(env: Env, qKey: unknown, by: string, now: number): Promise<boolean> {
+  if (typeof qKey !== "string" || !qKey || qKey.length > 300) return false;
+  if (!(await env.WIKI.prepare("SELECT 1 FROM kb_asks WHERE q_key = ?1 LIMIT 1").bind(qKey).first())) return false;
+  await env.WIKI.prepare("INSERT INTO kb_ask_dismissed (q_key, dismissed_by, dismissed_at) VALUES (?1, ?2, ?3) ON CONFLICT(q_key) DO UPDATE SET dismissed_by = excluded.dismissed_by, dismissed_at = excluded.dismissed_at")
+    .bind(qKey, by, now).run();
   return true;
 }

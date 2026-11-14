@@ -1,4 +1,5 @@
 import { addChunks, addSource, chunkText, decideSource, getSource, listSources, readChunks, readNewSource, sha256Hex, STATUSES, withdrawSource, type SourceStatus } from "./kb";
+import { dismissQuestion, listFlagged, listOpen } from "./kbask";
 import { syncSiteSources } from "./kbsite";
 import { cleanText, isId } from "./text";
 import { json, type Env } from "./types";
@@ -70,6 +71,11 @@ export async function handleWikiApi(
     }
     const r = await withdrawSource(env, b.id, who, reason, now);
     return "ok" in r ? json({ ok: true }) : fail(r.error);
+  }
+  if (sub === "/asks/flagged" && method === "GET") return json({ asks: await listFlagged(env) });
+  if (sub === "/asks/open" && method === "GET") return json({ questions: await listOpen(env) });
+  if (sub === "/asks/dismiss" && method === "POST") {
+    return (await dismissQuestion(env, b.qKey, who.email, now)) ? json({ ok: true }) : json({ error: "bad_request" }, 400);
   }
   return null;
 }

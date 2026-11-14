@@ -1,0 +1,234 @@
+(() => {
+  const me = document.currentScript;
+  const API = me.dataset.api;
+  const LOGIN = me.dataset.login;
+  const ADMIN = me.dataset.admin === "1";
+  const $ = (id) => document.getElementById(id);
+  const statusLine = $("status");
+
+  function el(tag, props, ...kids) {
+    const n = document.createElement(tag);
+    if (props) for (const [k, v] of Object.entries(props)) {
+      if (k === "text") n.textContent = v;
+      else if (k === "class") n.className = v;
+      else if (k === "on") for (const [ev, fn] of Object.entries(v)) n.addEventListener(ev, fn);
+      else if (v !== undefined && v !== null) n.setAttribute(k, v);
+    }
+    for (const k of kids) if (k) n.append(k);
+    return n;
+  }
+  const date = (ms) => new Date(ms).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" });
+  const clear = (n) => { while (n.firstChild) n.removeChild(n.firstChild); };
+
+  // Returns { ok, status, data }. 401 leaves the page; 403 says so in the status line.
+  async function call(path, body) {
+    const init = { headers: {} };
+    if (body !== undefined) {
+      init.method = "POST";
+      init.headers["content-type"] = "application/json";
+      if (ADMIN) init.headers["X-Admin"] = "1";
+      init.body = JSON.stringify(body);
+    }
+    let r;
+    try { r = await fetch(API + path, init); } catch { return { ok: false, status: 0, data: {} }; }
+    if (r.status === 401) { location.replace(LOGIN); return { ok: false, status: 401, data: {} }; }
+    if (r.status === 403) statusLine.textContent = "You are not signed in as a reviewer.";
+    let data = {};
+    try { data = await r.json(); } catch { /* not JSON */ }
+    return { ok: r.ok, status: r.status, data };
+  }
+  const problem = (r) => r.data.message || r.data.error || "Something went wrong.";
+  const note = (parent, text, ok) => {
+    const old = parent.querySelector(":scope > .msg");
+    if (old) old.remove();
+    parent.append(el("p", { class: ok ? "msg ok" : "msg", text }));
+  };
+
+  // ---- 1. Sources
+  const secSources = $("sec-sources");
+  const picker = el("select", { "aria-label": "Status" });
+  for (const s of ["pending", "approved", "rejected", "withdrawn"]) picker.append(el("option", { value: s, text: s }));
+  const list = el("div");
+  secSources.append(el("div", { class: "row" }, picker), list);
+  picker.addEventListener("change", loadSources);
+
+  async function loadSources() {
+    clear(list);
+    const status = picker.value;
+    const r = await call("/sources?status=" + encodeURIComponent(status));
+    if (!r.ok) { note(list, problem(r)); return; }
+    if (!r.data.sources.length) { list.append(el("p", { class: "empty", text: "Nothing here." })); return; }
+    for (const s of r.data.sources) list.append(sourceRow(s, status));
+  }
+
+  function sourceRow(s, status) {
+    const detail = el("div");
+    const meta = [s.kind, s.rights, s.author, s.year, s.chunks + " passages", "added by " + s.added_by, date(s.created_at)].filter((x) => x !== null && x !== undefined && x !== "");
+    const title = el("button", { class: "title", type: "button", text: s.title, "aria-expanded": "false" });
+    const row = el("div", { class: "item" }, title, el("p", { class: "meta", text: meta.join(" · ") }), detail);
+    title.addEventListener("click", async () => {
+      if (detail.firstChild) { clear(detail); title.setAttribute("aria-expanded", "false"); return; }
+      title.setAttribute("aria-expanded", "true");
+      const r = await call("/source?id=" + s.id);
+      if (!r.ok) { note(detail, problem(r)); return; }
+      showDetail(detail, r.data.source, status);
+    });
+    return row;
+  }
+
+  function showDetail(box, s, status) {
+    clear(box);
+    if (s.rights_note) box.append(el("p", { text: s.rights_note }));
+    if (s.url) {
+      box.append(s.url.startsWith("https://")
+        ? el("p", null, el("a", { href: s.url, target: "_blank", rel: "noopener", text: s.url }))
+        : el("p", { class: "meta", text: s.url }));
+    }
+    for (const c of (s.chunks || []).slice(0, 20)) {
+      box.append(el("div", { class: "block" }, el("p", { class: "meta", text: c.locator || "#" + c.ordinal }), el("div", { class: "pre", text: c.text })));
+    }
+    if ((s.chunks || []).length > 20) box.append(el("p", { class: "meta", text: "Showing the first 20 passages." }));
+    const actions = el("div", { class: "row" });
+    const done = async (r) => {
+      if (r.ok) { await loadSources(); return; }
+      if (r.data.error === "no_text") note(box, "This source has no passages yet.");
+      else note(box, problem(r));
+    };
+    if (status === "pending") {
+      actions.append(
+        el("button", { class: "go", type: "button", text: "Approve", on: { click: async () => done(await call("/decide", { id: s.id, decision: "approve" })) } }),
+        el("button", { type: "button", text: "Reject", on: { click: async () => done(await call("/decide", { id: s.id, decision: "reject" })) } }),
+      );
+    }
+    if (status === "pending" || status === "approved") {
+      const form = el("div");
+      actions.append(el("button", { class: "danger", type: "button", text: "Withdraw", on: { click: () => {
+        if (form.firstChild) return;
+        const reason = el("textarea", { maxlength: "500", "aria-label": "Reason", placeholder: "Reason (optional, at most 500 characters)" });
+        form.append(reason, el("div", { class: "row" }, el("button", { class: "danger", type: "button", text: "Confirm withdraw", on: { click: async () => done(await call("/withdraw", { id: s.id, reason: reason.value.trim() || undefined })) } })));
+      } } }));
+      box.append(actions, form);
+    } else box.append(actions);
+  }
+
+  // ---- 2. Add a source
+  const secAdd = $("sec-add");
+  const field = (label, input) => { const id = "f-" + label.replace(/\W+/g, "-").toLowerCase(); input.id = id; return [el("label", { for: id, text: label }), input]; };
+  const pick = (opts) => { const s = el("select"); for (const o of opts) s.append(el("option", { value: o, text: o })); return s; };
+  const kind = pick(["book", "article", "web", "other"]);
+  const rights = pick(["open", "permission", "quote-only", "index-only"]);
+  const RIGHTS_HELP = {
+    open: "Open: free to use, quote and share in full.",
+    permission: "Permission: we have the owner's permission to use it.",
+    "quote-only": "Quote only: answers may quote short passages, but the text is not shared in full.",
+    "index-only": "Index only: used to find the work, never quoted; visitors are pointed to it.",
+  };
+  const rightsHelp = el("p", { class: "help", text: RIGHTS_HELP.open });
+  rights.addEventListener("change", () => { rightsHelp.textContent = RIGHTS_HELP[rights.value]; });
+  const inputs = { title: el("input", { maxlength: "300" }), author: el("input", { maxlength: "200" }), publisher: el("input", { maxlength: "200" }), year: el("input", { maxlength: "20" }), url: el("input", { type: "url", placeholder: "https://" }), language: pick(["mixed", "en", "pck"]), rightsNote: el("input", { maxlength: "1000" }), text: el("textarea", { rows: "8" }) };
+  const addMsg = el("div");
+  const addBtn = el("button", { class: "go", type: "button", text: "Add source" });
+  secAdd.append(
+    ...field("Kind", kind), ...field("Rights", rights), rightsHelp,
+    ...field("Title", inputs.title), ...field("Author", inputs.author), ...field("Publisher", inputs.publisher), ...field("Year", inputs.year),
+    ...field("URL", inputs.url), ...field("Language", inputs.language), ...field("Rights note", inputs.rightsNote), ...field("Text (pasted)", inputs.text),
+    el("div", { class: "row" }, addBtn), addMsg,
+  );
+  addBtn.addEventListener("click", async () => {
+    const body = { kind: kind.value, rights: rights.value, language: inputs.language.value };
+    for (const k of ["title", "author", "publisher", "year", "url", "rightsNote"]) if (inputs[k].value.trim()) body[k] = inputs[k].value.trim();
+    if (inputs.text.value.trim()) body.text = inputs.text.value;
+    addBtn.disabled = true;
+    const r = await call("/source", body);
+    addBtn.disabled = false;
+    clear(addMsg);
+    if (!r.ok) { note(addMsg, r.data.error === "bad_request" ? "Check the fields: kind, rights and title are needed; the URL must start with http." : problem(r)); return; }
+    note(addMsg, "Added. Another reviewer must approve it.", true);
+    for (const k of ["title", "author", "publisher", "year", "url", "rightsNote", "text"]) inputs[k].value = "";
+    picker.value = "pending";
+    loadSources();
+  });
+
+  // ---- 3. Answers marked wrong
+  const secFlagged = $("sec-flagged");
+  const flaggedBox = el("div");
+  secFlagged.append(flaggedBox);
+  const safeHref = (u) => typeof u === "string" && ((u.startsWith("/") && !u.startsWith("//")) || u.startsWith("https://"));
+  function renderAnswer(a) {
+    const box = el("div", { class: "block" });
+    for (const p of a.parts || []) {
+      if (p.type === "quote") box.append(el("blockquote", { lang: "pck", text: p.text }));
+      else box.append(el("p", { text: p.text }));
+    }
+    if ((a.sources || []).length) {
+      const ol = el("ol");
+      for (const s of a.sources) {
+        const label = s.title + (s.locator ? " (" + s.locator + ")" : "");
+        if (safeHref(s.url)) {
+          const ext = s.url.startsWith("https://");
+          ol.append(el("li", null, el("a", { href: s.url, target: ext ? "_blank" : null, rel: ext ? "noopener" : null, text: label })));
+        } else ol.append(el("li", { text: label }));
+      }
+      box.append(ol);
+    }
+    return box;
+  }
+  async function loadFlagged() {
+    clear(flaggedBox);
+    const r = await call("/asks/flagged");
+    if (!r.ok) { note(flaggedBox, problem(r)); return; }
+    if (!r.data.asks.length) { flaggedBox.append(el("p", { class: "empty", text: "No answers marked wrong." })); return; }
+    for (const a of r.data.asks) {
+      const item = el("div", { class: "item" }, el("p", { class: "title", text: a.q }), el("p", { class: "meta", text: date(a.at) }));
+      item.append(a.answer ? renderAnswer(a.answer) : el("p", { class: "empty", text: "The answer was not stored (asked before this page existed)." }));
+      for (const v of a.votes) {
+        item.append(el("p", { class: "vote" }, el("strong", { text: v.by + ": " }), el("span", { class: v.right ? "yes" : "no", text: v.right ? "Yes" : "No" }), v.note ? el("span", { text: " - " + v.note }) : null));
+      }
+      flaggedBox.append(item);
+    }
+  }
+
+  // ---- 4. Questions with no answer
+  const secOpen = $("sec-open");
+  const openBox = el("div");
+  secOpen.append(openBox);
+  async function loadOpen() {
+    clear(openBox);
+    const r = await call("/asks/open");
+    if (!r.ok) { note(openBox, problem(r)); return; }
+    if (!r.data.questions.length) { openBox.append(el("p", { class: "empty", text: "No open questions." })); return; }
+    for (const q of r.data.questions) {
+      const item = el("div", { class: "item" });
+      const btn = el("button", { type: "button", text: "Dismiss", on: { click: async () => {
+        btn.disabled = true;
+        const r2 = await call("/asks/dismiss", { qKey: q.qKey });
+        if (r2.ok) item.remove(); else { btn.disabled = false; note(item, problem(r2)); }
+      } } });
+      item.append(
+        el("p", { class: "title", text: q.q }),
+        el("p", { class: "meta", text: "asked " + q.asks + (q.asks === 1 ? " time" : " times") + " · last " + date(q.lastAt) }),
+        el("div", null, ...q.reasons.map((x) => el("span", { class: "tag", text: x }))),
+        btn,
+      );
+      openBox.append(item);
+    }
+  }
+
+  // ---- 5. Site data
+  const syncMsg = el("div");
+  const syncBtn = el("button", { type: "button", text: "Sync now" });
+  $("sec-site").append(el("p", { text: "The site's sayings, word list and verified pairs are copied into the wiki every 15 minutes." }), el("div", { class: "row" }, syncBtn), syncMsg);
+  syncBtn.addEventListener("click", async () => {
+    syncBtn.disabled = true;
+    const r = await call("/sync", {});
+    syncBtn.disabled = false;
+    if (!r.ok) { note(syncMsg, problem(r)); return; }
+    const x = r.data.result;
+    note(syncMsg, x ? x.added + " added / " + x.changed + " changed / " + x.removed + " removed" : "Nothing changed.", true);
+    loadSources();
+  });
+
+  loadSources();
+  loadFlagged();
+  loadOpen();
+})();
