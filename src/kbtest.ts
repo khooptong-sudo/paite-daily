@@ -1,5 +1,5 @@
 import { ask, type Cited, type Part } from "./kbask";
-import { cleanText, isId } from "./text";
+import { isId } from "./text";
 import type { Env } from "./types";
 
 // A test bench for the ask engine: questions, a fixed attack list, and runs that record what happened.
@@ -116,7 +116,9 @@ export async function stepRun(env: Env, fetcher: typeof fetch, runId: unknown, n
      WHERE NOT EXISTS (SELECT 1 FROM kb_test_results r WHERE r.run_id = ?1 AND r.test_id = t.id) ORDER BY t.id LIMIT ?3`,
   ).bind(runId, run.total, STEP).all<{ id: number; q: string; expect: string | null }>();
   for (const t of todo) {
-    const a = await ask(env, fetcher, t.q, { via: "review", key: "test:" + runId }, now);
+    // One limit key per test, so a run of more than 60 questions is not cut off by the reviewers'
+    // hourly limit; the daily cap still applies to every model call.
+    const a = await ask(env, fetcher, t.q, { via: "review", key: `test:${runId}:${t.id}` }, now);
     let status: string = a.status;
     if (a.askId !== null) {
       const row = await env.WIKI.prepare("SELECT status FROM kb_asks WHERE id = ?1").bind(a.askId).first<{ status: string }>();

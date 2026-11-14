@@ -192,4 +192,15 @@ describe("launch gate", () => {
     expect(reviewHtml).toContain('id="sec-tests"');
     expect(adminHtml).toContain('id="sec-tests"');
   });
+  it("11. a run of more than 60 questions is not cut off by the hourly limit", async () => {
+    // No passages exist, so each ask ends at no_passages without a model call; none may come back limited.
+    const lines = Array.from({ length: 62 }, (_, i) => `Question number ${i} about nothing`).join("\n");
+    expect(await addTests(env, lines, { email: "rev@example.org" }, NOW)).toEqual({ added: 62, skipped: 0 });
+    const run = (await startRun(env, { email: "rev@example.org" }, NOW)) as { runId: number; total: number };
+    let done = 0;
+    while (done < run.total) done = ((await stepRun(keyed, fetch, run.runId, NOW)) as { done: number }).done;
+    const report = (await runReport(env, run.runId))!;
+    expect(report.byKind.owner.total).toBe(62);
+    expect(report.byKind.owner.limited).toBe(0);
+  });
 });
