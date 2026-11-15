@@ -73,7 +73,8 @@
       if (h.platformVersion) o.pv = h.platformVersion;
       var list = h.fullVersionList || [], pick = null;
       list.forEach(function (b) { if (!pick && !/not.?a.?brand|chromium/i.test(b.brand)) pick = b; });
-      if (!pick) list.forEach(function (b) { if (!pick) pick = b; });
+      // Only a Chromium entry is left: use it, but never the grease brand ("Not A;Brand 8").
+      if (!pick) list.forEach(function (b) { if (!pick && !/not.?a.?brand/i.test(b.brand)) pick = b; });
       if (pick && pick.version) o.bvh = parseInt(pick.version, 10);
     } catch (e) {}
     return o;

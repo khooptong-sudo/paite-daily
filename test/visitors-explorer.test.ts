@@ -60,6 +60,10 @@ describe("the collector, new fields", () => {
     expect(b).toMatchObject({ model: null, brand: null, lang: null, tz: null, vw: null, dpr: null, net: null, theme: null, scheme: null, pwa: null });
     expect(b.osv).toBe("Android 14");
   });
+  it("ignores an implausible browser major (a grease brand such as 8)", async () => {
+    await send({ kind: "page", vid: "g1", bvh: 8 });
+    expect((await rows())[0].bv).toBe("Chrome 131");
+  });
   it("clamps speed numbers on leave, and keeps outbound hosts and cut error text", async () => {
     await send({ kind: "leave", vid: "p3", ms: 5000, ttfb: 999999, load: -4, lcp: 1234.6, inp: 80, cls: 99999, scroll: 250 });
     await send({ kind: "out", vid: "p3", target: "WA.me" });

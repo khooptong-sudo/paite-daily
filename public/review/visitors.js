@@ -175,7 +175,9 @@
   const niceMax = (v) => { if (v <= 4) return 4; const p = Math.pow(10, Math.floor(Math.log10(v))); const f = v / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; };
   // A point's key is an hour ("14"), a day and hour ("2026-11-14 09"), a day, or the Monday of a week.
   const pointLabel = (k, long) => (k.length === 2 ? `${k}:00` : k.length === 13 ? `${dayLabel(k.slice(0, 10))} ${k.slice(11)}:00` : data && data.g === "week" ? `Week of ${dayLabel(k)}` : dayLabel(k, long));
-  const spanDays = () => Math.round((Date.parse(data.to) - Date.parse(data.from)) / 86400000) + 1;
+  // replaceChildren turns a null into the text "null"; this leaves absent items out.
+  const putKids = (el, ...k) => el.replaceChildren(...k.flat().filter((c) => c !== null && c !== undefined && c !== false));
+  const spanDays =() => Math.round((Date.parse(data.to) - Date.parse(data.from)) / 86400000) + 1;
   const oneDay = () => data.from === data.to;
   const addDay = (d, n) => new Date(Date.parse(d + "T00:00:00Z") + n * 86400000).toISOString().slice(0, 10);
   function chart() {
@@ -225,7 +227,7 @@
       if (hasCur) { dot.setAttribute("cx", x(i)); dot.setAttribute("cy", y(vals[i])); dot.setAttribute("visibility", "visible"); } else dot.setAttribute("visibility", "hidden");
       if (i < pvals.length) { pdot.setAttribute("cx", x(i)); pdot.setAttribute("cy", y(pvals[i])); pdot.setAttribute("visibility", "visible"); } else pdot.setAttribute("visibility", "hidden");
       const label = hourly ? `${keys[i]}:00 to ${keys[i]}:59` : pointLabel(keys[i], true);
-      tip.replaceChildren(
+      putKids(tip,
         h("b", { text: label }),
         h("span", { class: "now" }, h("i"), `${m.label}: `, h("strong", { text: hasCur ? m.fmt(vals[i]) : "–" })),
         i < pvals.length ? h("span", { class: "was" }, h("i"), oneDay() ? "Day before: " : `${pointLabel(prev[i].key)}: `, h("strong", { text: m.fmt(pvals[i]) })) : null);
@@ -250,7 +252,7 @@
       else setRange("custom", day, day);
     });
     el.replaceChildren(svg);
-    $("vz-legend").replaceChildren(
+    putKids($("vz-legend"),
       h("span", { class: "k now" }, h("i"), oneDay() ? (data.from === data.today ? "Today" : dayLabel(data.from, true)) : `${dayLabel(data.from)} to ${dayLabel(data.to)}`),
       pvals.some((v) => v) ? h("span", { class: "k was" }, h("i"), oneDay() ? (data.from === data.today ? "Yesterday" : "The day before") : "The period before") : null,
       h("span", { class: "k tot" }, `${m.label} in all: `, h("b", { text: m.fmt(data.totals[metric]) })));
@@ -271,7 +273,7 @@
         onclick: can ? pick : null, onkeydown: can ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); } } : null,
       },
         h("span", { class: "vz-bar", "aria-hidden": "true" }),
-        h("span", { class: "vz-l" }, opts.lead ? opts.lead(it) : null, h("span", { class: "vz-lt", text: lab.main }), lab.sub ? h("small", { text: lab.sub }) : null),
+        h("span", { class: "vz-l" }, opts.lead ? opts.lead(it) : null, h("span", { class: opts.wrap ? "vz-lt wrap" : "vz-lt", text: lab.main }), lab.sub ? h("small", { text: lab.sub }) : null),
         h("span", { class: "vz-v", text: num(it[opts.by]) }),
         h("span", { class: "vz-p", text: opts.extra ? opts.extra(it) : `${Math.round(it.share)}%` }));
     });
@@ -398,7 +400,7 @@
         h("div", { class: "vz-sh" },
           h("button", { type: "button", class: "vz-fb", text: g.name, title: `Show only ${g.name}`, onclick: () => addFilter(groupDim, g.name) }),
           h("span", { class: "vz-v", text: num(g.total) }), h("span", { class: "vz-p", text: `${Math.round((g.total / all) * 100)}%` })),
-        h("div", { class: "vz-sb", role: "img", "aria-label": `${g.name} versions` }, g.parts.map((p, i) => h("span", { style: `flex:${p.it.visitors};--k:${Math.max(18, 100 - i * 16)}%`, title: `${g.name} ${p.ver}: ${num(p.it.visitors)}` }))),
+        h("div", { class: "vz-sb", style: `width:${Math.max(4, (g.total / all) * 100)}%`, role: "img", "aria-label": `${g.name} versions` }, g.parts.map((p, i) => h("span", { style: `flex:${p.it.visitors};--k:${Math.max(18, 100 - i * 16)}%`, title: `${g.name} ${p.ver}: ${num(p.it.visitors)}` }))),
         h("div", { class: "vz-sv2" }, g.parts.slice(0, 6).map((p) => h("button", { type: "button", class: "vz-fb", title: `Show only ${g.name} ${p.ver}`, onclick: () => addFilter(dim, p.it.key) }, h("span", { text: p.ver }), h("small", { text: num(p.it.visitors) }))))))
       ) : h("p", { class: "vz-empty", text: "Nothing yet in this period." }));
   }
@@ -508,7 +510,7 @@
   function speed() {
     const sp = detail.speed;
     const any = SPEED.some(([k]) => sp[k].n);
-    $("vz-speed").replaceChildren(
+    putKids($("vz-speed"),
       h("header", null, h("h3", null, "Speed", h("small", { text: "What people felt; the figures are about, from coarse buckets" }))),
       any ? h("ul", { class: "vz-sp" }, SPEED.filter(([k]) => sp[k].n).map(([k, name, what]) => {
         const x = sp[k];
@@ -530,9 +532,9 @@
       { tab: "Scroll depth", col: "Read to", unit: "Page views", by: "hits", items: () => d.scroll, label: (i) => ({ main: i.key === "100" ? "The end" : `${i.key}%` }) },
     ]);
     panel("vz-b-flow", "Where they go next", "Page to page, links out, and browser errors", [
-      { tab: "Page to page", col: "From → to", unit: "Times", by: "hits", items: () => d.flow.slice(0, 12), label: (i) => ({ main: valueLabel("flow", i.key) }) },
+      { wrap: true, tab: "Page to page", col: "From → to", unit: "Times", by: "hits", items: () => d.flow.slice(0, 12), label: (i) => ({ main: valueLabel("flow", i.key) }) },
       { tab: "Links out", col: "Site", unit: "Clicks", by: "hits", items: () => d.out, label: (i) => ({ main: i.key }) },
-      { tab: "Errors", col: "Message", unit: "Times", by: "hits", items: () => d.jserror, label: (i) => ({ main: valueLabel("jserror", i.key), sub: pageName(i.key.split("|")[0]) }) },
+      { wrap: true, tab: "Errors", col: "Message", unit: "Times", by: "hits", items: () => d.jserror, label: (i) => ({ main: valueLabel("jserror", i.key), sub: pageName(i.key.split("|")[0]) }) },
     ]);
   }
   // The heavy cards read one extra answer from the server, fetched the first time any of them scrolls into view.

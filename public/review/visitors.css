@@ -297,3 +297,17 @@ html:not([data-theme=light]) .vz { --good: #3ccf7f; --bad: #ff6b72; }
   .vz-sel select, .vz-sel input { min-width: 0; width: 100%; }
   .vz-sel { flex: 1 1 9rem; }
 }
+
+/* Review fixes */
+.vz-dates[hidden], .vz-chips[hidden], .vz-note[hidden] { display: none !important; }
+.vz-seg button, .vz-tabs button, .vz-cmp, .vz-chip { white-space: nowrap; }
+.vz-seg { max-width: 100
+/* Review fixes: hidden means no space; buttons never break inside a word; bars and labels at phone width */
+.vz-dates[hidden], .vz-chips[hidden], .vz-note[hidden] { display: none !important; }
+.vz-seg button, .vz-tabs button, .vz-cmp, .vz-chip { white-space: nowrap; }
+.vz-seg { max-width: 100%; }
+.vz-lt.wrap { white-space: normal; overflow-wrap: anywhere; line-height: 1.25; }
+.vz-sb { max-width: 100%; }
+@container vz (max-width: 440px) {
+  .vz-seg button { padding: 8px 9px !important; font-size: .76rem !important; }
+}

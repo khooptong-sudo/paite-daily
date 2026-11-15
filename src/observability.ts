@@ -86,7 +86,8 @@ export async function handleEvent(req: Request, env: Env, now = Date.now()): Pro
   const word = (v: unknown) => (typeof v === "string" && /^[A-Za-z0-9 ._/+-]{1,40}$/.test(v) ? v : null);
   const int = (v: unknown, max: number) => (typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.min(Math.round(v), max)) : null);
   const pv = typeof b.pv === "string" && /^\d{1,3}(\.\d{1,5}){0,3}$/.test(b.pv) ? b.pv : null;
-  const bvh = int(b.bvh, 999) || null;
+  // A browser major below 50 is a grease brand or a mistake, not a real Chromium version.
+  const bvh = (int(b.bvh, 999) ?? 0) >= 50 ? int(b.bvh, 999) : null;
   const ua = req.headers.get("user-agent") ?? "";
   const agent = readAgent(ua, { pv, bvh });
   if (agent.bot) return new Response(null, { status: 204 });
