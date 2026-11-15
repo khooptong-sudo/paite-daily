@@ -1,10 +1,11 @@
 import { json, type Env } from "./types";
+import { cleanVia, placeOf, readAgent, sqlTime, visitorCode } from "./visitors";
 
-// Error tracking and a first-party funnel. No cookie, no third party, no personal data:
-// `vid` is a random id the browser keeps for the tab, and a referrer is cut down to its host.
+// Error tracking and first-party visit counting. No cookie, no third party, no IP stored:
+// `vid` is a random id the browser keeps for the tab, a referrer is cut down to its host, and
+// people are counted with a code that changes every day (see visitors.ts).
 
-export const KINDS = ["page", "card", "answer", "blocked", "install", "share"] as const;
-const KEEP_DAYS = 30;
+export const KINDS = ["page", "leave", "card", "answer", "blocked", "install", "share", "chat", "ask", "play"] as const;
 
 function digest(s: string): string {
   let h = 5381;
@@ -61,10 +62,9 @@ export async function errorPage(req: Request, env: Env): Promise<Response> {
   return new Response(FALLBACK, { status: 500, headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
 }
 
-const device = (ua: string) => (/android|iphone|ipad|mobile/i.test(ua) ? "phone" : "desktop");
-
 // POST /api/event - public, no session. A broken or hostile body is dropped, never an error page.
-export async function handleEvent(req: Request, env: Env): Promise<Response> {
+// Bots are not counted. The IP is used only to make today's visitor code (visitors.ts) and is never stored.
+export async function handleEvent(req: Request, env: Env, now = Date.now()): Promise<Response> {
   let b: Record<string, unknown> = {};
   try {
     const parsed = await req.json();
@@ -81,52 +81,30 @@ export async function handleEvent(req: Request, env: Env): Promise<Response> {
     const r = str(b.ref, 300);
     ref = r ? new URL(r).host.slice(0, 80) : null;
   } catch {}
+  const ua = req.headers.get("user-agent") ?? "";
+  const agent = readAgent(ua);
+  if (agent.bot) return new Response(null, { status: 204 });
+  // Engaged time arrives on 'leave' only, capped at 30 minutes a beacon.
+  const ms = kind === "leave" && typeof b.ms === "number" && Number.isFinite(b.ms) ? Math.max(0, Math.min(Math.round(b.ms), 1_800_000)) : null;
+  const returning = b.ret === 1 || b.ret === 0 ? b.ret : null;
   try {
     if (vid) {
       // One device cannot flood the table: over 60 events a minute from the same tab id, drop them.
-      const hot = await env.DB.prepare("SELECT count(*) AS n FROM events WHERE vid = ?1 AND at > datetime('now', '-1 minute')").bind(vid).first<{ n: number }>();
+      const hot = await env.DB.prepare("SELECT count(*) AS n FROM events WHERE vid = ?1 AND at > ?2").bind(vid, sqlTime(now - 60_000)).first<{ n: number }>();
       if ((hot?.n ?? 0) >= 60) return new Response(null, { status: 204 });
     }
-    await env.DB.prepare("INSERT INTO events (kind, path, vid, device, ref) VALUES (?1, ?2, ?3, ?4, ?5)")
-      .bind(kind, (str(b.path, 80) ?? "").replace(/[?&#].*$/, ""), vid, device(req.headers.get("user-agent") ?? ""), ref).run();
-    await env.DB.prepare("DELETE FROM events WHERE at < datetime('now', ?1)").bind(`-${KEEP_DAYS} days`).run();
+    const where = placeOf(req);
+    const visitor = await visitorCode(env, req.headers.get("CF-Connecting-IP") ?? "unknown", ua, now);
+    await env.DB.prepare("INSERT INTO events (kind, path, vid, device, ref, visitor, via, country, region, city, browser, os, revisit, ms, at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)")
+      .bind(kind, (str(b.path, 80) ?? "").replace(/[?&#].*$/, ""), vid, agent.device, ref, visitor, cleanVia(b.via), where.country, where.region, where.city, agent.browser, agent.os, returning, ms, sqlTime(now)).run();
+    // Old events are removed by the nightly visitors job, after their day's totals are kept.
   } catch (e) {
     console.error("event insert failed", e);
   }
   return new Response(null, { status: 204 });
 }
 
-export type Analytics = {
-  days: number;
-  funnel: { kind: string; hits: number; people: number }[];
-  dropOff: { kind: string; from: number; lost: number; percent: number }[];
-  byDay: { day: string; hits: number; people: number }[];
-  devices: { device: string; people: number }[];
-};
-
-const STEPS = ["page", "card", "answer"] as const;
-
-/** Funnel for the owner: how many people reach each step, and where they stop. */
-export async function analytics(env: Env, days: number): Promise<Analytics> {
-  const since = `-${days} days`;
-  const perKind = await env.DB.prepare(
-    "SELECT kind, count(*) AS hits, count(DISTINCT vid) AS people FROM events WHERE at > datetime('now', ?1) GROUP BY kind ORDER BY hits DESC",
-  ).bind(since).all<{ kind: string; hits: number; people: number }>();
-  const byDay = await env.DB.prepare(
-    "SELECT date(at) AS day, count(*) AS hits, count(DISTINCT vid) AS people FROM events WHERE at > datetime('now', ?1) GROUP BY day ORDER BY day DESC LIMIT 14",
-  ).bind(since).all<{ day: string; hits: number; people: number }>();
-  const devices = await env.DB.prepare(
-    "SELECT COALESCE(device, '?') AS device, count(DISTINCT vid) AS people FROM events WHERE at > datetime('now', ?1) GROUP BY device ORDER BY people DESC",
-  ).bind(since).all<{ device: string; people: number }>();
-  const found = new Map(perKind.results.map((r) => [r.kind, r]));
-  const funnel = STEPS.map((k) => ({ kind: k, hits: found.get(k)?.hits ?? 0, people: found.get(k)?.people ?? 0 }));
-  const dropOff = funnel.slice(1).map((step, i) => {
-    const from = funnel[i].people;
-    const lost = Math.max(0, from - step.people);
-    return { kind: step.kind, from, lost, percent: from ? Math.round((lost / from) * 100) : 0 };
-  });
-  return { days, funnel, dropOff, byDay: byDay.results, devices: devices.results };
-}
+// The visit funnel moved to the admin dashboard (visitors.ts).
 
 export async function recentErrors(env: Env, limit = 20): Promise<{ fingerprint: string; route: string; message: string; last: string; count: number }[]> {
   const { results } = await env.DB.prepare(

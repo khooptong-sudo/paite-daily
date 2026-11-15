@@ -87,6 +87,7 @@
       const done = () => { b.classList.remove("on"); b.textContent = "▶"; };
       voice.addEventListener("ended", done); voice.addEventListener("pause", done);
       voice.play().catch(done);
+      if (window.pdTrack) window.pdTrack("play");
     });
     return b;
   }
@@ -242,6 +243,7 @@
     e.preventDefault();
     const text = input.value.trim();
     if (!text) return;
+    if (window.pdTrack) window.pdTrack(mode === "ask" ? "ask" : "chat");
     note.textContent = "…";
     if (mode === "ask") {
       try {

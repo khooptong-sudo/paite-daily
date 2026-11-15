@@ -96,7 +96,8 @@
     g.fillStyle = "#5d6066"; g.font = `40px ${body}`; g.fillText("paite.lamkalabs.com", 540, 1710);
     const blob = await new Promise((r) => k.toBlob(r, "image/png"));
     const file = new File([blob], "ka-puan.png", { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: "Nampuan Liangbat Gat: my shawl, woven from the Paite I gave. https://paite.lamkalabs.com" }).catch(() => {});
+    if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: "Nampuan Liangbat Gat: my shawl, woven from the Paite I gave. https://paite.lamkalabs.com/?via=share" }).catch(() => {});
+    if (window.pdTrack) window.pdTrack("share");
     else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
   });
   // Ask a relative: the current sentence and the link, ready to send on WhatsApp.
@@ -105,8 +106,9 @@
     const el = document.getElementById("sentence"), line = (el?.textContent || "").trim();
     if (!line) return;
     // The link opens this exact sentence on their phone, so they answer it themselves, with their own name.
-    const link = "https://paite.lamkalabs.com/" + (el.dataset.id ? `?s=${el.dataset.id}` : "");
+    const link = "https://paite.lamkalabs.com/" + (el.dataset.id ? `?s=${el.dataset.id}&via=wa` : "?via=wa");
     const msg = `Hiai Paite in bang chih ding? / How do you say this in Paite?\n\n"${line}"\n\nHiai hon dawng inla, na min toh hon pelut ve. / Answer it yourself here, and your name goes with it: ${link}`;
     open("https://wa.me/?text=" + encodeURIComponent(msg), "_blank", "noopener");
+    if (window.pdTrack) window.pdTrack("share");
   });
 })();

@@ -439,29 +439,13 @@
     } catch {}
   }
 
-  // Owner only: how far visitors get, and what broke.
+  // Owner only: what broke. (Visits are on the admin dashboard.)
   async function insights() {
     const line = (li, text, meta) => {
       const t = document.createElement("p"); t.textContent = text;
       const m = document.createElement("div"); m.className = "meta"; m.textContent = meta;
       li.append(t, m);
     };
-    try {
-      const a = await fetch("/review/api/analytics?days=7");
-      if (a.ok) {
-        const d = await a.json();
-        $("funnel-card").hidden = false;
-        const rows = d.funnel.map((f) => {
-          const li = document.createElement("li"); li.className = "answer";
-          line(li, `${f.kind}: ${f.people} people (${f.hits} events)`, "");
-          return li;
-        });
-        d.dropOff.forEach((x, i) => { const m = rows[i + 1].querySelector(".meta"); m.textContent = `lost ${x.lost} (${x.percent}%) after ${d.funnel[i].kind}`; });
-        const days = document.createElement("li"); days.className = "meta";
-        days.textContent = d.byDay.map((b) => `${b.day}: ${b.people}`).join(" · ") || "No events yet.";
-        $("funnel").replaceChildren(...rows, days, Object.assign(document.createElement("li"), { className: "meta", textContent: "devices: " + d.devices.map((x) => `${x.device} ${x.people}`).join(", ") }));
-      }
-    } catch {}
     try {
       const e = await fetch("/review/api/errors");
       if (!e.ok) return;

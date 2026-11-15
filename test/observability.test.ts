@@ -6,12 +6,15 @@ import { call, fakeDeps, session, PHONE_A } from "./helpers";
 const rev = (path: string, init: RequestInit = {}, email = "owner@example.org", deps = fakeDeps({ verifyReviewer: async () => email })) =>
   call(path, init, deps);
 const post = (path: string, body: unknown) => ({ method: "POST", body: JSON.stringify(body) });
+// A real browser always sends a user agent; a request without one is treated as a bot and not counted.
+const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36";
+const beacon = (body: unknown) => ({ method: "POST", body: JSON.stringify(body), headers: { "user-agent": UA } });
 
 describe("funnel events", () => {
   it("stores a known kind and drops the rest without an error", async () => {
-    expect((await call("/api/event", post("/api/event", { kind: "page", path: "/", vid: "abc" }))).status).toBe(204);
-    expect((await call("/api/event", post("/api/event", { kind: "page", path: "/glossary?x=1", vid: "abc", ref: "https://x.example/thread" }))).status).toBe(204);
-    expect((await call("/api/event", post("/api/event", { kind: "nonsense", vid: "abc" }))).status).toBe(204);
+    expect((await call("/api/event", beacon({ kind: "page", path: "/", vid: "abc" }))).status).toBe(204);
+    expect((await call("/api/event", beacon({ kind: "page", path: "/glossary?x=1", vid: "abc", ref: "https://x.example/thread" }))).status).toBe(204);
+    expect((await call("/api/event", beacon({ kind: "nonsense", vid: "abc" }))).status).toBe(204);
     expect((await call("/api/event", { method: "POST", body: "not json" })).status).toBe(204);
     const rows = await env.DB.prepare("SELECT kind, path, vid, ref, device FROM events ORDER BY id").all();
     expect(rows.results).toEqual([
@@ -20,25 +23,14 @@ describe("funnel events", () => {
     ]);
   });
 
-  it("counts people per funnel step and reports the drop-off", async () => {
-    for (const [kind, vid] of [["page", "a"], ["page", "b"], ["card", "a"], ["card", "b"], ["answer", "a"]] as const) {
-      await call("/api/event", post("/api/event", { kind, vid, path: "/" }));
-    }
-    const r = await rev("/review/api/analytics?days=7");
-    expect(r.status).toBe(200);
-    const d = await r.json<{ funnel: { kind: string; people: number }[]; dropOff: { kind: string; lost: number; percent: number }[] }>();
-    expect(d.funnel).toEqual([{ kind: "page", hits: 2, people: 2 }, { kind: "card", hits: 2, people: 2 }, { kind: "answer", hits: 1, people: 1 }]);
-    expect(d.dropOff[1]).toEqual({ kind: "answer", from: 2, lost: 1, percent: 50 });
-  });
-
   it("drops a flood from one tab id", async () => {
-    for (let i = 0; i < 62; i++) await call("/api/event", post("/api/event", { kind: "page", vid: "hot" }));
+    for (let i = 0; i < 62; i++) await call("/api/event", beacon({ kind: "page", vid: "hot" }));
     const r = await env.DB.prepare("SELECT count(*) AS n FROM events WHERE vid = 'hot'").first<{ n: number }>();
     expect(r!.n).toBe(60);
   });
 
-  it("keeps the funnel to the owner", async () => {
-    expect((await rev("/review/api/analytics", {}, "rev@example.org")).status).toBe(403);
+  it("keeps the error list to the owner, and the old funnel route is gone", async () => {
+    expect((await rev("/review/api/analytics")).status).toBe(404);
     expect((await rev("/review/api/errors", {}, "rev@example.org")).status).toBe(403);
   });
 });

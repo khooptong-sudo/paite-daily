@@ -33,7 +33,7 @@ function readProverbDecision(b: Record<string, unknown>) {
 }
 import { getGlossaryForReview } from "./glossary";
 import { cap, cleanText, isId, isIdList, isPhoneId } from "./text";
-import { analytics, recentErrors } from "./observability";
+import { recentErrors } from "./observability";
 import { handleWords } from "./words";
 import { handleRecordingReview } from "./recordings";
 import { checkGrammar } from "./grammar";
@@ -219,10 +219,6 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
     if (!isOwner(env, email)) return json({ error: "owner_only" }, 403);
     return json({ errors: await recentErrors(env) });
   }
-  if (pathname === "/review/api/analytics" && req.method === "GET") {
-    if (!isOwner(env, email)) return json({ error: "owner_only" }, 403);
-    const days = Number(new URL(req.url).searchParams.get("days"));
-    return json(await analytics(env, Number.isInteger(days) && days > 0 && days <= 90 ? days : 7));
-  }
+  // The visit funnel moved to the Visitors dashboard on /admin.
   return json({ error: "not_found" }, 404);
 }

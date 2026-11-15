@@ -48,7 +48,7 @@
     timer = setTimeout(() => rec.state === "recording" && rec.stop(), MAX_MS);
   });
   $("h-stop").addEventListener("click", () => rec && rec.state === "recording" && rec.stop());
-  $("h-play").addEventListener("click", () => $("h-audio").play());
+  $("h-play").addEventListener("click", () => { $("h-audio").play(); if (window.pdTrack) window.pdTrack("play"); });
   $("h-again").addEventListener("click", () => { blob = null; show("ready"); say(""); });
   $("h-next").addEventListener("click", () => next().catch(() => say("Could not load a line. Try again.")));
   $("h-send").addEventListener("click", async () => {

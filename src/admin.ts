@@ -3,6 +3,7 @@ import { aiConfig, askJSON, AIHttpError, encryptSecret, forgetAIConfig, PRESETS 
 import { hashIp, mail } from "./apply";
 import { hex, ITERATIONS, MAX_PASSWORD, MIN_PASSWORD, pbkdf2, randomToken, sameBytes, sha256, unhex } from "./login";
 import { handleWikiApi } from "./kbapi";
+import { handleVisitorsApi } from "./visitors";
 import { json, type Deps, type Env } from "./types";
 
 /**
@@ -159,6 +160,10 @@ export async function handleAdmin(req: Request, env: Env, deps: Deps, ctx?: Exec
   const owner = isOwner(env, me);
 
   if (pathname === "/admin/api/me" && req.method === "GET") return json({ email: me, superuser: owner });
+  if (pathname.startsWith("/admin/api/visitors")) {
+    const r = await handleVisitorsApi(env, req, pathname, now);
+    if (r) return r;
+  }
   if (pathname.startsWith("/admin/api/wiki/")) {
     const r = await handleWikiApi(env, req.method, pathname.slice("/admin/api/wiki".length), new URL(req.url).searchParams, b, { email: me, owner }, now, deps.fetch ?? fetch);
     if (r) return r;

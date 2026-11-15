@@ -26,7 +26,7 @@ export function createApp(deps: Deps) {
   return async (req: Request, env: Env, ctx?: ExecutionContext): Promise<Response> => {
     const { pathname } = new URL(req.url);
     try {
-      if (pathname === "/api/event" && req.method === "POST") return await handleEvent(req, env);
+      if (pathname === "/api/event" && req.method === "POST") return await handleEvent(req, env, deps.now());
       if (pathname === "/glossary") return new Response(renderGlossary(await getGlossary(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/proverbs") return new Response(renderProverbs(await getProverbs(env), env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/proverbs.json") return new Response(proverbsJson(await getProverbs(env)), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300" } });

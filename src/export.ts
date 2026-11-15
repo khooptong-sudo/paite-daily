@@ -2,6 +2,7 @@ import { activeReviewers, publicReviewerNames } from "./access";
 import { audioPath, bytesToBase64, manifestText, PUBLISHED_CLIPS, type Clip } from "./audiomanifest";
 import { runBackup, runWikiBackup } from "./backup";
 import { runDigest } from "./digest";
+import { runVisitorRollup } from "./visitors";
 import { getContributors, renderMarkdown } from "./contributors";
 import { glossaryJson, getGlossary, runGlossary } from "./glossary";
 import { runReverse } from "./reverse";
@@ -310,4 +311,5 @@ export async function runNightly(env: Env, fetcher: typeof fetch): Promise<void>
   await logged(env, "digest", () => runDigest(env));
   await logged(env, "backup", () => runBackup(env, Date.now()));
   await logged(env, "wiki_backup", () => runWikiBackup(env, Date.now()));
+  await logged(env, "visitors", () => runVisitorRollup(env, Date.now()));
 }

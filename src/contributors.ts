@@ -100,7 +100,7 @@ const mdEsc = (s: string) => s.replace(/[\\`*_{}\[\]()#+\-.!|<>~&]/g, "\\$&").re
 const SEAL = '<svg class="seal-mark" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.6 2.2 3.4-.2 1 3.3 2.9 1.8-1.1 3.2 1.1 3.2-2.9 1.8-1 3.3-3.4-.2L12 22l-2.6-2.2-3.4.2-1-3.3-2.9-1.8 1.1-3.2L2.1 9l2.9-1.8 1-3.3 3.4.2z"/><path d="M8 12.2l2.7 2.7L16 9.6"/></svg>';
 const JS = `(function(){var S=window.STRINGS||{};
 document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
-var iv=S.inviteText,inv=document.getElementById("invite");if(iv&&inv)inv.href="https://wa.me/?text="+encodeURIComponent((iv.pai?iv.pai+" ":"")+iv.en+" https://paite.lamkalabs.com");
+var iv=S.inviteText,inv=document.getElementById("invite");if(iv&&inv)inv.href="https://wa.me/?text="+encodeURIComponent((iv.pai?iv.pai+" ":"")+iv.en+" https://paite.lamkalabs.com/?via=wa");
 var m=document.querySelector("main"),v=m.querySelectorAll("[data-view]"),b=m.querySelectorAll(".seg button");
 function show(k){v.forEach(function(x){x.classList.toggle("on",x.dataset.view===k)});b.forEach(function(x){x.setAttribute("aria-pressed",x.dataset.v===k)})}
 b.forEach(function(x){x.addEventListener("click",function(){show(x.dataset.v)})});show(m.dataset.start);
@@ -222,7 +222,7 @@ ${view("allTime")}
 ${wall}
 <a class="cta" href="/"><span>Paite Daily<small data-s="addSentence">Add a Sentence</small></span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="cta glass-btn" href="/glossary"><span data-s="glossaryTitle">Paite Word List</span><span class="go" aria-hidden="true">&rarr;</span></a>
-<a class="cta glass-btn" id="invite" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(INVITE_EN + " https://paite.lamkalabs.com")}"><span data-s="invite">Send to a friend</span><span class="go" aria-hidden="true">&rarr;</span></a>
+<a class="cta glass-btn" id="invite" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(INVITE_EN + " https://paite.lamkalabs.com/?via=wa")}"><span data-s="invite">Send to a friend</span><span class="go" aria-hidden="true">&rarr;</span></a>
 <a class="pan" href="/paite-daily.apk" download>
 <span><b data-s="getApp">Get the Android app</b><small data-s="getAppNote">Download the APK file.</small></span>
 <span class="go" aria-hidden="true">&darr;</span>

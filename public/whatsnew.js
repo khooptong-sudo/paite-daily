@@ -3,6 +3,7 @@
 // item is added. Add new items at the top of NEWS.
 (() => {
   const NEWS = [
+    { id: "2026-11-15-counting", date: "2026-11-15", title: "Counting visits, privately", text: "The site now counts where visitors come from and what they do, so we can see what helps Paite grow: no cookies, no IP addresses stored, and a code that changes every day, so nobody is followed. Links you share from the site carry a small tag, so we can see which ones were opened from WhatsApp. About This Project explains it in full.", href: "/about" },
     { id: "2026-11-15-boxes", date: "2026-11-15", title: "A calmer layout", text: "Each part of the page, your woven shawl included, now sits in its own quiet box, and every place you type has a clear border, so it is easy to see where one thing ends and the next begins." },
     { id: "2026-11-15-tongdot", date: "2026-11-15", title: "Tongdot | Tongsan, coming soon", text: "Reviewers are now testing a new mode in the chat: ask about Paite words, sayings, culture or history, and get an answer written only from our reviewed sources, with every Paite quote checked word for word. It opens to everyone once testing is done." },
     { id: "2026-11-15-zenodo", date: "2026-11-15", title: "Dataset version 1.2.0", text: "Zenodo has a new citable version of the open dataset: 1,361 verified pairs, 62 voice recordings and 1,868 words.", href: "https://doi.org/10.5281/zenodo.24212533" },

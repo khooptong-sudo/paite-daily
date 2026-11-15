@@ -43,7 +43,8 @@
     g.fillStyle = "#dfe7ff"; g.font = `40px ${body}`; g.fillText("paite.lamkalabs.com", 540, 1790);
     const blob = await new Promise((r) => c.toBlob(r, "image/png"));
     const file = new File([blob], "paite-daily-week.png", { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: `My week on Paite Daily: ${line()}. https://paite.lamkalabs.com` });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: `My week on Paite Daily: ${line()}. https://paite.lamkalabs.com/?via=share` });
+    if (window.pdTrack) window.pdTrack("share");
     else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
   }
 })();
