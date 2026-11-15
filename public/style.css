@@ -910,3 +910,10 @@ html[data-theme=light] .blue .ask-card { background: rgba(21, 18, 15, .035); }
   padding: 28px clamp(18px, 4vw, 32px); gap: 10px;
 }
 .blue .card.chat { padding: 0; margin-top: 20px; }
+/* Soft drop shadow under every box (owner, 15 Nov), modelled on the woven-shawl canvas: a short
+   shadow pulled in at the sides, so the box lifts a little off the page and nothing more.
+   On ink the page is near black, so the shadow is deeper to read at all. */
+body.blue { --lift: 0 12px 28px -16px rgba(0, 0, 0, .95), 0 2px 6px -3px rgba(0, 0, 0, .6); }
+html[data-theme=light] body.blue { --lift: 0 10px 24px -16px rgba(21, 18, 15, .45), 0 2px 6px -3px rgba(21, 18, 15, .12); }
+.blue .card:not(.chat), .blue .card.chat .chat-box, .blue .mypuan, body.rv .block { box-shadow: var(--lift); }
+.blue .card .card { box-shadow: none; }
