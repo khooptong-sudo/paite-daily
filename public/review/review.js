@@ -420,10 +420,9 @@
       const a = await fetch("/review/api/applications");
       if (a.ok) {
         const { applications } = await a.json();
-        $("apps-card").hidden = false;
+        $("apps-card").hidden = !applications.length; // shown only while someone is waiting for a decision
         $("apps").replaceChildren(...applications.map((x) => row(x.name + " <" + x.email + ">", x.note || "", ...["approve", "decline"].map((d) =>
           act(d === "approve" ? "Approve" : "Decline", (d === "approve" ? "Approve " : "Decline ") + x.name, async () => (await post("/review/api/applications/decide", { id: x.id, decision: d })).ok)))));
-        if (!applications.length) { const li = document.createElement("li"); li.className = "meta"; li.textContent = "No pending applications."; $("apps").replaceChildren(li); }
       }
       const r = await fetch("/review/api/reviewers");
       if (r.ok) {

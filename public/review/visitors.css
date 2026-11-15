@@ -6,7 +6,7 @@
   --vz: var(--blue, #c8102e);
   --vz-soft: color-mix(in srgb, var(--vz) 11%, transparent);
   --good: #00843f; --bad: #c8102e;
-  gap: 28px !important; padding: clamp(20px, 3.4vw, 40px) !important; position: relative;
+  gap: 28px !important; position: relative; container: vz / inline-size;
 }
 html:not([data-theme=light]) .vz { --good: #3ccf7f; --bad: #ff6b72; }
 .vz.loading .vz-plot, .vz.loading .vz-kpis, .vz.loading .vz-grid { opacity: .55; transition: opacity .2s; }
@@ -166,42 +166,28 @@ html:not([data-theme=light]) .vz { --good: #3ccf7f; --bad: #ff6b72; }
 .vz-more { justify-self: center; margin-top: 6px; }
 .vz-foot { margin: 0; padding-top: 18px; border-top: 1px solid var(--line); font: italic 400 1rem/1.45 var(--italic, Georgia, serif); color: var(--muted); max-width: 78ch; }
 
-@media (max-width: 980px) {
+/* The dashboard sits in the same one-column box as every other card, so the layout follows the
+   box's own width (container queries), not the window's. */
+@container vz (max-width: 980px) {
   .vz-kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .vz-kpi:nth-child(4) { border-left: 0 !important; }
   .vz-kpi:nth-child(n+4) { border-top: 1px solid var(--line) !important; }
-  .vz-grid-2 { grid-template-columns: minmax(0, 1fr); }
+  .vz-grid, .vz-grid-2 { grid-template-columns: minmax(0, 1fr); }
 }
-@media (max-width: 720px) {
-  .vz-grid { grid-template-columns: minmax(0, 1fr); }
-  .vz-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .vz-kpi:nth-child(n) { border-left: 0 !important; border-top: 1px solid var(--line) !important; }
-  .vz-kpi:nth-child(-n+2) { border-top: 0 !important; }
-  .vz-kpi:nth-child(even) { border-left: 1px solid var(--line) !important; }
+@container vz (max-width: 720px) {
   .vz-visit summary { grid-template-columns: minmax(0, 1fr) auto; }
   .vz-vm { grid-column: 1 / -1; grid-row: 2; }
   .vz-hm { grid-template-columns: 26px repeat(24, minmax(0, 1fr)); gap: 2px; }
   .vz-hh { font-size: 8px; }
   .vz-legend .tot { margin-left: 0; }
 }
-
-/* Polish after the first look (15 Nov). */
-.vz ol, .vz ul, .vz li { border-left: 0; }
-.vz-rows > li:not(.vz-empty), .vz-vlist > li { margin: 0; padding-left: 10px; }
-.vz-rows, .vz-vlist, .vz-fun, .vz-tl { padding-left: 0; }
-.vz-tl { padding-left: 22px; border-left: 1px solid var(--line) !important; }
-.vz-l small, .vz-vs small, .vz-tn small, .vz-sv small, .vz-back small, .vz-p, .vz-vm, .vz-vt {
-  font-family: var(--body) !important; font-style: normal !important; font-size: .74rem !important; line-height: 1.3 !important; letter-spacing: 0 !important; text-transform: none !important;
+@container vz (max-width: 440px) {
+  .vz-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .vz-kpi:nth-child(n) { border-left: 0 !important; border-top: 1px solid var(--line) !important; }
+  .vz-kpi:nth-child(-n+2) { border-top: 0 !important; }
+  .vz-kpi:nth-child(even) { border-left: 1px solid var(--line) !important; }
 }
-.vz-back span { font-family: var(--body); font-style: normal; }
-.vz-cols, .vz-rows > li:not(.vz-empty) { grid-template-columns: minmax(0, 1fr) 64px 76px; }
-.vz-cols span { white-space: nowrap; }
-.vz-hc { aspect-ratio: auto; height: clamp(14px, 2.4vw, 24px); }
-#vz-livepanel .vz-visit summary { grid-template-columns: minmax(0, 1fr) auto; }
-#vz-livepanel .vz-vm { grid-column: 1 / -1; grid-row: 2; }
-.vz-vm > span { white-space: normal; min-width: 0; }
-
-/* The reviewers page is narrow (one column). With the dashboard on it, the page opens up to a wide
-   column, and every other card keeps its reading width, centred. */
-main:has(> #vz) { max-width: 1180px; width: calc(100% - 32px); }
-main:has(> #vz) > :not(#vz) { width: 100%; max-width: 560px; justify-self: center; box-sizing: border-box; }
+/* One box, not boxes in a box: the panels become sections divided by hairlines. */
+.vz-grid { gap: 0; }
+.vz-panel { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; padding: 22px 0 8px; }
+.vz-hc { aspect-ratio: 1; height: auto; }
