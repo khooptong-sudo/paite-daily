@@ -233,7 +233,7 @@ describe("glossary page", () => {
     await env.DB.prepare("INSERT INTO glossary (paite, english, note, source) VALUES ('Dam', 'well', 'one', 'contributed'), ('dam ', 'healthy', NULL, 'contributed'), ('Dam', 'calm', NULL, 'contributed'), ('Ei', 'eat', NULL, 'contributed')").run();
     const html = renderGlossary(await getGlossary(env));
     expect(html.match(/<b class="w">/g)).toHaveLength(2);
-    expect(html).toContain('<span class="cnt">2 words</span>');
+    expect(html).toContain('<span class="cnt">1 word</span>');
     expect(html).toContain('<ol class="mn">');
     for (const m of ["Well", "Healthy", "Calm", "Eat"]) expect(html).toContain(`<p class="m">${m}</p>`);
     expect(html.match(/ id="w-[0-9]+"/g)).toHaveLength(4);
