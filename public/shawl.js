@@ -79,6 +79,28 @@
   addEventListener("resize", () => { if (goal) { size(); draw(shown); } });
   new MutationObserver(() => { if (goal) draw(shown); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
+  // One more thread when an answer is accepted (app.js sends paite:thread): the count ticks up and the
+  // shuttle weaves one thread in over about 600 ms, with a pale flash at the edge. With reduced motion
+  // the thread and the number just appear. Only the picture on this page moves; the true count comes
+  // back from the server on the next visit.
+  document.addEventListener("paite:thread", () => {
+    if (!goal || done >= goal) return;
+    const from = seen ? shown : done; done++;
+    bar.setAttribute("aria-valuenow", done);
+    const n = document.getElementById("goal-n"), fill = bar.firstElementChild;
+    if (n) n.textContent = done;
+    if (fill) fill.style.width = Math.min(100, Math.round((done / goal) * 100)) + "%";
+    if (still || !seen) { shown = done; if (seen) draw(done); return; }
+    cancelAnimationFrame(raf); const t1 = performance.now();
+    const step = (t) => {
+      const p = Math.min(1, (t - t1) / 600), e = 1 - Math.pow(1 - p, 3);
+      draw(from + (done - from) * e);
+      if (p < 1) { const x = ((from + (done - from) * e) / goal) * W; g.fillStyle = "rgba(255,255,255," + (.55 * (1 - p)) + ")"; g.fillRect(Math.max(0, x - 14), 0, 14, H); raf = requestAnimationFrame(step); }
+      else { shown = done; draw(done); raf = 0; }
+    };
+    raf = requestAnimationFrame(step);
+  });
+
   // Hover: which thread is under the pointer.
   if (tip) {
     c.addEventListener("pointermove", (e) => {

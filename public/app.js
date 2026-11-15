@@ -221,6 +221,7 @@
         if (window.pdTrack) window.pdTrack("answer");
         const n = store.get(todayKey(), 0) + 1;
         store.set(todayKey(), n); showToday(); refreshMe();
+        document.dispatchEvent(new CustomEvent("paite:thread"));
         status(n % 5 === 0 ? tBoth("thanks") : "", true);
         askName($("send"));
       }
@@ -293,7 +294,7 @@
           direction: form.dataset.dir, kind: f.kind, paite: text("paite"), english: text("english"),
           explainer: text("explainer"), name: store.get("name", ""),
         }) });
-        if (r.ok) { say(tBoth("sayingThanks"), true); form.reset(); refreshMe(); askName(btn); }
+        if (r.ok) { say(tBoth("sayingThanks"), true); form.reset(); refreshMe(); document.dispatchEvent(new CustomEvent("paite:thread")); askName(btn); }
         else say(tBoth(r.status === 429 ? "tooFast" : "offline"));
       } catch { say(tBoth("offline")); }
       btn.disabled = false;
