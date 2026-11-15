@@ -182,6 +182,7 @@
           + " waiting for another reviewer. Nobody checks their own work here. If no one has after 14 days, it comes back to you."
         : "";
     } catch {}
+    document.querySelector("#dash .tiles").classList.remove("skel");
   }
 
   // Keyboard: J and K (or the arrows, or 1 to 9) move between answers, and every key

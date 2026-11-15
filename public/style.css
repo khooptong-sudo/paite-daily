@@ -436,7 +436,7 @@ canvas.puan-ripple { display: block; width: 100%; max-width: 560px; height: auto
 .whatsnew summary { list-style: none; cursor: pointer; display: flex; align-items: center; gap: 10px; padding-right: 40px; }
 .whatsnew summary::-webkit-details-marker { display: none; }
 .news-title { font: 400 1.3rem/1.2 var(--display); color: var(--fg); }
-.news-count { display: inline-grid; place-items: center; min-width: 22px; min-height: 22px; padding: 0 6px; margin-left: 4px; border-radius: 11px; background: var(--blue, #0b4bff); color: #fff; font: 600 .75rem/1 var(--body); vertical-align: middle; }
+.news-count { display: inline-grid; place-items: center; min-width: 20px; min-height: 20px; padding: 0 6px; margin-left: 4px; border-radius: 10px; border: 1px solid var(--line); background: transparent; color: var(--muted); font: 600 .72rem/1 var(--body); vertical-align: middle; }
 .news-chev { margin-left: auto; color: var(--muted); font-size: 1.2rem; transition: transform .2s; }
 .whatsnew details[open] .news-chev { transform: rotate(180deg); }
 .news { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 12px; }
@@ -558,7 +558,7 @@ body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week
 /* The greeting is the hero: huge, with the silk colours drifting through the letters. */
 .blue .card.chat { border-top: 0; padding-top: 8px; }
 .blue .chat .hello {
-  display: block; margin: 10px 0 6px; font: 400 clamp(3.2rem, 12vw, 9rem)/.92 var(--display); letter-spacing: -.04em; text-wrap: balance;
+  display: block; margin: 10px 0 6px; font: 400 clamp(2.6rem, 10.5vw, 9rem)/.95 var(--display); letter-spacing: -.04em; text-wrap: balance;
   background: var(--silk) var(--silk-x) 0 / 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
   animation: silk-x 18s ease-in-out infinite alternate;
 }
@@ -941,3 +941,15 @@ body.blue::before { content: ""; display: block; position: fixed; inset: 0; z-in
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--lift);
 }
 .blue .card .card { background: none; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+
+/* Tap targets (plan 012): the fold bar of What's New is a full 44px tall; the small chips and close
+   buttons already reach 44px through their ::after hit area above. */
+.whatsnew summary { min-height: 44px; }
+.news-chev { padding: 0 4px; }
+
+/* Skeletons (plan 012): quiet pulsing bars while numbers load, e.g. the reviewer dashboard tiles.
+   Add .skel to a box and take it off when the data is in. Still under reduced motion. */
+.skel .n, .skel .old { color: transparent; background: var(--line); border-radius: 6px; min-height: 1em; width: 55%; animation: skel 1.4s ease-in-out infinite alternate; }
+.skel .old { width: 80%; min-height: .9em; }
+@keyframes skel { from { opacity: .45; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .skel .n, .skel .old { animation: none; } }
