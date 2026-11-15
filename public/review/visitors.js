@@ -389,12 +389,18 @@
   function setOpen(open) {
     root.classList.toggle("collapsed", !open);
     toggle.setAttribute("aria-expanded", String(open));
-    $("vz-toggle-t").textContent = open ? "Hide" : "Show";
+    for (const b of [toggle, $("vz-toggle2")]) { const l = open ? "Hide the dashboard" : "Show the dashboard"; b.setAttribute("aria-label", l); b.title = l; }
     try { localStorage.setItem("pd:vz", open ? "1" : "0"); } catch {}
     if (open && !loaded) { loaded = true; load().then(() => loadVisits(null)); }
     else if (open && data) chart();
   }
   toggle.addEventListener("click", () => setOpen(root.classList.contains("collapsed")));
+  // The floating ^ folds the box and brings its heading back into view.
+  $("vz-toggle2").addEventListener("click", () => { setOpen(false); root.scrollIntoView({ block: "start", behavior: "smooth" }); });
+  // The floating ^ appears only once the heading has scrolled out of view.
+  if (window.IntersectionObserver) new IntersectionObserver(([e]) => root.classList.toggle("away", !e.isIntersecting)).observe(root.querySelector(".vz-top"));
+  // A folded bar opens with a tap anywhere on it.
+  root.addEventListener("click", (e) => { if (root.classList.contains("collapsed") && e.target.closest(".vz-top") && !e.target.closest("button")) setOpen(true); });
   window.pdVisitors = () => {
     if (started) return;
     started = true;

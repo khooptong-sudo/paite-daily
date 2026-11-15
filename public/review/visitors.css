@@ -205,3 +205,15 @@ html:not([data-theme=light]) .vz { --good: #3ccf7f; --bad: #ff6b72; }
 .vz-toggle:hover { color: var(--fg) !important; border-color: var(--hair) !important; }
 .vz-toggle svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s; }
 .vz.collapsed .vz-toggle svg { transform: rotate(180deg); }
+
+/* Fold buttons: a round ^ on the heading, and one that floats while you scroll through the dashboard. */
+.vz-toggle { width: 36px; height: 36px; padding: 0 !important; justify-content: center; border: 1px solid var(--hair) !important; background: var(--bg) !important; color: var(--fg) !important; }
+.vz-toggle svg { width: 18px; height: 18px; stroke-width: 2.2; }
+.vz-toggle:hover { background: var(--fg) !important; color: var(--bg) !important; }
+.vz-float { position: sticky; top: 12px; z-index: 6; height: 0; display: flex; justify-content: flex-end; pointer-events: none; }
+.vz-float .vz-toggle { pointer-events: auto; transform: translateY(-4px); box-shadow: 0 8px 20px -10px rgba(0, 0, 0, .55) !important; }
+.vz.collapsed .vz-top { cursor: pointer; }
+.vz-float { margin-bottom: -28px; }
+
+.vz-float .vz-toggle { opacity: 0; pointer-events: none; transition: opacity .2s, background .15s, color .15s; }
+.vz.away .vz-float .vz-toggle { opacity: 1; pointer-events: auto; }

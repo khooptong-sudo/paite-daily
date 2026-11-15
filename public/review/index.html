@@ -46,14 +46,18 @@
   .wh { margin: 0 0 12px; font: 700 .72rem/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
   .wbody ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
   .revlist { list-style: none; margin: 0; padding: 0; display: grid; }
-  .revlist li { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto; align-items: baseline; gap: 4px 14px; padding: 9px 0; border-top: 1px solid var(--line); }
+  .revlist li { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: baseline; gap: 3px 16px; padding: 9px 0; border-top: 1px solid var(--line); }
+  .revlist li.multi { grid-template-columns: minmax(0, 1fr); }
+  .revlist .rh { display: flex; align-items: baseline; gap: 9px; }
+  .revlist .rls { display: grid; gap: 3px; min-width: 0; }
+  .revlist .rl { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; min-width: 0; }
   .revlist li:first-child { border-top: 0; padding-top: 2px; }
   .revlist .rn { font-weight: 600; font-size: .92rem; }
   .revlist .re { color: var(--muted); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .revlist .rt { color: var(--muted); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
   .revlist button { appearance: none; border: 0 !important; background: none !important; box-shadow: none !important; min-height: 0 !important; padding: 2px 0 !important; font: 500 .8rem/1.2 var(--body) !important; color: var(--muted) !important; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
   .revlist button:hover { color: var(--fg) !important; }
-  @media (max-width: 460px) { .revlist li { grid-template-columns: minmax(0, 1fr) auto; } .revlist .re { grid-column: 1 / -1; grid-row: 2; } }
+  @media (max-width: 460px) { .revlist li { grid-template-columns: minmax(0, 1fr); } }
   .edit { display: grid; gap: 8px; }
   .edit input { width: 100%; }
   .dash h2 { margin-top: 0; }
@@ -88,7 +92,7 @@
 </div>
 <div class="vz-tools">
 <span class="vz-live" id="vz-live" title="Visits with activity in the last five minutes"><i aria-hidden="true"></i><b id="vz-now">0</b><span>on the site now</span></span>
-<button type="button" class="vz-toggle" id="vz-toggle" aria-expanded="true" aria-controls="vz-body"><span id="vz-toggle-t">Hide</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
+<button type="button" class="vz-toggle" id="vz-toggle" aria-expanded="true" aria-controls="vz-body" aria-label="Hide the dashboard" title="Hide the dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
 <div class="vz-seg" role="group" aria-label="Period">
 <button type="button" data-range="today" aria-pressed="false">Today</button>
 <button type="button" data-range="7" aria-pressed="true">7 days</button>
@@ -98,6 +102,7 @@
 </div>
 </header>
 <div class="vz-body" id="vz-body">
+<div class="vz-float"><button type="button" class="vz-toggle" id="vz-toggle2" aria-controls="vz-body" aria-label="Hide the dashboard" title="Hide the dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button></div>
 <div class="vz-kpis" id="vz-kpis" role="group" aria-label="Choose what the chart shows"></div>
 <figure class="vz-chart" id="vz-chart">
 <div class="vz-plot" id="vz-plot"></div>

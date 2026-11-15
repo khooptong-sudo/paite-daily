@@ -1,6 +1,9 @@
 (() => {
   const $ = (id) => document.getElementById(id);
   let card = null, isOwner = false, undoId = null, lastUndo = null;
+  // A refresh always opens at the top: no restored scroll position, and the first card does not scroll itself into view.
+  try { history.scrollRestoration = "manual"; } catch {}
+  let firstCard = true;
 
   const status = (m, ok = false) => { $("status").textContent = m; $("status").className = "status " + (ok ? "ok" : m ? "err" : ""); };
   const post = (path, body) => fetch(path, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
@@ -150,7 +153,8 @@
     }));
     $("answers").querySelectorAll("textarea[data-lang]").forEach((t) => window.pdLang && window.pdLang(t, t.dataset.lang));
     const first = $("answers").querySelector(".answer");
-    if (first) focusBox(first); else $("english").focus();
+    if (first) focusBox(first, !firstCard); else $("english").focus({ preventScroll: true });
+    firstCard = false;
   }
 
 
@@ -183,9 +187,9 @@
   // Keyboard: J and K (or the arrows, or 1 to 9) move between answers, and every key
   // acts on the answer that has focus.
   const boxes = () => [...document.querySelectorAll("#answers .answer")];
-  function focusBox(box) {
+  function focusBox(box, scroll = true) {
     boxes().forEach((b) => b.classList.toggle("on", b === box));
-    box.focus({ preventScroll: true }); box.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    box.focus({ preventScroll: true }); if (scroll) box.scrollIntoView({ block: "nearest", behavior: "smooth" });
   }
   const current = (e) => (e.target.closest && e.target.closest(".answer")) || document.querySelector(".answer.on") || boxes()[0];
   function step(by, e) { const all = boxes(), i = all.indexOf(current(e)); if (all.length) focusBox(all[Math.max(0, Math.min(all.length - 1, i + by))]); }
@@ -434,23 +438,41 @@
       if (r.ok) {
         const { reviewers } = await r.json();
         $("revs-card").hidden = false;
-        // One quiet line each: name, email, a small tag for the two kinds that cannot be removed here.
+        // One quiet entry per person, the owner first. The owner's emails (and anyone with the same name) sit
+        // under one name; only an address kept in the database can be removed here.
         const tags = { owner: "owner", secret: "built in" };
-        $("revs").replaceChildren(...reviewers.map((x) => {
+        const ownerName = (reviewers.filter((x) => x.source === "owner").map((x) => x.name).find((n) => n.trim().toLowerCase() !== "owner")) || "Owner";
+        const groups = new Map();
+        for (const x of reviewers) {
+          const k = x.source === "owner" || x.name.trim().toLowerCase() === ownerName.toLowerCase() ? "\0owner" : x.name.trim().toLowerCase();
+          if (!groups.has(k)) groups.set(k, { name: k === "\0owner" ? ownerName : x.name, owner: k === "\0owner", people: [] });
+          groups.get(k).people.push(x);
+        }
+        const ordered = [...groups.values()].sort((a, b) => (b.owner - a.owner) || a.name.localeCompare(b.name));
+        $("revs").replaceChildren(...ordered.map((g) => {
           const li = document.createElement("li");
-          const n = document.createElement("span"); n.className = "rn"; n.textContent = x.name;
-          const e = document.createElement("span"); e.className = "re"; e.textContent = x.email;
-          li.append(n, e);
-          if (x.source === "db") {
-            li.append(act("Remove", "Remove " + x.name, async () => {
-              if (!confirm("Remove " + x.name + " (" + x.email + ") as a reviewer?")) return false;
-              const d = await post("/review/api/reviewers/remove", { email: x.email });
-              if (!d.ok) status((await d.json().catch(() => ({}))).message || "Could not remove.");
-              return d.ok;
-            }));
-          } else if (tags[x.source]) {
-            const t = document.createElement("span"); t.className = "rt"; t.textContent = tags[x.source]; li.append(t);
+          li.className = g.people.length > 1 ? "multi" : "";
+          const n = document.createElement("span"); n.className = "rn"; n.textContent = g.name;
+          const rls = document.createElement("div"); rls.className = "rls";
+          for (const x of g.people) {
+            const line = document.createElement("div"); line.className = "rl";
+            const e = document.createElement("span"); e.className = "re"; e.textContent = x.email;
+            line.append(e);
+            if (x.source === "db") {
+              line.append(act("Remove", "Remove " + x.email, async () => {
+                if (!confirm("Remove " + x.name + " (" + x.email + ") as a reviewer?")) return false;
+                const d = await post("/review/api/reviewers/remove", { email: x.email });
+                if (!d.ok) status((await d.json().catch(() => ({}))).message || "Could not remove.");
+                return d.ok;
+              }));
+            } else if (!g.owner && tags[x.source]) {
+              const t = document.createElement("span"); t.className = "rt"; t.textContent = tags[x.source]; line.append(t);
+            }
+            rls.append(line);
           }
+          const head = document.createElement("div"); head.className = "rh"; head.append(n);
+          if (g.owner) { const t = document.createElement("span"); t.className = "rt"; t.textContent = "owner"; head.append(t); }
+          li.append(head, rls);
           return li;
         }));
       }
