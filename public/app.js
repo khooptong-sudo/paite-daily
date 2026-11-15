@@ -122,6 +122,7 @@
       const rev = current.direction === "pai2en";
       $("label").innerHTML = tBoth(rev ? "reverseTitle" : "translate");
       $("paite").setAttribute("aria-label", rev ? "English" : "Paite");
+      { const h = S[rev ? "hintAnswerRev" : "hintAnswer"]; $("paite").placeholder = h.pai ? `${h.pai} · ${h.en}` : h.en; }
       if (window.pdLang) window.pdLang($("paite"), rev ? "en" : "pai");
       document.querySelector(".register").hidden = rev;
       $("sentence").textContent = current.english;

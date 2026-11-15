@@ -32,9 +32,9 @@ const STYLE = `<style>
 .about .lead+p{color:var(--muted)}
 .about .facts{list-style:none;display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:2rem 0 3.25rem;padding:0}
 .about .facts li{margin:0;padding:14px 14px 16px;border:1px solid var(--line);border-top:6px solid var(--c);border-radius:12px;background:var(--surface)}
-.about .facts b{display:block;font:400 1.75rem/1.1 var(--display);color:var(--ink)}
+.about .facts b{display:block;font:400 1.75rem/1.1 var(--display);color:var(--fg)}
 .about .facts span{display:block;margin-top:4px;font-size:.85rem;line-height:1.4;color:var(--muted)}
-.about .timeline{list-style:none;margin:1.25rem 0 0;padding:0 0 0 1.4rem;border-left:2px solid var(--ink)}
+.about .timeline{list-style:none;margin:1.25rem 0 0;padding:0 0 0 1.4rem;border-left:2px solid var(--hair)}
 .about .timeline li{position:relative;margin:0 0 1rem;padding-left:.25rem}
 .about .timeline li::before{content:"";position:absolute;left:calc(-1.4rem - 7px);top:.45em;width:12px;height:12px;border-radius:50%;background:var(--c,var(--red));box-shadow:0 0 0 2px var(--ink)}
 .about .timeline time{display:block;font:400 1.05rem/1.2 var(--display)}
@@ -59,6 +59,9 @@ const STYLE = `<style>
 .about .rights{margin:0 0 1.25rem;padding:0;border-top:1px solid var(--line)}
 .about .rights dt{margin:0;padding:12px 0 2px;font-weight:700;line-height:1.4}
 .about .rights dd{margin:0;padding:0 0 12px;border-bottom:1px solid var(--line);line-height:1.6;color:var(--muted);max-width:62ch}
+.about .plain{list-style:disc;margin:0 0 1rem;padding-left:1.2rem;max-width:62ch}
+.about .plain li::marker{color:var(--muted)}
+.about .plain li{margin:0 0 .45rem}
 .about .refs{list-style:none;margin:0;padding:0;font-size:.92rem;color:var(--muted)}
 .about .refs li{margin:0 0 .55rem;padding-left:1rem;text-indent:-1rem}
 .about .updated{margin:0 0 2rem;font-size:.82rem;color:var(--muted)}
@@ -133,114 +136,135 @@ export function renderAbout(publicWiki = false): string {
 ${STYLE}
 </head>
 <body class="cp blue">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div><h1>About Paite Daily</h1><p>A free, volunteer-reviewed corpus of Paite.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/glossary">Word list <span aria-hidden="true">&rarr;</span></a></div><h1>About Paite Daily</h1><p>A free, volunteer-checked corpus of Paite.</p></header>
 <main class="gl about">
 
 <div>
-<p class="lead"><strong>Paite Daily</strong> is a free, volunteer-run corpus of <strong>Paite</strong> (ISO 639-3: <code>pck</code>). Speakers send in Paite–English translations. A second person reviews each one. Only reviewed pairs appear on the site.</p>
-<p>No Paite here is machine-generated. One person wrote every line, and another person approved it.</p>
+<p class="lead"><strong>Paite Daily</strong> is a free corpus of <strong>Paite</strong>: a growing collection of everyday sentences in Paite and English. People who speak Paite send in the translations. Each translation is checked by a second person before it goes on the site.</p>
+<p>No computer writes the Paite here. Every line was written by one person and checked by another.</p>
 </div>
 
 <ul class="facts" aria-label="Paite at a glance">
-<li style="--c:var(--red)"><b>78,725</b><span>mother-tongue speakers, Census of India 2011</span></li>
-<li style="--c:var(--yel)"><b>1903</b><span>year the Paite Laimal alphabet was devised</span></li>
-<li style="--c:var(--grn)"><b>2004</b><span>Paite approved as a Manipur University degree subject</span></li>
-<li style="--c:var(--ink)"><b>Open</b><span>every verified pair is free to use (CC0 or CC BY 4.0)</span></li>
+<li style="--c:var(--red)"><b>78,725</b><span>people whose mother tongue is Paite (Census of India, 2011)</span></li>
+<li style="--c:var(--yel)"><b>1903</b><span>the year the Paite alphabet was made</span></li>
+<li style="--c:var(--grn)"><b>2004</b><span>Paite became a degree subject at Manipur University</span></li>
+<li style="--c:var(--ink)"><b>Free</b><span>every checked sentence is free for anyone to use</span></li>
 </ul>
 
 <section aria-labelledby="people">
 <p class="kicker"><b>01</b> The people</p>
 <h2 id="people">Who the Paites are</h2>
-<p>The word <em>Paite</em> means “the people who marched”. It joins <em>pai</em> (to march) and <em>te</em> (the plural marker).</p>
-<p>The Paites are one of the Zo (Zomi) peoples of the India–Myanmar–Bangladesh borderlands. They are a recognised Scheduled Tribe in Manipur and in Mizoram. Most Paites live in Manipur. In Lamka, the main town of Churachandpur district, they are the dominant community. There, Paite is the everyday language of the street and the market.</p>
-<p>The community took to print early. British missionaries brought Christianity in the nineteenth century. Schools, literacy and the written word followed, and they stayed. That is why a language of about 79,000 speakers has three dictionary editions, a reference grammar, a degree course and a daily radio broadcast.</p>
-<p>Proverbs, folksongs and folktales still pass from speaker to speaker by word of mouth. The <em>pau upa</em> section of this site collects the proverbs and idioms.</p>
+<p>The name <em>Paite</em> means “the people who marched”. It comes from <em>pai</em> (to march) and <em>te</em> (people, more than one).</p>
+<p>The Paites are one of the Zo (Zomi) peoples who live where India, Myanmar and Bangladesh meet. They are a recognised tribe in Manipur and in Mizoram. Most Paites live in Manipur. In Lamka, the main town of Churachandpur district, Paite is what you hear on the street and in the market.</p>
+<p>Paites started reading and writing early. Missionaries came in the 1800s, and schools and books came with them. That is why a language with about 79,000 speakers already has dictionaries, a grammar book, a university course and a daily radio programme.</p>
+<p>Sayings, songs and old stories are still passed on by word of mouth. The <em>pau upa</em> part of this site collects the sayings.</p>
 </section>
 
 <section aria-labelledby="language">
 <p class="kicker"><b>02</b> The language</p>
 <h2 id="language">What Paite is</h2>
-<p>Paite is an independent Tibeto-Burman language. People speak it mainly in Churachandpur district of Manipur. There are also Paite communities in Mizoram and Assam, and Paite families in Myanmar. The 2011 Census of India records <strong>78,725 people whose mother tongue is Paite</strong>.</p>
-<p>Paite is a non-scheduled language of India. All India Radio Imphal broadcasts in Paite every day. The language also has more than a century of written work behind it:</p>
+<p>Paite is an independent Tibeto-Burman language: a language of its own, from the same big family as Burmese and Tibetan. Most speakers live in Churachandpur district, Manipur. There are also Paite communities in Mizoram and Assam, and Paite families in Myanmar. The 2011 Census of India counted <strong>78,725 people whose mother tongue is Paite</strong>.</p>
+<p>Paite is a non-scheduled language of India, which means it is not on the Constitution’s list of official languages. Even so, All India Radio Imphal broadcasts in Paite every day. People have been writing Paite for more than a hundred years:</p>
 <ol class="timeline">
-<li style="--c:var(--red)"><time>1903</time>T. Vialphung devises the <em>Paite Laimal</em>, the Paite alphabet.</li>
-<li style="--c:var(--yel)"><time>1945</time>The Laimal is published in <em>Sintung Bu</em>.</li>
-<li style="--c:var(--grn)"><time>1993</time>The Paite Tribe Council publishes its <em>English–Paite Dictionary</em>, after a century of word books. New editions follow in 2003 and 2014.</li>
-<li style="--c:var(--red)"><time>2004</time>On 22 April, the Academic Council of Manipur University approves Paite as a modern Indian language subject for the three-year degree course.</li>
-<li style="--c:var(--yel)"><time>2006</time>Naorem Saratchandra Singh publishes <em>A Grammar of Paite</em> (Mittal), the one book-length reference grammar.</li>
-<li style="--c:var(--grn)"><time>2009</time>T. Thuamkhopau records Paite proverbs in <em>Paite paunaak leh pau upate</em>.</li>
+<li style="--c:var(--red)"><time>1903</time>T. Vialphung makes the <em>Paite Laimal</em>, the Paite alphabet.</li>
+<li style="--c:var(--yel)"><time>1945</time>The alphabet is printed in <em>Sintung Bu</em>.</li>
+<li style="--c:var(--grn)"><time>1993</time>The Paite Tribe Council publishes its <em>English–Paite Dictionary</em>. New editions follow in 2003 and 2014.</li>
+<li style="--c:var(--red)"><time>2004</time>On 22 April, Manipur University makes Paite a subject in its three-year degree course.</li>
+<li style="--c:var(--yel)"><time>2006</time>Naorem Saratchandra Singh writes <em>A Grammar of Paite</em>, still the only full grammar book.</li>
+<li style="--c:var(--grn)"><time>2009</time>T. Thuamkhopau writes down Paite sayings in <em>Paite paunaak leh pau upate</em>.</li>
 <li style="--c:var(--ink)"><time>2011</time>The Census of India counts 78,725 speakers.</li>
 </ol>
 </section>
 
 <div class="band" role="note">
-<p>Paite has an alphabet, dictionaries, a grammar and a radio service. <span>What it does not have is a corpus.</span></p>
+<p>Paite has an alphabet, dictionaries, a grammar book and a radio programme. <span>What it does not have is a corpus: a big, open collection of its sentences.</span></p>
 <div class="stripe" aria-hidden="true"></div>
 </div>
 
 <section aria-labelledby="why">
 <p class="kicker"><b>03</b> The gap</p>
 <h2 id="why">Why this site exists</h2>
-<p>Paite life is well written down. The language itself is not in a machine. A speaker can write a Paite sentence by hand, but not easily on a phone. There is no spellchecker, no predictive keyboard, no parallel text and no machine translation.</p>
-<p>All of these tools are built from aligned sentences that a computer can read. For Paite, nobody has assembled those sentences yet.</p>
-<p class="note">That is the whole gap. Paite does not lack speakers. It lacks sentences in a form a computer can read. About 79,000 speakers and no spellchecker is a problem we can fix, not a tragedy.</p>
+<p>You can write Paite on paper, but phones and computers do not help you with it. There is no spellchecker for Paite, no keyboard that guesses your next word, and no translation app.</p>
+<p>Tools like these are built from many sentences written in two languages side by side, so a computer can learn from them. For Paite, nobody has gathered those sentences yet. This site is gathering them.</p>
+<p class="note">So the problem is not a lack of speakers. Paite has plenty of those. It just needs its sentences written down in a form a computer can use, and that is something we can fix together.</p>
 </section>
 
 <section aria-labelledby="verify">
-<p class="kicker"><b>04</b> The method</p>
-<h2 id="verify">How a sentence gets verified</h2>
+<p class="kicker"><b>04</b> How it works</p>
+<h2 id="verify">How a sentence gets checked</h2>
 <ol class="steps">
-<li><h3>Submit</h3><p>A speaker sends a translation and tags it <em>Gen Thoh</em> (spoken), <em>Gelh Thoh</em> (written) or <em>Anih In</em> (both). A bot check guards the form.</p></li>
-<li><h3>Review</h3><p>A reviewer checks the translation against the source. The site never shows an unreviewed submission as an answer.</p></li>
-<li><h3>Publish</h3><p>The approved pair joins the pool of verified sentences. Only then does it become a prompt for the next learner.</p></li>
+<li><h3>You send it</h3><p>You translate a sentence and say whether it is how people talk (<em>Gen Thoh</em>), how people write (<em>Gelh Thoh</em>), or both (<em>Anih In</em>). A quick check stops robots from sending answers.</p></li>
+<li><h3>A reviewer checks it</h3><p>Another Paite speaker reads your translation and compares it with the original. Nothing goes on the site before this check.</p></li>
+<li><h3>It joins the collection</h3><p>Once approved, your sentence joins the checked sentences, and it can be shown to the next person who comes to translate.</p></li>
 </ol>
-<p>Proverbs and idioms (<em>pau upa</em>) go through the same loop, in both directions, under the same rule: a reviewer approves each one before it appears. Nothing is published without review. No model writes our data, and no model decides what counts as correct Paite.</p>
-<p><strong>Where AI helps.</strong> We do use an AI model (DeepSeek) behind the scenes, and it is part of what the coffee button pays for. It suggests new everyday English sentences for people to translate. It leaves reviewers a short advisory note on each answer, which they are free to ignore. It powers the Check English button, which only suggests a fix and changes nothing until you tap Use this. And it lifts word-list entries out of the notes contributors write, keeping only words that appear in their verified Paite; reviewers correct or hide any that are wrong. In the chat, it reads the English you type and picks, from our verified lines, the one that means the same, or none; the Paite you see is always the reviewed Paite, word for word. When nothing matches and you ask for the line, it checks that the line is clean everyday English before it joins the queue for people to translate. It never writes, corrects or approves Paite.</p>
-<p><strong>What we count.</strong> To see whether the site is reaching people, it counts visits itself, with no cookies and nothing from outside companies. It notes the page, the site or app a link was opened from, the device and browser with their version numbers, the make of the phone, the language and time zone, the size and sharpness of the screen, whether the page is dark or light, the type of connection, how fast the page loaded and how far down it was read, the region (a town only once two or more people have come from it), and what was done, such as sending an answer or opening a link to another site. A phone model, a network such as Jio or Airtel, and a time zone are shown only once two or more people share them. Nothing you type is ever collected. No IP address is stored, and each person is counted with a code that changes every day, so nobody can be followed from one day to the next. A browser set to ask sites not to track it is not counted. Visits are deleted after 30 days; only daily totals are kept.</p>
-${publicWiki ? `<p><strong>Tongdot | Tongsan and the Paite Wiki.</strong> In the chat you can also ask a question about Paite words, sayings, culture or history. The answer is written in English from the Paite Wiki: our reviewed sayings, word list and verified sentences, and books and articles that reviewers have approved. The AI writes only English. Any Paite in an answer is quoted word for word from a source, and the server checks every quote against that source before you see it; if a check fails, you get no answer rather than a wrong one. Every answer shows its sources, and you can tell us if it was wrong. The same rules apply to the articles on the <a href="/wiki">Paite Wiki</a>, which a reviewer checks before they are published.</p>` : ""}
+<p>Sayings and idioms (<em>pau upa</em>) are checked the same way, in both directions. A reviewer approves each one before anyone sees it. No computer writes our Paite, and no computer decides what good Paite is.</p>
+
+<h3 style="margin-top:2rem">Where AI helps</h3>
+<p>We do use an AI program (DeepSeek) behind the scenes. Part of what the coffee button pays for is this AI. It never writes, corrects or approves Paite. This is what it does:</p>
+<ul class="plain">
+<li>It suggests new everyday English sentences for people to translate.</li>
+<li>It leaves reviewers a short note on each answer. Reviewers can ignore it.</li>
+<li>It runs the Check English button. That button only suggests a fix; nothing changes until you tap Use this.</li>
+<li>It picks out words for the word list from the notes people write, but only words that are in their checked Paite. Reviewers fix or hide any that are wrong.</li>
+<li>In the chat, it reads the English you type and finds the checked Paite line that means the same, if there is one. The Paite you see is always the checked Paite, word for word.</li>
+<li>If there is no match and you ask for that line to be added, it makes sure your line is clear everyday English before it goes to people to translate.</li>
+</ul>
+
+<h3 style="margin-top:2rem">What we count</h3>
+<p>To see whether the site is reaching people, it counts visits itself. There are no cookies, and no outside company sees anything. It notes:</p>
+<ul class="plain">
+<li>which page you opened, and which site or app the link came from;</li>
+<li>your device and browser and their versions, and the make of your phone;</li>
+<li>your language and time zone, your screen size and sharpness, whether you use the dark or light look, and your connection type;</li>
+<li>how fast the page loaded and how far down you read;</li>
+<li>your region (we name a town only once two or more people have come from it);</li>
+<li>what you did, such as sending an answer or opening a link to another site.</li>
+</ul>
+<p>A phone model, a network such as Jio or Airtel, and a time zone are also shown only once two or more people share them. We never collect anything you type. We do not keep your IP address. Each person is counted with a code that changes every day, so nobody can be followed from one day to the next. If your browser asks sites not to track you, you are not counted at all. Visits are deleted after 30 days; only the daily totals are kept.</p>
+${publicWiki ? `<h3 style="margin-top:2rem">Tongdot | Tongsan and the Paite Wiki</h3><p>In the chat you can also ask about Paite words, sayings, culture or history. The answer is written in English, using only the Paite Wiki: our checked sayings, word list and sentences, plus books and articles that reviewers have approved. The AI writes only English. Any Paite in an answer is copied word for word from a source, and the site checks every quote against that source before you see it. If a check fails, you get no answer rather than a wrong one. Every answer shows where it came from, and you can tell us if it was wrong. The same rules apply to the articles on the <a href="/wiki">Paite Wiki</a>, and a reviewer checks each article before it goes up.</p>` : ""}
 </section>
 
 <section aria-labelledby="open">
 <p class="kicker"><b>05</b> Open data</p>
-<h2 id="open">Free to use, and built to outlast this site</h2>
-<p>Everything lives in two public GitHub repositories. Every night at 03:00 UTC, this site sends its newly verified pairs and voice recordings to the dataset repository. The second repository holds the code that runs this site.</p>
+<h2 id="open">Free to use, and safe if this site ever stops</h2>
+<p>All of it is kept in two public places on GitHub. Every night, the site copies its newly checked sentences and voice recordings to the first one. The second one holds the code that runs this site.</p>
 <div class="cards">
-<a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>The data, on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The verified pairs and voice recordings from this site, together with the Paite Bible, a dictionary, hymns, corrections and ready-to-train files.</span></a>
-<a class="card2" href="https://github.com/khooptong-sudo/paite-daily" target="_blank" rel="noopener"><small>The code, on GitHub</small><strong>khooptong-sudo/paite-daily</strong><span>This site: a Cloudflare Worker with a D1 database. MIT or Apache 2.0, your choice.</span></a>
-<a class="card2" href="https://huggingface.co/datasets/LamkaLabs/paite-open-language-data" target="_blank" rel="noopener"><small>The same data, on Hugging Face</small><strong>LamkaLabs/paite-open-language-data</strong><span>Copied from GitHub every Monday, ready for <code>load_dataset</code>.</span></a>
-<a class="card2" href="https://doi.org/10.5281/zenodo.23349155" target="_blank" rel="noopener"><small>Citable releases on Zenodo</small><strong>doi.org/10.5281/zenodo.23349155</strong><span>This DOI always points to the latest release (now v1.2.0).</span></a>
+<a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>The sentences, on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The checked sentences and voice recordings from this site, along with the Paite Bible, a dictionary, hymns, corrections and files ready for training translation tools.</span></a>
+<a class="card2" href="https://github.com/khooptong-sudo/paite-daily" target="_blank" rel="noopener"><small>The code, on GitHub</small><strong>khooptong-sudo/paite-daily</strong><span>Everything that runs this site. Free to reuse under the MIT or Apache 2.0 licence, whichever you prefer.</span></a>
+<a class="card2" href="https://huggingface.co/datasets/LamkaLabs/paite-open-language-data" target="_blank" rel="noopener"><small>The same sentences, on Hugging Face</small><strong>LamkaLabs/paite-open-language-data</strong><span>Copied from GitHub every Monday, for people who build AI tools.</span></a>
+<a class="card2" href="https://doi.org/10.5281/zenodo.23349155" target="_blank" rel="noopener"><small>Saved releases on Zenodo</small><strong>doi.org/10.5281/zenodo.23349155</strong><span>A permanent link you can cite. It always points to the newest release (now v1.2.0).</span></a>
 </div>
 
 <h3 id="rights" style="margin-top:2rem">What you may do with each part</h3>
-<p>Different parts of the dataset have different terms. The <a href="https://github.com/khooptong-sudo/paite-open-language-data/blob/master/LICENSE" target="_blank" rel="noopener">LICENSE file</a> in the dataset repository is the full statement. In short:</p>
+<p>Different parts have different rules. The <a href="https://github.com/khooptong-sudo/paite-open-language-data/blob/master/LICENSE" target="_blank" rel="noopener">LICENSE file</a> on GitHub has the full details. In short:</p>
 <dl class="rights">
-<dt>Verified pairs from this site <code>community/</code></dt>
-<dd>Each line has a <code>licence</code> field. Pairs sent before 21 October 2026, 18:47 UTC, when the form said “public domain”, are <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 1.0</a>: use them with no conditions at all. Pairs sent since then, and every new one, are <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>: use them for any purpose, including commercial work, as long as you give credit.</dd>
+<dt>Checked sentences from this site <code>community/</code></dt>
+<dd>Each sentence is marked with its licence. Sentences sent before 21 October 2026, 18:47 UTC, when the form said “public domain”, are <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 1.0</a>: anyone can use them for anything, with no conditions. Sentences sent since then are <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>: anyone can use them for anything, even to make money, as long as they give credit.</dd>
 <dt>Voice recordings <code>audio/</code></dt>
-<dd>Speakers reading verified Paite lines aloud. Each speaker agreed to CC BY 4.0 before recording, and a reviewer listened to every clip first. <code>audio/recordings.jsonl</code> gives each clip’s line and speaker.</dd>
-<dt>Corrections, grammar notes and documentation</dt>
+<dd>People reading checked Paite lines aloud. Each speaker agreed to CC BY 4.0 before recording, and a reviewer listened to every recording first. The file <code>audio/recordings.jsonl</code> lists each recording’s line and speaker.</dd>
+<dt>Corrections, grammar notes and guides</dt>
 <dd>CC BY 4.0.</dd>
 <dt>Paite Bible <code>bible/laisiangthou/</code></dt>
-<dd>The Laisiangthou translation by John Samte, used with his permission. Credit John Samte, and ask him before any commercial use.</dd>
+<dd>The Laisiangthou translation by John Samte, shared with his permission. Credit John Samte, and ask him first before using it to make money.</dd>
 <dt>English Bible <code>bible/world-english-bible/</code></dt>
-<dd>The World English Bible, which is in the public domain.</dd>
+<dd>The World English Bible, which belongs to everyone (public domain).</dd>
 <dt>Dictionary and hymns <code>dictionary/</code>, <code>songs/</code></dt>
-<dd>These belong to their authors and publishers. The repository does not license them. They are there for non-commercial research, education and language preservation.</dd>
-<dt>Ready-to-train files <code>training/</code></dt>
-<dd>These mix all of the above. Each row has a <code>source</code> field, so you can tell which terms apply to it.</dd>
+<dd>These still belong to their writers and publishers; we do not give anyone rights to them. They are included only for non-commercial research, teaching and keeping the language alive.</dd>
+<dt>Files for training translation tools <code>training/</code></dt>
+<dd>These mix all of the parts above. Each row says which part it came from, so you can see which rules apply.</dd>
 <dt>The code of this site</dt>
-<dd>Your choice of the <a href="https://github.com/khooptong-sudo/paite-daily/blob/main/LICENSE-MIT" target="_blank" rel="noopener">MIT licence</a> or the <a href="https://github.com/khooptong-sudo/paite-daily/blob/main/LICENSE-APACHE" target="_blank" rel="noopener">Apache License 2.0</a>. The same goes for the scripts in the dataset repository.</dd>
+<dd>Free to reuse under the <a href="https://github.com/khooptong-sudo/paite-daily/blob/main/LICENSE-MIT" target="_blank" rel="noopener">MIT licence</a> or the <a href="https://github.com/khooptong-sudo/paite-daily/blob/main/LICENSE-APACHE" target="_blank" rel="noopener">Apache License 2.0</a>, whichever you prefer. The same goes for the scripts on GitHub.</dd>
 </dl>
-<p>Use the data for a Paite keyboard dictionary, a spellchecker, a concordance, a school workbook or a translation model. For the open parts, you do not need to ask us. Credit “Paite Open Language Data, Lamka Labs” and link to the dataset, or cite the Zenodo DOI.</p>
-<p>The data does not depend on this site. It is on GitHub, with copies on Hugging Face and Zenodo. The code is open too, so anyone can run the site again. If this project stops, the sentences do not.</p>
+<p>You could use the sentences to build a Paite keyboard, a spellchecker, a school workbook or a translation app. For the open parts, you do not need to ask us. Just credit “Paite Open Language Data, Lamka Labs” and link to it, or cite the Zenodo link.</p>
+<p>The sentences do not depend on this website. They are on GitHub, with copies on Hugging Face and Zenodo. The code is public too, so anyone could run the site again. If this project ever stops, the sentences will still be there.</p>
 </section>
 
 <section aria-labelledby="who">
 <p class="kicker"><b>06</b> The people behind it</p>
 <h2 id="who">Who runs this</h2>
-<p>Min Khooptong (<a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a>) builds and maintains Paite Daily in Lamka, with five volunteer reviewers. It is not a company, and it has no funding. Reviewers give their time for free, and hosting is paid out of pocket.</p>
-<p>This site carries no advertising and never will. Ads on a page about a 79,000-speaker language would earn a few dollars a month at best. The reader’s attention would pay for them, not people who care about Paite.</p>
-<p>If you want to help with running costs, there is a UPI code in the footer. It is entirely optional.</p>
+<p>Min Khooptong (<a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a>) builds and looks after Paite Daily from Lamka, with five volunteer reviewers. It is not a company, and it has no funding. The reviewers give their time for free, and the running costs are paid out of pocket.</p>
+<p>This site carries no advertising and never will. Ads on a site for a small language would earn only a few dollars a month, and you would pay for them with your attention.</p>
+<p>If you would like to help with the running costs, there is a UPI code at the bottom of the page. It is completely optional.</p>
 </section>
 
 <section aria-labelledby="refs">
@@ -254,7 +278,7 @@ ${publicWiki ? `<p><strong>Tongdot | Tongsan and the Paite Wiki.</strong> In the
 </ul>
 </section>
 
-<p class="updated">Last updated: 12 November 2026</p>
+<p class="updated">Last updated: 15 November 2026</p>
 
 ${FOOTER}
 </main>

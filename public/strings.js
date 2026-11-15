@@ -36,7 +36,9 @@ window.STRINGS = {
   placeHint: { pai: "", en: "Your village or town. Only a count per place is shown, never your name." },
   // Hints shown faintly in empty fields (data-hint on the field). English only until the Paite is given:
   // fill in `pai` and the hint reads "Paite · English".
-  hintAnswer: { pai: "", en: "Type your Paite here, the way you would say it" },
+  hintAnswer: { pai: "Paite pau a na gen/gelh didan hon gelh mah hiai ah", en: "Type your Paite here, the way you would say it" },
+  // When the line to translate is in Paite, the answer is in English.
+  hintAnswerRev: { pai: "English a na gen/gelh didan hon gelh mah hiai ah", en: "Type your English here, the way you would say it" },
   hintChat: { pai: "", en: "e.g. Where is the market?" },
   hintMeaning: { pai: "", en: "e.g. house" },
   hintMeaningNote: { pai: "", en: "e.g. a sentence that uses the word" },
