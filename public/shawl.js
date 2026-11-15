@@ -18,7 +18,7 @@
   const SETT = [[BLACK, 3], [BLUE, .45], [GREEN, .45], [PINK, 4.2], [GREEN, .45], [BLUE, .45], [BLACK, 2.3], ["pick", .55], [BLACK, 2.3],
     [BLUE, .45], [GREEN, .45], [PINK, 4.2], [GREEN, .45], [BLUE, .45], [BLACK, 3]];
   const TOTAL = SETT.reduce((s, [, w]) => s + w, 0), PASS = 20;
-  let W = 0, H = 0, done = 0, goal = 0, shown = 0, t0 = 0, raf = 0, seen = false, waiting = 0, waitShown = 0, wraf = 0;
+  let W = 0, H = 0, done = 0, goal = 0, shown = 0, t0 = 0, raf = 0, seen = false, drawn = false, waiting = 0, waitShown = 0, wraf = 0;
 
   const light = () => document.documentElement.dataset.theme === "light";
   function size() {
@@ -31,7 +31,7 @@
     g.fillStyle = light() ? "#ebe5d8" : "#1b1917"; g.fillRect(0, 0, W, H);
     g.fillStyle = light() ? "rgba(21,18,15,.10)" : "rgba(244,241,234,.08)";
     for (let x = 0; x < cols; x++) g.fillRect(x * cw + cw * .45, 0, Math.max(.6, cw * .12), H);
-    if (n <= 0) return;
+    if (n > 0) {
     g.save(); g.beginPath(); g.rect(0, 0, wovenX, H); g.clip();
     let y = 0;
     for (const [col, w] of SETT) {
@@ -49,7 +49,7 @@
     // Twill: fine diagonal shadow, so it reads as cloth.
     g.strokeStyle = "rgba(0,0,0,.16)"; g.lineWidth = 1; g.beginPath();
     for (let k = -H; k < wovenX; k += 4) { g.moveTo(k, 0); g.lineTo(k + H, H); } g.stroke();
-    g.restore();
+    g.restore(); }
     // Answers sent this visit and not yet checked: pale threads just past the woven edge.
     if (waitShown > 0 && n >= done) {
       const px = Math.max(3, (waitShown / goal) * W);
@@ -73,7 +73,7 @@
   function start() {
     done = +bar.getAttribute("aria-valuenow") || 0; goal = +bar.getAttribute("aria-valuemax") || 0;
     if (!goal) return;
-    size();
+    size(); drawn = true;
     if (still || seen) { shown = done; draw(done); return; }
     seen = true; t0 = performance.now(); cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
   }
@@ -91,7 +91,7 @@
   // pale "waiting" thread just past the woven edge (app.js sends paite:thread), drawn in over about 600 ms
   // with a flash at the edge; with reduced motion it just appears. It stays for this page view only.
   document.addEventListener("paite:thread", () => {
-    if (!goal || !seen || done + waiting >= goal) return;
+    if (!goal || !drawn || done + waiting >= goal) return;
     const from = waiting; waiting++;
     if (still) { waitShown = waiting; draw(shown); return; }
     cancelAnimationFrame(wraf); const t1 = performance.now();
@@ -99,7 +99,7 @@
       const p = Math.min(1, (t - t1) / 600), e = 1 - Math.pow(1 - p, 3);
       waitShown = from + (waiting - from) * e; draw(shown);
       if (p < 1) { const x = ((done + waitShown) / goal) * W; g.fillStyle = "rgba(255,255,255," + (.55 * (1 - p)) + ")"; g.fillRect(Math.max(0, x - 14), 0, 14, H); wraf = requestAnimationFrame(step); }
-      else wraf = 0;
+      else { wraf = 0; draw(shown); }
     };
     wraf = requestAnimationFrame(step);
   });
