@@ -5,20 +5,9 @@ import { dashboard, dayStart, ensureRolled, istDay, readAgent, runVisitorRollup,
 import { call, fakeDeps, NOW } from "./helpers";
 
 const OWNER = "owner@example.org";
-const H = { "X-Admin": "1", Origin: "https://paite.lamkalabs.com" };
 const ANDROID = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Mobile Safari/537.36";
 const IPHONE_FB = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 [FBAN/FBIOS;FBAV/490.0]";
 const MIN = 60_000, DAY = 86_400_000;
-
-/** Sign someone in through the real link flow and return their cookie (as in admin.test.ts). */
-async function signIn(email: string): Promise<string> {
-  const token = "b".repeat(63) + "1";
-  const hash = [...new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token)))].map((b) => b.toString(16).padStart(2, "0")).join("");
-  await env.DB.prepare("INSERT INTO admin_links (token_hash, email, expires_at) VALUES (?1, ?2, ?3)").bind(hash, email, NOW + 60_000).run();
-  const r = await call("/admin/api/password/set", { method: "POST", headers: H, body: JSON.stringify({ token, password: "correct horse" }) });
-  expect(r.status).toBe(200);
-  return r.headers.get("Set-Cookie")!.split(";")[0];
-}
 
 type E = Partial<{ kind: string; path: string; vid: string; visitor: string; ref: string; via: string; country: string; region: string; city: string; device: string; browser: string; os: string; returning: number; ms: number }>;
 /** Put an event straight into the table, `ago` milliseconds before NOW. */
@@ -138,27 +127,33 @@ describe("the dashboard numbers", () => {
   });
 });
 
-describe("the admin API", () => {
-  const deps = fakeDeps();
-  it("is for admins only, and checks the range", async () => {
-    expect((await call("/admin/api/visitors")).status).toBe(401);
-    const cookie = await signIn(OWNER);
-    const ok = await call("/admin/api/visitors?range=30", { headers: { Cookie: cookie } }, deps);
+describe("the reviewers page API", () => {
+  /** A request as a signed-in reviewer. */
+  const as = (email: string | null, path: string) => call(path, {}, fakeDeps({ verifyReviewer: async () => email }));
+  it("is for the owner only, and checks its inputs", async () => {
+    expect((await as(null, "/review/api/visitors")).status).toBe(401);
+    expect((await as("rev@example.org", "/review/api/visitors")).status).toBe(403);
+    expect((await as("rev@example.org", "/review/api/visitors/live")).status).toBe(403);
+    expect((await as("rev@example.org", "/review/api/visitors/visits")).status).toBe(403);
+    const ok = await as(OWNER, "/review/api/visitors?range=30");
     expect(ok.status).toBe(200);
     expect(await ok.json()).toMatchObject({ range: "30", totals: { visits: 0 } });
-    expect((await call("/admin/api/visitors?range=365", { headers: { Cookie: cookie } }, deps)).status).toBe(400);
-    expect((await call("/admin/api/visitors/visits?before=abc", { headers: { Cookie: cookie } }, deps)).status).toBe(400);
+    expect((await as(OWNER, "/review/api/visitors?range=365")).status).toBe(400);
+    expect((await as(OWNER, "/review/api/visitors/visits?before=abc")).status).toBe(400);
+    expect((await as(OWNER, "/review/api/visitors/other")).status).toBe(404);
+  });
+  it("is no longer on the admin API", async () => {
+    expect((await call("/admin/api/visitors")).status).toBe(401);
   });
   it("shows who is on now and recent visits with their steps, naming a city only with two visitors", async () => {
     await ev(2 * MIN, { vid: "x", country: "IN", region: "Mizoram", city: "Aizawl", via: "wa" });
     await ev(1 * MIN, { vid: "x", kind: "chat" });
     await ev(3 * 3_600_000, { vid: "y", country: "IN", region: "Manipur", city: "Lamka" });
     await ev(3 * 3_600_000 - MIN, { vid: "z", country: "IN", region: "Manipur", city: "Lamka" });
-    const cookie = await signIn(OWNER);
-    const live = await (await call("/admin/api/visitors/live", { headers: { Cookie: cookie } }, deps)).json<{ count: number; visits: { source: string; city: string; region: string }[] }>();
+    const live = await (await as(OWNER, "/review/api/visitors/live")).json<{ count: number; visits: { source: string; city: string; region: string }[] }>();
     expect(live.count).toBe(1);
     expect(live.visits[0]).toMatchObject({ source: "WhatsApp", city: "", region: "Mizoram" });
-    const recent = await (await call("/admin/api/visitors/visits", { headers: { Cookie: cookie } }, deps)).json<{ visits: { city: string; steps: { kind: string }[] }[]; more: boolean }>();
+    const recent = await (await as(OWNER, "/review/api/visitors/visits")).json<{ visits: { city: string; steps: { kind: string }[] }[]; more: boolean }>();
     expect(recent.visits).toHaveLength(3);
     // Newest first by arrival; here the Lamka rows were written last.
     expect(recent.visits.find((v) => v.steps.length === 2)!.steps.map((s) => s.kind)).toEqual(["page", "chat"]);

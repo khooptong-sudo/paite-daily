@@ -7,6 +7,7 @@
 <meta name="theme-color" content="#f5f1e8">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@1&family=Inter:wght@400;600;700&display=swap">
 <link rel="stylesheet" href="/style.css">
+<link rel="stylesheet" href="/review/visitors.css">
 <script src="/theme.js"></script>
 <style>
   .answer { display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 14px; padding: 12px; background: rgba(0,0,0,.035); }
@@ -86,6 +87,47 @@
     <p class="status" id="status" role="status" aria-live="polite"></p><button type="button" id="undo" hidden aria-keyshortcuts="U">↶ Undo last<span class="kbd" aria-hidden="true">U</span></button>
     <p class="meta" id="help" hidden>Shortcuts: J and K (or the arrow keys, or 1 to 9) move between answers. A or Enter accepts the highlighted answer, X rejects it only, E edits it before accepting (Esc to leave the box), V ticks it as a variant. S saves every answer as a variant, N skips this sentence, R rejects all, U undoes your last decision, ? shows or hides this help. On a phone, swipe an answer right to accept it, left to reject it. Each answer also has its own Reject button, which leaves the other answers open. Skip leaves the sentence in the queue for another reviewer and does not show it to you again for two hours.</p>
   </section>
+<section class="card vz" id="vz" data-api="/review/api/visitors" aria-labelledby="vz-h" aria-busy="true" hidden>
+<header class="vz-top">
+<div class="vz-title">
+<p class="vz-kicker">Visitors</p>
+<h2 id="vz-h">Who comes, from where, and what they do</h2>
+<p class="vz-sub" id="vz-sub">India time</p>
+</div>
+<div class="vz-tools">
+<span class="vz-live" id="vz-live" title="Visits with activity in the last five minutes"><i aria-hidden="true"></i><b id="vz-now">0</b><span>on the site now</span></span>
+<div class="vz-seg" role="group" aria-label="Period">
+<button type="button" data-range="today" aria-pressed="false">Today</button>
+<button type="button" data-range="7" aria-pressed="true">7 days</button>
+<button type="button" data-range="30" aria-pressed="false">30 days</button>
+<button type="button" data-range="90" aria-pressed="false">90 days</button>
+</div>
+</div>
+</header>
+<div class="vz-kpis" id="vz-kpis" role="group" aria-label="Choose what the chart shows"></div>
+<figure class="vz-chart" id="vz-chart">
+<div class="vz-plot" id="vz-plot"></div>
+<figcaption class="vz-legend" id="vz-legend"></figcaption>
+<div class="vz-tip" id="vz-tip" hidden></div>
+</figure>
+<ul class="vz-ins" id="vz-ins" aria-label="What the numbers say"></ul>
+<div class="vz-grid">
+<article class="vz-panel" id="vz-sources"></article>
+<article class="vz-panel" id="vz-places"></article>
+<article class="vz-panel" id="vz-pages"></article>
+<article class="vz-panel" id="vz-tech"></article>
+</div>
+<div class="vz-grid">
+<article class="vz-panel" id="vz-funnel"></article>
+<article class="vz-panel" id="vz-actions"></article>
+</div>
+<article class="vz-panel vz-wide" id="vz-heat"></article>
+<div class="vz-grid vz-grid-2">
+<article class="vz-panel" id="vz-livepanel"></article>
+<article class="vz-panel" id="vz-visits"></article>
+</div>
+<p class="vz-foot">No cookies, and no IP address is stored. Each person is counted once a day with a code that changes every day, so nobody can be followed from one day to the next. A city is named once two or more visitors have come from it; otherwise the region is shown. Visits are kept 30 days, daily totals for good. Browsers that ask not to be tracked are not counted.</p>
+</section>
 <section class="card" id="apps-card" aria-labelledby="apps-h" hidden><h2 id="apps-h">Applications</h2><ul id="apps" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
 <section class="card" id="errors-card" aria-labelledby="errors-h" hidden><h2 id="errors-h">Errors (7 days)</h2><ul id="errors" style="list-style:none;margin:0;padding:0;display:grid;gap:8px"></ul></section>
 <section class="card" id="revs-card" aria-labelledby="revs-h" hidden><h2 id="revs-h">Reviewers</h2><ul id="revs" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
@@ -93,6 +135,7 @@
 <section class="card" aria-labelledby="words-h"><h2 id="words-h">Word list</h2><p class="meta">Every word in the list, by letter. Edit a wrong meaning, or hide a word from the public list.</p><div id="words" style="display:grid;gap:0"></div></section>
 </main>
 <script src="/grammar.js"></script>
+<script src="/review/visitors.js"></script>
 <script src="/review/review.js"></script>
 <script src="/back.js"></script>
 </body>

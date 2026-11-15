@@ -1,7 +1,7 @@
 import { json, type Env } from "./types";
 
 /**
- * The Visitors dashboard on /admin: where people come from and what they do.
+ * The Visitors dashboard on /review (owner only): where people come from and what they do.
  *
  * Privacy, by design: no cookie, no third party, no IP address stored. A person is counted once a
  * day by a code made from the IP, the browser and a salt that changes every IST day and is deleted
@@ -434,17 +434,17 @@ export async function recentVisits(env: Env, now: number, before: number | null)
   return { visits, more: keys.length === 20 };
 }
 
-/** GET /admin/api/visitors, /admin/api/visitors/live, /admin/api/visitors/visits. The caller has checked the admin. */
-export async function handleVisitorsApi(env: Env, req: Request, pathname: string, now: number): Promise<Response | null> {
+/** GET .../visitors, .../visitors/live, .../visitors/visits; `sub` is the path after "visitors". The caller has checked the owner. */
+export async function handleVisitorsApi(env: Env, req: Request, sub: string, now: number): Promise<Response | null> {
   if (req.method !== "GET") return null;
   const q = new URL(req.url).searchParams;
-  if (pathname === "/admin/api/visitors") {
+  if (sub === "") {
     const r = q.get("range") ?? "7";
     if (!["today", "7", "30", "90"].includes(r)) return json({ error: "bad_request" }, 400);
     return json(await dashboard(env, r as Range, now));
   }
-  if (pathname === "/admin/api/visitors/live") return json(await liveNow(env, now));
-  if (pathname === "/admin/api/visitors/visits") {
+  if (sub === "/live") return json(await liveNow(env, now));
+  if (sub === "/visits") {
     const b = q.get("before");
     const before = b === null ? null : Number(b);
     if (before !== null && (!Number.isInteger(before) || before < 1)) return json({ error: "bad_request" }, 400);

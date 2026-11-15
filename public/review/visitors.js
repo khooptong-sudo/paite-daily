@@ -1,9 +1,10 @@
-// Visitors dashboard on /admin. Reads /admin/api/visitors (totals), /live (the last five minutes)
+// Visitors dashboard on /review (owner only). Reads /review/api/visitors (totals), /live (the last five minutes)
 // and /visits (recent visits with their steps). Charts are plain SVG; nothing from the server is
 // inserted as HTML, every text goes in with textContent.
 (() => {
   const root = document.getElementById("vz");
   if (!root) return;
+  const API = root.dataset.api;
   const $ = (id) => document.getElementById(id);
   const NS = "http://www.w3.org/2000/svg";
 
@@ -331,7 +332,7 @@
   }
   let more = null;
   async function loadVisits(before) {
-    const r = await fetch("/admin/api/visitors/visits" + (before ? `?before=${before}` : ""));
+    const r = await fetch(`${API}/visits` + (before ? `?before=${before}` : ""));
     if (!r.ok) return;
     const d = await r.json();
     const list = before ? $("vz-vlist") : h("ol", { class: "vz-vlist", id: "vz-vlist" });
@@ -347,7 +348,7 @@
   }
   async function loadLive() {
     try {
-      const r = await fetch("/admin/api/visitors/live");
+      const r = await fetch(`${API}/live`);
       if (!r.ok) return;
       const d = await r.json();
       $("vz-now").textContent = num(d.count);
@@ -362,7 +363,7 @@
     root.setAttribute("aria-busy", "true");
     root.classList.add("loading");
     try {
-      const r = await fetch(`/admin/api/visitors?range=${range}`);
+      const r = await fetch(`${API}?range=${range}`);
       if (!r.ok) return;
       data = await r.json();
       kpis(); chart(); insightsList(); panels(); funnel(); actions(); heat();
@@ -379,6 +380,13 @@
   }));
   let resizeT = 0;
   new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (data) chart(); }, 120); }).observe($("vz-plot"));
-  load().then(() => { loadLive(); loadVisits(null); });
-  setInterval(() => { if (document.visibilityState === "visible") loadLive(); }, 20000);
+  // review.js calls this once it knows the signed-in reviewer is the owner; nobody else sees the section.
+  let started = false;
+  window.pdVisitors = () => {
+    if (started) return;
+    started = true;
+    root.hidden = false;
+    load().then(() => { loadLive(); loadVisits(null); });
+    setInterval(() => { if (document.visibilityState === "visible") loadLive(); }, 20000);
+  };
 })();

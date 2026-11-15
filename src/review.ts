@@ -34,6 +34,7 @@ function readProverbDecision(b: Record<string, unknown>) {
 import { getGlossaryForReview } from "./glossary";
 import { cap, cleanText, isId, isIdList, isPhoneId } from "./text";
 import { recentErrors } from "./observability";
+import { handleVisitorsApi } from "./visitors";
 import { handleWords } from "./words";
 import { handleRecordingReview } from "./recordings";
 import { checkGrammar } from "./grammar";
@@ -219,6 +220,11 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
     if (!isOwner(env, email)) return json({ error: "owner_only" }, 403);
     return json({ errors: await recentErrors(env) });
   }
-  // The visit funnel moved to the Visitors dashboard on /admin.
+  // The Visitors dashboard (visitors.ts): owner only, because it shows individual visit paths.
+  if (pathname === "/review/api/visitors" || pathname.startsWith("/review/api/visitors/")) {
+    if (!isOwner(env, email.toLowerCase())) return json({ error: "owner_only" }, 403);
+    const r = await handleVisitorsApi(env, req, pathname.slice("/review/api/visitors".length), deps.now());
+    if (r) return r;
+  }
   return json({ error: "not_found" }, 404);
 }
