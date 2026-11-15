@@ -85,29 +85,61 @@ export async function getGlossaryForReview(env: Env, limit = 500): Promise<Revie
 export const glossaryJson = (xs: Entry[]) =>
   JSON.stringify({ entries: [...xs].sort((a, b) => a.paite.localeCompare(b.paite)).map(({ id, by, ...e }) => e) }, null, 2) + "\n";
 
-const JS = `(function(){var S=window.STRINGS||{};
+const JS = `(function(){var S=window.STRINGS||{},PAGE=50;
 document.querySelectorAll("[data-s]").forEach(function(e){var s=S[e.dataset.s];if(s&&s.pai)e.innerHTML=s.pai+"<small> "+s.en+"</small>";});
-var q=document.getElementById("q"),sr=S.search;if(sr&&sr.pai){q.placeholder=q.ariaLabel=sr.pai+" / "+sr.en;q.setAttribute("aria-label",q.placeholder)}q.addEventListener("input",function(){var t=q.value.trim().toLowerCase();
-document.querySelectorAll(".gl li").forEach(function(li){li.hidden=!!t&&li.dataset.q.indexOf(t)<0});
-document.querySelectorAll(".gl details.rows").forEach(function(g){var has=!!g.querySelector("li:not([hidden])");
-g.hidden=!has;g.open=t?has:true})});
-function openHash(){var l=document.getElementById(location.hash.slice(1));if(!l)return;var d=l.querySelector("details");if(d)d.open=true;
-var g=l.closest("details.rows");if(g)g.open=true;l.scrollIntoView()}
-openHash();addEventListener("hashchange",openHash);
+var q=document.getElementById("q"),sr=S.search;if(sr&&sr.pai){q.placeholder=sr.pai+" / "+sr.en;q.setAttribute("aria-label",q.placeholder)}
+var main=document.querySelector("main.gl"),groups=[].slice.call(document.querySelectorAll("details.rows")),rail=[].slice.call(document.querySelectorAll(".az a"));
+if(!groups.length)return;
+main.classList.add("one");
+var none=document.createElement("p");none.className="empty none";none.hidden=true;q.insertAdjacentElement("afterend",none);
+var norm=function(s){return s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase()};
+var key=function(l){return l==="#"?"other":l.toLowerCase()};
+groups.forEach(function(g){g.lim=PAGE;g.items=[].slice.call(g.querySelectorAll(":scope > ul > li"));g.items.forEach(function(li){li.n=norm(li.dataset.q)});
+g.cnt=g.querySelector(".cnt");g.cnt0=g.cnt.textContent;g.querySelector("summary").addEventListener("click",function(e){e.preventDefault()});
+g.more=document.createElement("button");g.more.type="button";g.more.className="showmore";g.more.hidden=true;g.appendChild(g.more);
+g.more.addEventListener("click",function(){g.lim+=PAGE;render()})});
+var byL={};groups.forEach(function(g){byL[g.dataset.letter]=g});
+var cur=byL.A?"A":groups[0].dataset.letter;
+function render(){var t=norm(q.value.trim()),any=false;
+groups.forEach(function(g){var hits=g.items.filter(function(li){return !t||li.n.indexOf(t)>=0}),L=g.dataset.letter,on=t?hits.length>0:L===cur;
+g.hidden=!on;g.open=true;if(on)any=true;g.cnt.textContent=t?hits.length+(hits.length===1?" word":" words"):g.cnt0;
+g.items.forEach(function(li){li.hidden=hits.indexOf(li)<0||hits.indexOf(li)>=g.lim});
+var left=hits.length-g.lim;g.more.hidden=!on||left<=0;if(left>0)g.more.textContent="Show "+Math.min(PAGE,left)+" more \u00b7 "+left+" left";
+g.dim=t&&!hits.length});
+rail.forEach(function(a){var L=a.textContent,g=byL[L];a.classList.toggle("dim",!!g.dim);if(g.dim)a.setAttribute("aria-disabled","true");else a.removeAttribute("aria-disabled");
+if(!t&&L===cur)a.setAttribute("aria-current","true");else a.removeAttribute("aria-current")});
+none.hidden=any;none.textContent=any?"":"No words match \u201c"+q.value.trim()+"\u201d"}
+q.addEventListener("input",render);
+rail.forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();var L=a.textContent,g=byL[L];if(g.dim)return;
+if(q.value.trim()){g.scrollIntoView();return}
+if(L===cur)return;location.hash=key(L)})});
+function fromHash(){var h=decodeURIComponent(location.hash.slice(1)),el=null,m;
+if(m=/^w-[0-9]+$/.test(h)&&document.getElementById(h)){el=m;var g=el.closest("details.rows"),li=el.closest("ul > li");cur=g.dataset.letter;q.value="";
+while(g.items.indexOf(li)>=g.lim)g.lim+=PAGE}
+else{var l=h.replace(/^l-/,"");for(var L in byL)if(key(L)===l.toLowerCase()||L===l){cur=L;q.value=""}}
+render();if(el)el.scrollIntoView()}
+fromHash();addEventListener("hashchange",fromHash);
 })();`;
 
 export function renderGlossary(xs: Entry[]): string {
-  const groups = new Map<string, Entry[]>();
+  // One entry per headword: same spelling after trim + NFC (case kept), its meanings in list order.
+  const words = new Map<string, Entry[]>();
   for (const e of [...xs].sort((a, b) => a.paite.localeCompare(b.paite))) {
-    const l = e.paite.charAt(0).toUpperCase();
-    const k = /\p{L}/u.test(l) ? l : "#";
-    groups.set(k, [...(groups.get(k) ?? []), e]);
+    const w = e.paite.trim().normalize("NFC");
+    words.set(w, [...(words.get(w) ?? []), e]);
   }
-  const li = (e: Entry) => `<li id="w-${e.id}" data-q="${esc([e.paite, e.english, e.note, e.example?.paite, e.example?.english].filter(Boolean).join(" ").toLowerCase())}"><details><summary><b class="w">${esc(e.paite)}</b> <small class="m">${esc(e.english)}</small></summary><p class="m">${esc(e.english)}</p>${e.note ? `<span class="n">${esc(e.note)}</span>` : ""}${e.example ? `<span class="ex">${esc(e.example.paite)}<br>${esc(e.example.english)}</span>` : ""}${e.by || e.reviewed_by ? `<span class="n">${[e.by ? `Added by ${esc(e.by)}` : "", e.reviewed_by ? `Reviewed by ${esc(e.reviewed_by)}` : ""].filter(Boolean).join(" · ")}</span>` : `<span class="n" data-s="${e.source === "contributed" ? "srcContributed" : "srcNote"}">${e.source === "contributed" ? "Added by a contributor" : "From a contributor's note"}</span>`}</details></li>`;
-  // A to Z rail: one link per letter group, sticky above the list.
+  const groups = new Map<string, [string, Entry[]][]>();
+  for (const [w, es] of words) {
+    const l = w.charAt(0).toUpperCase();
+    const k = /\p{L}/u.test(l) ? l : "#";
+    groups.set(k, [...(groups.get(k) ?? []), [w, es]]);
+  }
+  const meaning = (e: Entry) => `<p class="m">${esc(e.english)}</p>${e.note ? `<span class="n">${esc(e.note)}</span>` : ""}${e.example ? `<span class="ex">${esc(e.example.paite)}<br>${esc(e.example.english)}</span>` : ""}${e.by || e.reviewed_by ? `<span class="n">${[e.by ? `Added by ${esc(e.by)}` : "", e.reviewed_by ? `Reviewed by ${esc(e.reviewed_by)}` : ""].filter(Boolean).join(" · ")}</span>` : `<span class="n" data-s="${e.source === "contributed" ? "srcContributed" : "srcNote"}">${e.source === "contributed" ? "Added by a contributor" : "From a contributor's note"}</span>`}`;
+  const li = ([w, es]: [string, Entry[]]) => `<li id="w-${es[0].id}" data-q="${esc(es.flatMap((e) => [e === es[0] ? w : "", e.english, e.note, e.example?.paite, e.example?.english]).filter(Boolean).join(" ").toLowerCase())}"><b class="w">${esc(w)}</b>${es.length > 1 ? `<ol class="mn">${es.map((e, i) => `<li${i ? ` id="w-${e.id}"` : ""}>${meaning(e)}</li>`).join("")}</ol>` : meaning(es[0])}</li>`;
+  // A to Z rail: one link per letter; the script turns it into a one-letter-at-a-time switch.
   const rail = groups.size > 1 ? `<nav class="az" aria-label="Letters">${[...groups.keys()].map((k) => `<a href="#l-${esc(k)}">${esc(k)}</a>`).join("")}</nav>` : "";
   const body = groups.size
-    ? [...groups].map(([k, es]) => `<details class="rows" open id="l-${esc(k)}" aria-label="${esc(k)}" data-letter="${esc(k)}"><summary><span class="ltr">${esc(k)}</span><span class="cnt">${es.length}</span></summary><ul>${es.map(li).join("")}</ul></details>`).join("")
+    ? [...groups].map(([k, ws]) => `<details class="rows" open id="l-${esc(k)}" aria-label="${esc(k)}" data-letter="${esc(k)}"><summary><span class="ltr">${esc(k)}</span><span class="cnt">${ws.length} ${ws.length === 1 ? "word" : "words"}</span></summary><ul>${ws.map(li).join("")}</ul></details>`).join("")
     : '<p class="empty"><span data-s="glossaryEmpty">No words yet. Add the first one on the front page.</span> <a href="/">Paite Daily</a></p>';
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">

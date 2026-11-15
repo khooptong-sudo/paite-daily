@@ -643,9 +643,8 @@ body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week
 
 /* Panlate, the word list and the other contributors.css pages: their light pieces, made dark.
    contributors.css loads after this file, so these name .blue to win. */
-.blue .gl .az { background: rgba(12, 11, 10, .92); }
 .blue .gl .az a { color: var(--fg); }
-.blue .gl .az a:hover, .blue .gl .az a:focus-visible { background: var(--fg); color: var(--bg); }
+.blue .gl .az a:hover, .blue .gl .az a:focus-visible, .blue .gl .az a[aria-current] { background: var(--fg); color: var(--bg); }
 .blue .gl input[type=search], .blue .gl textarea { color: var(--fg); background: transparent; border: 0; border-bottom: 1px solid var(--hair); border-radius: 0; }
 .blue .gl details.tr > summary, .blue .gl .filters button { background: transparent; }
 .blue .more, .blue .apply { background: var(--surface); box-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
@@ -688,7 +687,6 @@ html[data-theme=light] .blue .status.err { color: #b3141a; }
 html[data-theme=light] .blue select option { background: #f5f1e8; color: #15120f; }
 html[data-theme=light] .blue input[type=radio] { border-color: rgba(21, 18, 15, .7); }
 html[data-theme=light] .blue input[type=checkbox] { accent-color: #15120f; }
-html[data-theme=light] .blue .gl .az { background: rgba(245, 241, 232, .92); }
 html[data-theme=light] .blue .news a { color: #c8102e; }
 html[data-theme=light] .blue .answer.variant { border-color: #c8102e; }
 html[data-theme=light] .milestone { background: #15120f; color: #f5f1e8; }

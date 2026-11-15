@@ -215,10 +215,22 @@
 .gl .st.ok { font-weight: 700; }
 .gl .st.err { text-decoration: underline; text-underline-offset: 3px; }
 
-/* Word list A to Z rail: sticky above the list, one tap per letter. */
-.gl .az { position: sticky; top: 0; z-index: 2; display: flex; gap: 4px; overflow-x: auto; padding: 4px 0; background: rgba(255, 255, 255, .92); border-bottom: 1px solid var(--line); scrollbar-width: none; }
-.gl .az a { flex: none; display: grid; place-items: center; min-width: 44px; min-height: 44px; border-radius: 8px; font: 400 1rem var(--display); color: #000; text-decoration: none; }
+/* Word list A to Z rail: wraps, one tap per letter. */
+.gl .az { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 4px; padding: 4px 0; }
+.gl .az a { display: grid; place-items: center; min-height: 44px; border-radius: 8px; font: 400 1rem var(--display); color: #000; text-decoration: none; }
 .gl .az a:hover, .gl .az a:focus-visible { background: #111; color: #fff; }
+.gl .az a[aria-current] { background: #111; color: #fff; }
+.gl .az a.dim { opacity: .3; pointer-events: none; }
+.gl .cnt::before { content: "\00b7\00a0"; }
+.gl .cnt { text-transform: capitalize; }
+.gl.one details.rows > summary { cursor: default; }
+.gl.one details.rows > summary::after { content: none; }
+.gl .mn { margin: 6px 0 0; padding-left: 1.4em; }
+.gl .mn li { padding: 4px 0; }
+.gl li > p.m, .gl .mn p.m { margin: 2px 0 0; color: var(--muted); font-size: .95rem; }
+.gl .showmore { display: block; width: 100%; min-height: 44px; margin-top: 12px; font: inherit; font-size: .85rem; letter-spacing: .06em; text-transform: uppercase; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
+.gl .showmore:hover { border-color: var(--hair); }
+.gl .showmore[hidden], .gl .none[hidden] { display: none; }
 .gl details.rows { scroll-margin-top: 60px; }
 /* Sayings status: green dot for verified, yellow for still collecting versions. */
 .gl li[data-st] .tag { display: inline-flex; align-items: center; gap: 6px; }

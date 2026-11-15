@@ -3,6 +3,7 @@
 // item is added. Add new items at the top of NEWS.
 (() => {
   const NEWS = [
+    { id: "2026-11-15-wordlist", date: "2026-11-15", title: "An easier word list", text: "The Paite Word List now shows one letter at a time, so there is far less to scroll. Each word appears once, with its meanings numbered underneath. Search looks across every letter.", href: "/glossary" },
     { id: "2026-11-15-thread", date: "2026-11-15", title: "A pale thread, while you wait", text: "When you send an answer, a pale thread appears at the edge of the shawl. It is woven in for good once a reviewer checks it. The front page is also calmer on phones: the greeting sits on two even lines, and the What\u0027s New count is a quiet number instead of a bright badge." },
     { id: "2026-11-15-counting", date: "2026-11-15", title: "Counting visits, privately", text: "The site now counts where visitors come from and what they do, so we can see what helps Paite grow: no cookies, no IP addresses stored, and a code that changes every day, so nobody is followed. Links you share from the site carry a small tag, so we can see which ones were opened from WhatsApp. About This Project explains it in full.", href: "/about" },
     { id: "2026-11-15-boxes", date: "2026-11-15", title: "A calmer layout", text: "Each part of the page, your woven shawl included, now sits in its own quiet box, and every place you type has a clear border, so it is easy to see where one thing ends and the next begins." },
