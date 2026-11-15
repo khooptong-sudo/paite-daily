@@ -1,87 +1,91 @@
 # Paite Daily
 
-Paite Daily collects translations of simple English sentences into Paite. People answer on their phones with no account. Reviewers check the answers, and the verified ones go to the open dataset [paite-open-language-data](https://github.com/khooptong-sudo/paite-open-language-data) (answers sent before 2026-10-21 18:47 UTC are CC0 1.0, later ones CC BY 4.0; each line's `licence` field says which). The app is a Cloudflare Worker with a D1 database.
+**A free, volunteer-checked corpus of Paite, built one sentence at a time.**
 
-Live: https://paite.lamkalabs.com
+Live at **[paite.lamkalabs.com](https://paite.lamkalabs.com)** · Data at **[paite-open-language-data](https://github.com/khooptong-sudo/paite-open-language-data)** · Cite with DOI **[10.5281/zenodo.23349155](https://doi.org/10.5281/zenodo.23349155)**
 
-## Owner steps (accounts needed)
+Paite Daily is a website where people who speak Paite translate everyday sentences between Paite and English, read checked Paite lines aloud, and share their sayings and words. A second speaker checks every contribution before it goes on the site. Every night, the checked sentences and recordings are copied to an open dataset that anyone can use.
 
-1. Run `npx wrangler login` in this folder.
-2. Turnstile: add a widget for `paite.lamkalabs.com`, mode Invisible. Note the site key and secret.
-3. GitHub, Settings, Developer settings, Fine-grained tokens: create a token for only the repository `paite-open-language-data`, with Contents: Read and write.
+No computer writes the Paite here. Every line was written by one person and checked by another.
 
-## Reviewer sign-in
+## About the Paite language
 
-Reviewers sign in at `/review/login` with their email and a password. There is no Cloudflare Access application in front of `/review`.
+Paite (ISO 639-3 `pck`, Glottolog `pait1244`) is an independent Tibeto-Burman language. Most speakers live in Churachandpur district, Manipur, India, where Lamka is the main town; there are also Paite communities in Mizoram and Assam, and Paite families in Myanmar.
 
-- A reviewer is anyone in the `REVIEWERS` secret, an active row in the `reviewers` table, or an owner in `OWNER_EMAIL`.
-- Nobody is given a password. On the sign-in page, "Set or reset my password" emails a one-time link (one hour) to choose one. Approving an application emails the new reviewer the same kind of link (seven days).
-- A sign-in lasts 30 days on a device. Choosing a new password signs out every device.
-- Ten wrong passwords for one email in fifteen minutes lock that email for the rest of the fifteen minutes. A new password through the emailed link clears the lock.
-- The database holds a salted PBKDF2 hash of each password and a SHA-256 of each session and link token, never the values themselves. The code is in `src/login.ts`.
+- **78,725** people gave Paite as their mother tongue in the 2011 Census of India.
+- **1903:** T. Vialphung made the Paite alphabet (*Paite Laimal*).
+- **1993, 2003, 2014:** editions of the Paite Tribe Council's *English–Paite Dictionary*.
+- **2004:** Manipur University made Paite a subject in its three-year degree course.
+- **2006:** Naorem Saratchandra Singh's *A Grammar of Paite*, still the only full grammar book.
+- All India Radio Imphal broadcasts in Paite every day.
+- The Endangered Languages Project and Glottolog list Paite as *vulnerable*, with low certainty.
 
-## Configure
+Paite is well written down, but phones and computers do not support it: there is no spellchecker, no predictive keyboard and no translation tool. Those tools are built from many sentences written in two languages side by side. Paite Daily gathers those sentences.
 
-```powershell
-npx wrangler d1 create paite-daily
-```
+## What you can do on the site
 
-Copy the printed `database_id` into `wrangler.jsonc`. Set this var there: `TURNSTILE_SITE_KEY`. Do not put reviewer emails in this public file. Add the domain:
+- **Translate a sentence.** One everyday line at a time, English to Paite or Paite to English. You say whether your answer is how people talk (*Gen Thoh*), how people write (*Gelh Thoh*), or both (*Anih In*). No account needed.
+- **Read a line aloud (*Aw in Aw*).** Record yourself reading a checked Paite line. A reviewer listens before anyone else hears it.
+- **Share a saying (*Pau Upa*).** Proverbs and idioms, in either direction, with what they mean.
+- **Add a word.** Words and meanings for the word list, *Paite Kammal Kaihkhawm*, which you can browse one letter at a time.
+- **Chat (*Paite Pau In*).** Type an English line and get the checked Paite line that means the same, if there is one.
+- **See it grow.** A woven shawl (*Siamsin Puan*) gains one thread for every checked sentence, and the contributors' wall (*Panlate*) thanks everyone by name.
 
-```jsonc
-"routes": [{ "pattern": "paite.lamkalabs.com", "custom_domain": true }],
-```
+The site works as an app on any phone (it can be installed from the browser), and there is an Android app as well.
 
-Set the secrets. Each command asks for the value. `REVIEWERS` is a JSON map of each reviewer email to a display name, for example `{"a@example.org":"Ann"}`. `OWNER_EMAIL` is the owner email. It may hold several emails, separated by commas.
+## How a contribution is checked
 
-```powershell
-npx wrangler secret put TURNSTILE_SECRET
-npx wrangler secret put SESSION_SECRET
-npx wrangler secret put GITHUB_TOKEN
-npx wrangler secret put REVIEWERS
-npx wrangler secret put OWNER_EMAIL
-```
+1. **You send it.** A quick check stops robots.
+2. **A reviewer checks it** against the original. Reviewers never check their own submissions; those go to someone else.
+3. **It joins the collection.** Only approved lines appear on the site or go into the dataset.
 
-For local runs, put the same values in `.dev.vars` (not committed). It must hold `TURNSTILE_SECRET`, `SESSION_SECRET`, `GITHUB_TOKEN`, `REVIEWERS` and `OWNER_EMAIL`.
+## Where AI helps, and where it does not
 
-For `SESSION_SECRET`, paste the output of `node -e "console.log(crypto.randomUUID()+crypto.randomUUID())"`.
+The site uses an AI model (DeepSeek) for a few support jobs: suggesting new everyday English sentences to translate, leaving reviewers an optional note, the "Check English" button, picking word-list candidates out of contributors' notes for reviewers to confirm, and matching your English to a checked Paite line in the chat. **It never writes, corrects or approves Paite.**
 
-## Migrate, seed, deploy
+## Privacy
 
-```powershell
-node scripts/seed.mjs ../paite_corpus/prompts/everyday_en.txt seed.sql; if ($LASTEXITCODE -eq 0) { npx wrangler d1 migrations apply paite-daily --remote }; if ($LASTEXITCODE -eq 0) { npx wrangler d1 execute paite-daily --remote --file seed.sql }; if ($LASTEXITCODE -eq 0) { npx wrangler d1 execute paite-daily --remote --command "SELECT count(*) AS n FROM sentences" }; if ($LASTEXITCODE -eq 0) { npm run deploy }
-```
+Visits are counted by the site itself: no cookies, no outside companies, no IP addresses stored. Each visitor is counted with a code that changes every day, so nobody can be followed from one day to the next. Browsers that ask not to be tracked are not counted. Rare values (a town, a phone model, a network) are shown only once two or more people share them. Raw visits are deleted after 30 days. The full statement is on the [About page](https://paite.lamkalabs.com/about).
 
-The count must be 196.
+## The open data
 
-## Mobile app
+Every night the site copies newly checked sentences and recordings to [paite-open-language-data](https://github.com/khooptong-sudo/paite-open-language-data). It is mirrored on [Hugging Face](https://huggingface.co/datasets/LamkaLabs/paite-open-language-data) every Monday, and released with a DOI on [Zenodo](https://doi.org/10.5281/zenodo.23349155).
 
-The site is also a Progressive Web App. `public/manifest.webmanifest` and `public/sw.js` make it installable, and the front page, the word list and the contributors page each carry a download row. The review page has no download row.
+| Part | Terms |
+|------|-------|
+| Checked sentences sent before 21 Oct 2026, 18:47 UTC | CC0 1.0 (no conditions) |
+| Checked sentences sent since then | CC BY 4.0 (give credit) |
+| Voice recordings | CC BY 4.0 (each speaker agreed before recording) |
 
-`public/paite-daily.apk` is a signed Android package. It is a Trusted Web Activity made with Bubblewrap, so Android opens the site in the app with no browser bar. `public/.well-known/assetlinks.json` holds the signing certificate fingerprint that makes that work.
+Each exported line carries its own `licence` field. Credit "Paite Open Language Data, Lamka Labs", or cite the DOI.
 
-The Android project and the signing key live outside this repository, at `F:\Resources\paite-android`. Keep them there. The key must never enter the repository. The keystore password is in `F:\KEYS\Paite Daily Android keystore.txt`.
+## How it is built
 
-Build a new package and copy it into the site:
+- A [Cloudflare Worker](https://developers.cloudflare.com/workers/) written in TypeScript, with D1 (SQLite) for data, R2 for files, Turnstile against bots, and Workers AI with Vectorize for search.
+- Plain HTML, CSS and JavaScript pages, light and dark themes, installable as a Progressive Web App; the Android app is a Trusted Web Activity.
+- Database changes are numbered migrations in `migrations/`; tests use Vitest with the Workers test pool.
 
-```powershell
-cd F:\Resources\paite-android
-$env:BUBBLEWRAP_KEYSTORE_PASSWORD = (Select-String -Path "F:\KEYS\Paite Daily Android keystore.txt" -Pattern "^password: ").Line -replace "^password: ", ""
-$env:BUBBLEWRAP_KEY_PASSWORD = $env:BUBBLEWRAP_KEYSTORE_PASSWORD
-npx bubblewrap build
-Copy-Item app-release-signed.apk F:\Resources\paite-daily\public\paite-daily.apk
-```
+To run the tests:
 
-Use the same signing key for every build. A different key breaks the update path on every installed device.
-
-## Run tests
-
-```powershell
+```bash
+npm install
 npm test
 ```
 
+Running your own copy needs your own Cloudflare account, a D1 database and the secrets listed in `src/types.ts`.
+
+## Who runs this
+
+Min Khooptong ([Lamka Labs](https://lamkalabs.com)) builds and looks after Paite Daily from Lamka, with volunteer reviewers. It has no funding and no advertising, and never will carry ads. If you would like to help with running costs, there is a UPI code at the bottom of every page. Write to theconcierge@lamkalabs.com.
+
+## References
+
+- Saratchandra Singh, Naorem. 2006. *A Grammar of Paite*. New Delhi: Mittal Publications.
+- Paite Tribe Council. 1993, 2003, 2014. *English–Paite Dictionary*. Lamka, Manipur.
+- Thuamkhopau, T. 2009. *Paite paunaak leh pau upate*.
+- Census of India 2011, language tables (Paite, `pck`).
+- [Glottolog: Paite (pait1244)](https://glottolog.org/resource/languoid/iso/pck).
+
 ## Licence
 
-The code is dual-licensed: use it under either the [MIT licence](LICENSE-MIT) or the [Apache License 2.0](LICENSE-APACHE), whichever you prefer (SPDX: `MIT OR Apache-2.0`). Unless you say otherwise, any contribution you send is offered under the same two licences.
-
-The data the site collects is not covered by these files. Each exported line carries its own `licence` field: `CC0-1.0` for answers sent before 2026-10-21 18:47 UTC, when the form said "public domain", and `CC-BY-4.0` after, when it says "with credit". The column `answers.licence` (migration `0031`) records it per answer. Voice recordings are CC BY 4.0, from the consent box on the recorder. The nightly `audio` job copies accepted clips to `audio/` in the dataset repo (at most 10 a night, `recordings.exported_at`, migration `0032`), rewrites `audio/recordings.jsonl`, and takes down any clip whose review was undone.
+The code is dual-licensed: use it under either the [MIT licence](LICENSE-MIT) or the [Apache License 2.0](LICENSE-APACHE), whichever you prefer (SPDX: `MIT OR Apache-2.0`). Unless you say otherwise, any contribution you send is offered under the same two licences. The collected data is not covered by these files; see the table above.
