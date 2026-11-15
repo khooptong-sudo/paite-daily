@@ -34,6 +34,18 @@ window.STRINGS = {
   sharedGone: { pai: "", en: "That sentence already has its answers. Here is another one to try." },
   placeLabel: { pai: "Paite pau koia na zir a?", en: "Where did you learn your Paite? (optional)" },
   placeHint: { pai: "", en: "Your village or town. Only a count per place is shown, never your name." },
+  // Hints shown faintly in empty fields (data-hint on the field). English only until the Paite is given:
+  // fill in `pai` and the hint reads "Paite · English".
+  hintAnswer: { pai: "", en: "Type your Paite here, the way you would say it" },
+  hintChat: { pai: "", en: "e.g. Where is the market?" },
+  hintMeaning: { pai: "", en: "e.g. house" },
+  hintMeaningNote: { pai: "", en: "e.g. a sentence that uses the word" },
+  hintWordPaite: { pai: "", en: "A Paite word" },
+  hintWordEnglish: { pai: "", en: "e.g. river" },
+  hintWordNote: { pai: "", en: "e.g. a short sentence using it" },
+  hintSayingEn: { pai: "", en: "e.g. Every cloud has a silver lining" },
+  hintSayingPaite: { pai: "", en: "The Paite saying, as it is said" },
+  hintExplainer: { pai: "", en: "e.g. when it is said, and what it means" },
   explanationHint: { pai: "A gen ut. Gen dan dang in.", en: "Word meanings, other ways to say it (optional)" },
   sentences: { pai: "Thuvual", en: "Sentences" },
   words: { pai: "Thumal", en: "Words" },

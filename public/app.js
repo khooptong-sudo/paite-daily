@@ -10,6 +10,7 @@
 
   document.querySelectorAll("[data-s]").forEach((el) => { el.innerHTML = tBoth(el.dataset.s); });
   $("explanation").placeholder = t("explanationHint");
+  document.querySelectorAll("[data-hint]").forEach((el) => { const h = S[el.dataset.hint]; el.placeholder = h.pai ? `${h.pai} · ${h.en}` : h.en; });
   // Where you learned it: optional, kept on this phone so it is typed once.
   $("place").value = store.get("place", "");
   $("place").addEventListener("change", () => store.set("place", $("place").value.trim()));
