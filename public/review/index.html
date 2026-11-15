@@ -98,11 +98,19 @@
 <button type="button" data-range="7" aria-pressed="true">7 days</button>
 <button type="button" data-range="30" aria-pressed="false">30 days</button>
 <button type="button" data-range="90" aria-pressed="false">90 days</button>
+<button type="button" data-range="custom" aria-pressed="false">Custom</button>
 </div>
 </div>
 </header>
 <div class="vz-body" id="vz-body">
 <div class="vz-float"><button type="button" class="vz-toggle" id="vz-toggle2" aria-controls="vz-body" aria-label="Hide the dashboard" title="Hide the dashboard"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button></div>
+<div class="vz-ctl">
+<span class="vz-dates" id="vz-dates" hidden><label>From <input type="date" id="vz-from" min="2025-01-01"></label><label>To <input type="date" id="vz-to"></label></span>
+<button type="button" class="vz-cmp" id="vz-cmp" aria-pressed="true">Compare with the period before</button>
+<div class="vz-seg" id="vz-gran" role="group" aria-label="Group the chart by"><button type="button" data-g="hour" aria-pressed="false">Hour</button><button type="button" data-g="day" aria-pressed="true">Day</button><button type="button" data-g="week" aria-pressed="false">Week</button></div>
+</div>
+<p class="vz-note" id="vz-note" role="status" hidden></p>
+<div class="vz-chips" id="vz-filters" hidden></div>
 <div class="vz-kpis" id="vz-kpis" role="group" aria-label="Choose what the chart shows"></div>
 <figure class="vz-chart" id="vz-chart">
 <div class="vz-plot" id="vz-plot"></div>
@@ -121,11 +129,31 @@
 <article class="vz-panel" id="vz-actions"></article>
 </div>
 <article class="vz-panel vz-wide" id="vz-heat"></article>
+<h3 class="vz-sec">Technology</h3>
+<div class="vz-grid">
+<article class="vz-panel" id="vz-t-os"></article>
+<article class="vz-panel" id="vz-t-br"></article>
+<article class="vz-panel" id="vz-t-brand"></article>
+<article class="vz-panel" id="vz-t-screen"></article>
+<article class="vz-panel vz-wide" id="vz-t-theme"></article>
+</div>
+<h3 class="vz-sec">Network</h3>
+<div class="vz-grid">
+<article class="vz-panel" id="vz-n-net"></article>
+<article class="vz-panel" id="vz-n-lang"></article>
+</div>
+<h3 class="vz-sec">Speed and behaviour</h3>
+<article class="vz-panel vz-wide" id="vz-speed"></article>
+<div class="vz-grid">
+<article class="vz-panel" id="vz-b-hist"></article>
+<article class="vz-panel" id="vz-b-flow"></article>
+</div>
+<article class="vz-panel vz-wide" id="vz-explorer"></article>
 <div class="vz-grid vz-grid-2">
 <article class="vz-panel" id="vz-livepanel"></article>
 <article class="vz-panel" id="vz-visits"></article>
 </div>
-<p class="vz-foot">No cookies, and no IP address is stored. Each person is counted once a day with a code that changes every day, so nobody can be followed from one day to the next. A city is named once two or more visitors have come from it; otherwise the region is shown. Visits are kept 30 days, daily totals for good. Browsers that ask not to be tracked are not counted.</p>
+<p class="vz-foot">No cookies, and no IP address is stored. Each person is counted once a day with a code that changes every day, so nobody can be followed from one day to the next. A city, phone model, network or time zone is named once two or more visitors share it; otherwise it counts under Other. Visits are kept 30 days, daily totals for good. Browsers that ask not to be tracked are not counted.</p>
 </div>
 </section>
 <section class="card" id="card">
