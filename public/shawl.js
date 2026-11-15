@@ -18,7 +18,7 @@
   const SETT = [[BLACK, 3], [BLUE, .45], [GREEN, .45], [PINK, 4.2], [GREEN, .45], [BLUE, .45], [BLACK, 2.3], ["pick", .55], [BLACK, 2.3],
     [BLUE, .45], [GREEN, .45], [PINK, 4.2], [GREEN, .45], [BLUE, .45], [BLACK, 3]];
   const TOTAL = SETT.reduce((s, [, w]) => s + w, 0), PASS = 20;
-  let W = 0, H = 0, done = 0, goal = 0, shown = 0, t0 = 0, raf = 0, seen = false;
+  let W = 0, H = 0, done = 0, goal = 0, shown = 0, t0 = 0, raf = 0, seen = false, waiting = 0, waitShown = 0, wraf = 0;
 
   const light = () => document.documentElement.dataset.theme === "light";
   function size() {
@@ -50,6 +50,14 @@
     g.strokeStyle = "rgba(0,0,0,.16)"; g.lineWidth = 1; g.beginPath();
     for (let k = -H; k < wovenX; k += 4) { g.moveTo(k, 0); g.lineTo(k + H, H); } g.stroke();
     g.restore();
+    // Answers sent this visit and not yet checked: pale threads just past the woven edge.
+    if (waitShown > 0 && n >= done) {
+      const px = Math.max(3, (waitShown / goal) * W);
+      g.save(); g.beginPath(); g.rect(wovenX, 0, px, H); g.clip(); g.globalAlpha = .38;
+      let y2 = 0;
+      for (const [col, w] of SETT) { const h = (w / TOTAL) * H; g.fillStyle = col === "pick" ? "#f4f1ea" : col; g.fillRect(wovenX, y2, px, Math.ceil(h) + .5); y2 += h; }
+      g.restore();
+    }
     // The shuttle at the edge of the work.
     if (n < goal) {
       const grd = g.createLinearGradient(wovenX - 26, 0, wovenX + 4, 0);
@@ -79,26 +87,21 @@
   addEventListener("resize", () => { if (goal) { size(); draw(shown); } });
   new MutationObserver(() => { if (goal) draw(shown); }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
-  // One more thread when an answer is accepted (app.js sends paite:thread): the count ticks up and the
-  // shuttle weaves one thread in over about 600 ms, with a pale flash at the edge. With reduced motion
-  // the thread and the number just appear. Only the picture on this page moves; the true count comes
-  // back from the server on the next visit.
+  // A sent answer is not verified yet, so it never changes the count or the woven length. It shows as one
+  // pale "waiting" thread just past the woven edge (app.js sends paite:thread), drawn in over about 600 ms
+  // with a flash at the edge; with reduced motion it just appears. It stays for this page view only.
   document.addEventListener("paite:thread", () => {
-    if (!goal || done >= goal) return;
-    const from = seen ? shown : done; done++;
-    bar.setAttribute("aria-valuenow", done);
-    const n = document.getElementById("goal-n"), fill = bar.firstElementChild;
-    if (n) n.textContent = done;
-    if (fill) fill.style.width = Math.min(100, Math.round((done / goal) * 100)) + "%";
-    if (still || !seen) { shown = done; if (seen) draw(done); return; }
-    cancelAnimationFrame(raf); const t1 = performance.now();
+    if (!goal || !seen || done + waiting >= goal) return;
+    const from = waiting; waiting++;
+    if (still) { waitShown = waiting; draw(shown); return; }
+    cancelAnimationFrame(wraf); const t1 = performance.now();
     const step = (t) => {
       const p = Math.min(1, (t - t1) / 600), e = 1 - Math.pow(1 - p, 3);
-      draw(from + (done - from) * e);
-      if (p < 1) { const x = ((from + (done - from) * e) / goal) * W; g.fillStyle = "rgba(255,255,255," + (.55 * (1 - p)) + ")"; g.fillRect(Math.max(0, x - 14), 0, 14, H); raf = requestAnimationFrame(step); }
-      else { shown = done; draw(done); raf = 0; }
+      waitShown = from + (waiting - from) * e; draw(shown);
+      if (p < 1) { const x = ((done + waitShown) / goal) * W; g.fillStyle = "rgba(255,255,255," + (.55 * (1 - p)) + ")"; g.fillRect(Math.max(0, x - 14), 0, 14, H); wraf = requestAnimationFrame(step); }
+      else wraf = 0;
     };
-    raf = requestAnimationFrame(step);
+    wraf = requestAnimationFrame(step);
   });
 
   // Hover: which thread is under the pointer.
@@ -107,7 +110,7 @@
       if (!goal) return;
       const r = c.getBoundingClientRect(), cols = Math.ceil(goal / PASS), x = Math.floor(((e.clientX - r.left) / r.width) * cols), y = Math.floor(((e.clientY - r.top) / r.height) * PASS);
       const i = Math.min(goal, x * PASS + y + 1);
-      tip.textContent = i <= shown ? `Thread ${i.toLocaleString("en")}` : `Thread ${i.toLocaleString("en")} · not woven yet`;
+      tip.textContent = i <= shown ? `Thread ${i.toLocaleString("en")}` : i <= done + waiting ? "Waiting for a reviewer" : `Thread ${i.toLocaleString("en")} · not woven yet`;
       tip.style.left = (e.clientX - r.left) + "px"; tip.style.top = (e.clientY - r.top) + "px"; tip.hidden = false;
     });
     c.addEventListener("pointerleave", () => { tip.hidden = true; });

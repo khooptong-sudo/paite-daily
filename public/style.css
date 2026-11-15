@@ -953,3 +953,7 @@ body.blue::before { content: ""; display: block; position: fixed; inset: 0; z-in
 .skel .old { width: 80%; min-height: .9em; }
 @keyframes skel { from { opacity: .45; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .skel .n, .skel .old { animation: none; } }
+
+/* Theme toggle: the circle stays 40px, the tap area is 44px. */
+.theme-toggle { position: relative; }
+.theme-toggle::after { content: ""; position: absolute; inset: -2px; }

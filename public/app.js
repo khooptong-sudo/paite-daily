@@ -294,7 +294,7 @@
           direction: form.dataset.dir, kind: f.kind, paite: text("paite"), english: text("english"),
           explainer: text("explainer"), name: store.get("name", ""),
         }) });
-        if (r.ok) { say(tBoth("sayingThanks"), true); form.reset(); refreshMe(); document.dispatchEvent(new CustomEvent("paite:thread")); askName(btn); }
+        if (r.ok) { say(tBoth("sayingThanks"), true); form.reset(); refreshMe(); askName(btn); }
         else say(tBoth(r.status === 429 ? "tooFast" : "offline"));
       } catch { say(tBoth("offline")); }
       btn.disabled = false;
