@@ -225,9 +225,15 @@
 .gl .cnt { text-transform: capitalize; }
 .gl.one details.rows > summary { cursor: default; }
 .gl.one details.rows > summary::after { content: none; }
-.gl .mn { margin: 6px 0 0; padding-left: 1.4em; }
-.gl .mn li { padding: 4px 0; }
-.gl li > p.m, .gl .mn p.m { margin: 2px 0 0; color: var(--muted); font-size: .95rem; }
+.gl .mn { margin: 4px 0 0; padding-left: 1.5em; list-style: decimal; }
+.gl .rows .mn li { border-top: 0; display: list-item; list-style: decimal; padding: 3px 0; }
+.gl .mn li::marker { color: var(--muted); font-family: var(--display); font-variant-numeric: tabular-nums; }
+.gl li > p.m, .gl .mn p.m { margin: 2px 0 0; color: var(--fg); font-size: 1rem; line-height: 1.4; }
+.gl .rows li .n, .gl .rows li .ex { display: block; margin-top: 2px; line-height: 1.35; }
+.gl .rows li .n { color: var(--muted); font-size: .88rem; }
+.gl .rows li .ex { margin-top: 4px; padding-left: 10px; border-left: 2px solid var(--line); color: var(--fg); font: italic 400 .95rem/1.35 var(--italic); }
+.gl .rows li .n.by { margin-top: 4px; font-size: .76rem; }
+.gl .rows > ul > li { padding: 10px 0; }
 .gl .showmore { display: block; width: 100%; min-height: 44px; margin-top: 12px; font: inherit; font-size: .85rem; letter-spacing: .06em; text-transform: uppercase; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
 .gl .showmore:hover { border-color: var(--hair); }
 .gl .showmore[hidden], .gl .none[hidden] { display: none; }
