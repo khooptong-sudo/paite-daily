@@ -1,11 +1,11 @@
 import { json, type Env } from "./types";
-import { cleanVia, placeOf, readAgent, sqlTime, visitorCode } from "./visitors";
+import { brandOf, cleanVia, ispOf, placeOf, readAgent, sqlTime, visitorCode, VW_BUCKETS } from "./visitors";
 
 // Error tracking and first-party visit counting. No cookie, no third party, no IP stored:
 // `vid` is a random id the browser keeps for the tab, a referrer is cut down to its host, and
 // people are counted with a code that changes every day (see visitors.ts).
 
-export const KINDS = ["page", "leave", "card", "answer", "blocked", "install", "share", "chat", "ask", "play"] as const;
+export const KINDS = ["page", "leave", "card", "answer", "blocked", "install", "share", "chat", "ask", "play", "out", "jserror"] as const;
 
 function digest(s: string): string {
   let h = 5381;
@@ -81,12 +81,25 @@ export async function handleEvent(req: Request, env: Env, now = Date.now()): Pro
     const r = str(b.ref, 300);
     ref = r ? new URL(r).host.slice(0, 80) : null;
   } catch {}
+  // Everything below is checked against an allow-list or a pattern; a bad value becomes null, never an error.
+  const pick = (v: unknown, ok: readonly string[]) => (typeof v === "string" && ok.includes(v) ? v : null);
+  const word = (v: unknown) => (typeof v === "string" && /^[A-Za-z0-9 ._/+-]{1,40}$/.test(v) ? v : null);
+  const int = (v: unknown, max: number) => (typeof v === "number" && Number.isFinite(v) ? Math.max(0, Math.min(Math.round(v), max)) : null);
+  const pv = typeof b.pv === "string" && /^\d{1,3}(\.\d{1,5}){0,3}$/.test(b.pv) ? b.pv : null;
+  const bvh = int(b.bvh, 999) || null;
   const ua = req.headers.get("user-agent") ?? "";
-  const agent = readAgent(ua);
+  const agent = readAgent(ua, { pv, bvh });
   if (agent.bot) return new Response(null, { status: 204 });
   // Engaged time arrives on 'leave' only, capped at 30 minutes a beacon.
   const ms = kind === "leave" && typeof b.ms === "number" && Number.isFinite(b.ms) ? Math.max(0, Math.min(Math.round(b.ms), 1_800_000)) : null;
   const returning = b.ret === 1 || b.ret === 0 ? b.ret : null;
+  const model = word(b.model);
+  const dpr = typeof b.dpr === "number" && Number.isFinite(b.dpr) ? `${Math.max(1, Math.min(Math.round(b.dpr), 3))}x` : pick(b.dpr, ["1x", "2x", "3x"]);
+  const leave = kind === "leave";
+  const speed = (k: string, max: number) => (leave ? int(b[k], max) : null);
+  // An outbound link keeps only its host; an error keeps a short plain-text message.
+  const target = kind === "out" ? (typeof b.target === "string" && /^[A-Za-z0-9.-]{1,80}$/.test(b.target) ? b.target.toLowerCase() : null)
+    : kind === "jserror" ? (str(b.target, 300)?.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 120) || null) : null;
   try {
     if (vid) {
       // One device cannot flood the table: over 60 events a minute from the same tab id, drop them.
@@ -95,8 +108,16 @@ export async function handleEvent(req: Request, env: Env, now = Date.now()): Pro
     }
     const where = placeOf(req);
     const visitor = await visitorCode(env, req.headers.get("CF-Connecting-IP") ?? "unknown", ua, now);
-    await env.DB.prepare("INSERT INTO events (kind, path, vid, device, ref, visitor, via, country, region, city, browser, os, revisit, ms, at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15)")
-      .bind(kind, (str(b.path, 80) ?? "").replace(/[?&#].*$/, ""), vid, agent.device, ref, visitor, cleanVia(b.via), where.country, where.region, where.city, agent.browser, agent.os, returning, ms, sqlTime(now)).run();
+    const cf = (req as Request & { cf?: { asOrganization?: unknown } }).cf;
+    await env.DB.prepare(
+      `INSERT INTO events (kind, path, vid, device, ref, visitor, via, country, region, city, browser, os, revisit, ms, at,
+        osv, bv, brand, model, isp, lang, tz, vw, dpr, net, theme, scheme, pwa, ttfb, "load", lcp, inp, cls, scroll, target)
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16, ?17, ?18, ?19, ?20, ?21, ?22, ?23, ?24, ?25, ?26, ?27, ?28, ?29, ?30, ?31, ?32, ?33, ?34, ?35)`,
+    ).bind(kind, (str(b.path, 80) ?? "").replace(/[?&#].*$/, ""), vid, agent.device, ref, visitor, cleanVia(b.via), where.country, where.region, where.city, agent.browser, agent.os, returning, ms, sqlTime(now),
+      agent.osv, agent.bv, brandOf(model, agent.os), model, ispOf(cf?.asOrganization),
+      typeof b.lang === "string" && /^[A-Za-z]{2,3}(-[A-Za-z0-9]{2,8}){0,2}$/.test(b.lang) ? b.lang : null, word(b.tz),
+      pick(b.vw, VW_BUCKETS), dpr, pick(b.net, ["4g", "3g", "2g", "saver"]), pick(b.theme, ["light", "dark"]), pick(b.scheme, ["light", "dark"]),
+      b.pwa === 1 || b.pwa === 0 ? b.pwa : null, speed("ttfb", 60000), speed("load", 60000), speed("lcp", 60000), speed("inp", 60000), speed("cls", 10000), speed("scroll", 100), target).run();
     // Old events are removed by the nightly visitors job, after their day's totals are kept.
   } catch (e) {
     console.error("event insert failed", e);
