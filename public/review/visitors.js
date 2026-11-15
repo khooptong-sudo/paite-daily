@@ -381,12 +381,26 @@
   let resizeT = 0;
   new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (data) chart(); }, 120); }).observe($("vz-plot"));
   // review.js calls this once it knows the signed-in reviewer is the owner; nobody else sees the section.
-  let started = false;
+  // The box folds to its heading and the "on the site now" count; the choice is remembered. While it is
+  // folded nothing heavy is read: the dashboard loads the first time it is opened.
+  const toggle = $("vz-toggle");
+  let loaded = false, started = false;
+  const remembered = () => { try { return localStorage.getItem("pd:vz") !== "0"; } catch { return true; } };
+  function setOpen(open) {
+    root.classList.toggle("collapsed", !open);
+    toggle.setAttribute("aria-expanded", String(open));
+    $("vz-toggle-t").textContent = open ? "Hide" : "Show";
+    try { localStorage.setItem("pd:vz", open ? "1" : "0"); } catch {}
+    if (open && !loaded) { loaded = true; load().then(() => loadVisits(null)); }
+    else if (open && data) chart();
+  }
+  toggle.addEventListener("click", () => setOpen(root.classList.contains("collapsed")));
   window.pdVisitors = () => {
     if (started) return;
     started = true;
     root.hidden = false;
-    load().then(() => { loadLive(); loadVisits(null); });
+    setOpen(remembered());
+    loadLive();
     setInterval(() => { if (document.visibilityState === "visible") loadLive(); }, 20000);
   };
 })();

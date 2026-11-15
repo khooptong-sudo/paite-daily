@@ -191,3 +191,17 @@ html:not([data-theme=light]) .vz { --good: #3ccf7f; --bad: #ff6b72; }
 .vz-grid { gap: 0; }
 .vz-panel { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; padding: 22px 0 8px; }
 .vz-hc { aspect-ratio: 1; height: auto; }
+/* Collapsible: the box folds to its heading and the live count. */
+.vz-body { display: grid; gap: 28px; min-width: 0; }
+.vz.collapsed { gap: 0 !important; }
+.vz.collapsed .vz-body, .vz.collapsed .vz-seg { display: none; }
+.vz.collapsed .vz-top h2 { font-size: clamp(1.2rem, 2.6vw, 1.5rem) !important; max-width: none; }
+.vz.collapsed .vz-sub { display: none; }
+.vz-toggle {
+  appearance: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  border: 1px solid var(--line) !important; background: none !important; box-shadow: none !important; min-height: 0 !important;
+  padding: 7px 11px 7px 13px !important; border-radius: 999px !important; color: var(--muted) !important; font: 600 .78rem/1 var(--body) !important;
+}
+.vz-toggle:hover { color: var(--fg) !important; border-color: var(--hair) !important; }
+.vz-toggle svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; transition: transform .25s; }
+.vz.collapsed .vz-toggle svg { transform: rotate(180deg); }

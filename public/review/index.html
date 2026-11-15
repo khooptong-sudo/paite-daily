@@ -36,13 +36,24 @@
   [hidden] { display: none !important; }
   #help[hidden] { display: none; }
   .row3 { display: flex; gap: 8px; flex-wrap: wrap; }
-  .wgroup { border-top: 1px solid var(--line); }
-  .wgroup > summary { display: flex; align-items: center; gap: 10px; cursor: pointer; padding: 10px 0; font-weight: 700; list-style: none; }
-  .wgroup > summary::-webkit-details-marker { display: none; }
-  .wgroup > summary .cnt { color: var(--muted); font-weight: 400; font-size: .85rem; font-variant-numeric: tabular-nums; }
-  .wgroup > summary::after { content: "\FF0B"; margin-left: auto; color: var(--muted); }
-  .wgroup[open] > summary::after { content: "\FF0D"; }
-  .wgroup ul { list-style: none; margin: 0 0 10px; padding: 0; display: grid; gap: 10px; }
+  .wstrip { display: grid; grid-template-columns: repeat(var(--cols, 13), minmax(0, 1fr)); gap: 6px; }
+  .wstrip button { display: grid; justify-items: center; gap: 1px; padding: 7px 0 6px !important; min-height: 0 !important; min-width: 0; border-radius: 10px !important; line-height: 1.1; }
+  .wstrip b { font: 400 1.05rem/1 var(--display); }
+  .wstrip small { font-size: .62rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .wstrip button[aria-pressed=true] { background: var(--fg) !important; color: var(--bg) !important; border-color: var(--fg) !important; }
+  .wstrip button[aria-pressed=true] small { color: inherit; opacity: .7; }
+  .wbody:not(:empty) { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; }
+  .wh { margin: 0 0 12px; font: 700 .72rem/1 var(--body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+  .wbody ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .revlist { list-style: none; margin: 0; padding: 0; display: grid; }
+  .revlist li { display: grid; grid-template-columns: minmax(0, auto) minmax(0, 1fr) auto; align-items: baseline; gap: 4px 14px; padding: 9px 0; border-top: 1px solid var(--line); }
+  .revlist li:first-child { border-top: 0; padding-top: 2px; }
+  .revlist .rn { font-weight: 600; font-size: .92rem; }
+  .revlist .re { color: var(--muted); font-size: .8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .revlist .rt { color: var(--muted); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; }
+  .revlist button { appearance: none; border: 0 !important; background: none !important; box-shadow: none !important; min-height: 0 !important; padding: 2px 0 !important; font: 500 .8rem/1.2 var(--body) !important; color: var(--muted) !important; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .revlist button:hover { color: var(--fg) !important; }
+  @media (max-width: 460px) { .revlist li { grid-template-columns: minmax(0, 1fr) auto; } .revlist .re { grid-column: 1 / -1; grid-row: 2; } }
   .edit { display: grid; gap: 8px; }
   .edit input { width: 100%; }
   .dash h2 { margin-top: 0; }
@@ -68,7 +79,6 @@
     </div>
     <p class="meta own-note" id="dash-own" hidden></p>
   </section>
-  <p class="queue" id="queue" aria-live="polite"></p>
   <section class="card vz" id="vz" data-api="/review/api/visitors" aria-labelledby="vz-h" aria-busy="true" hidden>
 <header class="vz-top">
 <div class="vz-title">
@@ -78,6 +88,7 @@
 </div>
 <div class="vz-tools">
 <span class="vz-live" id="vz-live" title="Visits with activity in the last five minutes"><i aria-hidden="true"></i><b id="vz-now">0</b><span>on the site now</span></span>
+<button type="button" class="vz-toggle" id="vz-toggle" aria-expanded="true" aria-controls="vz-body"><span id="vz-toggle-t">Hide</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
 <div class="vz-seg" role="group" aria-label="Period">
 <button type="button" data-range="today" aria-pressed="false">Today</button>
 <button type="button" data-range="7" aria-pressed="true">7 days</button>
@@ -86,6 +97,7 @@
 </div>
 </div>
 </header>
+<div class="vz-body" id="vz-body">
 <div class="vz-kpis" id="vz-kpis" role="group" aria-label="Choose what the chart shows"></div>
 <figure class="vz-chart" id="vz-chart">
 <div class="vz-plot" id="vz-plot"></div>
@@ -109,6 +121,7 @@
 <article class="vz-panel" id="vz-visits"></article>
 </div>
 <p class="vz-foot">No cookies, and no IP address is stored. Each person is counted once a day with a code that changes every day, so nobody can be followed from one day to the next. A city is named once two or more visitors have come from it; otherwise the region is shown. Visits are kept 30 days, daily totals for good. Browsers that ask not to be tracked are not counted.</p>
+</div>
 </section>
 <section class="card" id="card">
     <div class="label" id="dir">English</div>
@@ -130,7 +143,7 @@
   </section>
 <section class="card" id="apps-card" aria-labelledby="apps-h" hidden><h2 id="apps-h">Applications</h2><ul id="apps" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
 <section class="card" id="errors-card" aria-labelledby="errors-h" hidden><h2 id="errors-h">Errors (7 days)</h2><ul id="errors" style="list-style:none;margin:0;padding:0;display:grid;gap:8px"></ul></section>
-<section class="card" id="revs-card" aria-labelledby="revs-h" hidden><h2 id="revs-h">Reviewers</h2><ul id="revs" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
+<section class="card" id="revs-card" aria-labelledby="revs-h" hidden><h2 id="revs-h">Reviewers</h2><ul id="revs" class="revlist"></ul></section>
 <section class="card" aria-labelledby="newwords-h"><h2 id="newwords-h">New words</h2><ul id="newwords" style="list-style:none;margin:0;padding:0;display:grid;gap:10px"></ul></section>
 <section class="card" aria-labelledby="words-h"><h2 id="words-h">Word list</h2><p class="meta">Every word in the list, by letter. Edit a wrong meaning, or hide a word from the public list.</p><div id="words" style="display:grid;gap:0"></div></section>
 </main>

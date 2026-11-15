@@ -153,12 +153,6 @@
     if (first) focusBox(first); else $("english").focus();
   }
 
-  async function queue() {
-    try {
-      const r = await fetch("/review/api/queue");
-      if (r.ok) $("queue").textContent = (await r.json()).waiting + " waiting";
-    } catch {}
-  }
 
   // Every queue at a glance: how many wait and how long the oldest has waited.
   function since(t) {
@@ -218,7 +212,6 @@
   });
 
   async function next(keepStatus = false) {
-    queue();
     dashboard();
     $("english").textContent = "Loading…";
     try {
@@ -300,6 +293,7 @@
   }
 
   // Word list: every entry, grouped by letter. A reviewer can correct a wrong meaning or hide a word.
+  let wordLetter = null; // the letter open in the word list, kept across a save
   async function words() {
     try {
       const r = await fetch("/review/api/glossary");
@@ -356,17 +350,29 @@
         li.append(t, m, row3b, form);
         return li;
       };
-      const blocks = [...groups].map(([k, es]) => {
-        const d = document.createElement("details"); d.className = "wgroup";
-        const s = document.createElement("summary");
-        const ltr = document.createElement("span"); ltr.textContent = k;
-        const cnt = document.createElement("span"); cnt.className = "cnt"; cnt.textContent = es.length + (es.length === 1 ? " word" : " words");
-        s.append(ltr, cnt);
+      // The letters sit in two rows; tapping one opens just that letter, tapping it again closes it.
+      const strip = document.createElement("div"); strip.className = "wstrip";
+      strip.style.setProperty("--cols", Math.max(1, Math.ceil(groups.size / 2)));
+      const body = document.createElement("div"); body.className = "wbody";
+      const draw = () => {
+        [...strip.children].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.k === wordLetter)));
+        const es = wordLetter ? groups.get(wordLetter) : null;
+        if (!es) { body.replaceChildren(); return; }
+        const h = document.createElement("p"); h.className = "wh"; h.textContent = wordLetter + " · " + es.length + (es.length === 1 ? " word" : " words");
         const ul = document.createElement("ul"); ul.append(...es.map(row));
-        d.append(s, ul);
-        return d;
-      });
-      $("words").replaceChildren(...blocks);
+        body.replaceChildren(h, ul);
+      };
+      for (const [k, es] of groups) {
+        const b = document.createElement("button"); b.type = "button"; b.dataset.k = k;
+        b.setAttribute("aria-label", k + ", " + es.length + (es.length === 1 ? " word" : " words"));
+        const l = document.createElement("b"); l.textContent = k;
+        const c = document.createElement("small"); c.textContent = es.length;
+        b.append(l, c);
+        b.addEventListener("click", () => { wordLetter = wordLetter === k ? null : k; draw(); });
+        strip.append(b);
+      }
+      draw();
+      $("words").replaceChildren(strip, body);
     } catch {}
   }
 
@@ -428,12 +434,25 @@
       if (r.ok) {
         const { reviewers } = await r.json();
         $("revs-card").hidden = false;
-        $("revs").replaceChildren(...reviewers.map((x) => row(x.name + " <" + x.email + ">", x.source, ...(x.source === "db" ? [act("Remove", "Remove " + x.name, async () => {
-          if (!confirm("Remove " + x.name + " (" + x.email + ") as a reviewer?")) return false;
-          const d = await post("/review/api/reviewers/remove", { email: x.email });
-          if (!d.ok) status((await d.json().catch(() => ({}))).message || "Could not remove.");
-          return d.ok;
-        })] : []))));
+        // One quiet line each: name, email, a small tag for the two kinds that cannot be removed here.
+        const tags = { owner: "owner", secret: "built in" };
+        $("revs").replaceChildren(...reviewers.map((x) => {
+          const li = document.createElement("li");
+          const n = document.createElement("span"); n.className = "rn"; n.textContent = x.name;
+          const e = document.createElement("span"); e.className = "re"; e.textContent = x.email;
+          li.append(n, e);
+          if (x.source === "db") {
+            li.append(act("Remove", "Remove " + x.name, async () => {
+              if (!confirm("Remove " + x.name + " (" + x.email + ") as a reviewer?")) return false;
+              const d = await post("/review/api/reviewers/remove", { email: x.email });
+              if (!d.ok) status((await d.json().catch(() => ({}))).message || "Could not remove.");
+              return d.ok;
+            }));
+          } else if (tags[x.source]) {
+            const t = document.createElement("span"); t.className = "rt"; t.textContent = tags[x.source]; li.append(t);
+          }
+          return li;
+        }));
       }
     } catch {}
   }
