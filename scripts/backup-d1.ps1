@@ -12,7 +12,7 @@
 # node aborts on exit in that same spot, so the exit code is reported but never treated as proof;
 # the output text is the evidence.
 param(
-  [string]$Dir = "E:\Backups\paite-daily",
+  [string]$Dir = "H:\Backups\paite-daily",
   [int]$Keep = 14
 )
 $ErrorActionPreference = "Stop"
