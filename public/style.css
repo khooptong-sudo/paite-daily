@@ -915,5 +915,29 @@ html[data-theme=light] .blue .ask-card { background: rgba(21, 18, 15, .035); }
    On ink the page is near black, so the shadow is deeper to read at all. */
 body.blue { --lift: 0 12px 28px -16px rgba(0, 0, 0, .95), 0 2px 6px -3px rgba(0, 0, 0, .6); }
 html[data-theme=light] body.blue { --lift: 0 10px 24px -16px rgba(21, 18, 15, .45), 0 2px 6px -3px rgba(21, 18, 15, .12); }
-.blue .card:not(.chat), .blue .card.chat .chat-box, .blue .mypuan, body.rv .block { box-shadow: var(--lift); }
-.blue .card .card { box-shadow: none; }
+/* Matte glass (owner, 15 Nov): each box is see-through with a fine grain, blurs what is behind it,
+   and catches a pale edge and a light line along the top. Behind the page sits a faint, still wash
+   of the site's own gold, red and violet so the frost has something to soften. Draft and comparison
+   in .claude/glass-preview/. The wash is a fixed layer, not background-attachment: fixed, which
+   phones ignore. */
+body.blue {
+  --glass-bg: rgba(244, 241, 234, .045); --glass-edge: rgba(244, 241, 234, .12); --glass-hi: rgba(244, 241, 234, .08);
+  --wash: radial-gradient(60% 40% at 8% 14%, rgba(242, 183, 5, .10), transparent 70%),
+          radial-gradient(55% 35% at 96% 40%, rgba(232, 66, 74, .08), transparent 70%),
+          radial-gradient(65% 40% at 20% 78%, rgba(109, 92, 255, .09), transparent 70%);
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.18'/%3E%3C/svg%3E");
+  background: transparent;
+}
+html[data-theme=light] body.blue {
+  --glass-bg: rgba(255, 255, 255, .34); --glass-edge: rgba(255, 255, 255, .7); --glass-hi: rgba(255, 255, 255, .75);
+  --wash: radial-gradient(60% 40% at 8% 14%, rgba(242, 183, 5, .20), transparent 70%),
+          radial-gradient(55% 35% at 96% 40%, rgba(200, 16, 46, .13), transparent 70%),
+          radial-gradient(65% 40% at 20% 78%, rgba(75, 59, 214, .12), transparent 70%);
+}
+body.blue::before { content: ""; display: block; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--wash); }
+.blue .card:not(.chat), .blue .card.chat .chat-box, .blue .mypuan, body.rv .block {
+  background: var(--grain), var(--glass-bg); border-color: var(--glass-edge);
+  -webkit-backdrop-filter: blur(22px) saturate(115%); backdrop-filter: blur(22px) saturate(115%);
+  box-shadow: inset 0 1px 0 var(--glass-hi), var(--lift);
+}
+.blue .card .card { background: none; border: 0; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
