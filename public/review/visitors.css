@@ -219,7 +219,10 @@ html:not([data-theme=light]) .vz { --good: #3ccf7f; --bad: #ff6b72; }
 .vz.away .vz-float .vz-toggle { opacity: 1; pointer-events: auto; }
 
 /* ---------- Explorer (plan 011): filters, controls, technology, network, speed, behaviour, table ---------- */
-.vz-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin-bottom: -10px; }
+/* The three control rows keep one rhythm (owner, 15 Nov): the period buttons sit about 12px above Compare,
+   the same as Compare above Hour, Day, Week. The box gap (28px) plus the header's button padding left
+   about 35px, so the controls are drawn up to meet them (margin-top). */
+.vz-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; margin: -23px 0 -10px; }
 .vz-dates { display: inline-flex; flex-wrap: wrap; gap: 8px 14px; font: 600 .74rem/1 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .vz-dates label { display: inline-flex; align-items: center; gap: 8px; }
 .vz-dates input, .vz-sel input, .vz-sel select { font: 400 .88rem/1.2 var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 7px 10px; min-height: 0; text-transform: none; letter-spacing: 0; }
