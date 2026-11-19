@@ -411,9 +411,9 @@
       const d = await r.json(), n = (k, one, many) => k ? `${k} ${k === 1 ? one : many}` : "";
       const what = [n(d.sentences, "sentence", "sentences"), n(d.words, "word", "words")].filter(Boolean).join(" and ");
       const verb = d.sentences ? (d.words ? "" : " verified") : " added";
-      $("today-name").textContent = d.name;
-      $("today-line").textContent = `${what}${verb} ${d.period === "week" ? "this week" : "yesterday"}. ${t("todayThanks")}`;
-      $("today").hidden = false;
+      $("cotd-name").textContent = d.name;
+      $("cotd-line").textContent = `${what}${verb} ${d.period === "week" ? "this week" : "yesterday"}. ${t("todayThanks")}`;
+      $("cotd").hidden = false;
     } catch {}
   }
 
