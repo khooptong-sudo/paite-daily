@@ -27,7 +27,7 @@ export function createApp(deps: Deps) {
     const { pathname } = new URL(req.url);
     try {
       if (pathname === "/api/event" && req.method === "POST") return await handleEvent(req, env, deps.now());
-      if (pathname === "/glossary") { const xs = await getGlossary(env); return new Response(renderGlossary(xs, await getWordExtras(env, xs)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } }); }
+      if (pathname === "/glossary") { const xs = await getGlossary(env); return new Response(renderGlossary(xs, await getWordExtras(env, xs, deps.now())), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } }); }
       if (pathname === "/proverbs") return new Response(renderProverbs(await getProverbs(env), env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/proverbs.json") return new Response(proverbsJson(await getProverbs(env)), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300" } });
       if (pathname === "/contributors") return new Response(renderPage(await getContributors(env), undefined, env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });

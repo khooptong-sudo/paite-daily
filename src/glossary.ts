@@ -88,7 +88,21 @@ export type Extras = { same: Map<string, string[]>; opposite: Map<string, string
 const hkey = (w: string) => w.trim().normalize("NFC").toLowerCase();
 
 /** Same Meaning, Opposite and Seen in Use for the word list, all from the list, approved links and verified sentences. Keys are lower-cased headwords. */
-export async function getWordExtras(env: Env, xs: Entry[]): Promise<Extras> {
+// The verified lines behind Seen in Use: the page is public and uncached, so the
+// read is kept for ten minutes per worker, like the spelling vocabulary.
+let lines: { at: number; rows: { paite: string; english: string }[] } | null = null;
+export const clearWordExtrasCache = () => { lines = null; };
+async function verifiedLines(env: Env, now: number): Promise<{ paite: string; english: string }[]> {
+  if (lines && now - lines.at < 10 * 60_000) return lines.rows;
+  const { results } = await env.DB.prepare(
+    `SELECT ${finalPaite("a")} AS paite, s.english FROM answers a JOIN sentences s ON s.id = a.sentence_id
+     WHERE a.status IN ('accepted', 'also_correct') AND s.direction = 'en2pai' ORDER BY a.id DESC LIMIT 5000`,
+  ).all<{ paite: string; english: string }>();
+  lines = { at: now, rows: results };
+  return results;
+}
+
+export async function getWordExtras(env: Env, xs: Entry[], now = Date.now()): Promise<Extras> {
   const heads = new Map<string, { w: string; es: Entry[] }>();
   for (const e of xs) { const k = hkey(e.paite); const h = heads.get(k); if (h) h.es.push(e); else heads.set(k, { w: e.paite.trim().normalize("NFC"), es: [e] }); }
   // key -> (lower word -> first spelling seen)
@@ -118,11 +132,7 @@ export async function getWordExtras(env: Env, xs: Entry[]): Promise<Extras> {
   }
   const seen = new Map<string, { paite: string; english: string }[]>();
   if (first.size) {
-    const { results } = await env.DB.prepare(
-      `SELECT ${finalPaite("a")} AS paite, s.english FROM answers a JOIN sentences s ON s.id = a.sentence_id
-       WHERE a.status IN ('accepted', 'also_correct') AND s.direction = 'en2pai' ORDER BY a.id DESC LIMIT 5000`,
-    ).all<{ paite: string; english: string }>();
-    for (const r of results) {
+    for (const r of await verifiedLines(env, now)) {
       const line = r.paite.trim().toLowerCase(), tok = paiteWords(r.paite);
       for (let i = 0; i < tok.length; i++) for (const { k, t } of first.get(tok[i]) ?? []) {
         const got = seen.get(k) ?? [], u = used.get(k)!;

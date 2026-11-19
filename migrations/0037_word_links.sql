@@ -16,3 +16,6 @@ CREATE TABLE word_links (
 );
 CREATE INDEX word_links_by_status ON word_links (status, id);
 CREATE INDEX word_links_by_phone ON word_links (phone_id, created_at);
+-- Every read of a verified sentence's final Paite looks up its accepting review (src/final.ts).
+-- Without this index each lookup scans the whole reviews table.
+CREATE INDEX IF NOT EXISTS reviews_by_accepted_answer ON reviews (accepted_answer_id, decision);
