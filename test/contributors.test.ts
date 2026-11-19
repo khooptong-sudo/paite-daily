@@ -68,7 +68,7 @@ describe("contributors", () => {
     expect(page).not.toContain("khooptong@lamkalabs.com");
     expect(page).not.toContain("khooptong@lamka.net");
     expect(page).not.toContain("83750 98415");
-    expect(page).toContain('<a class="back" href="/review">Reviewer');
+    expect(page).toContain('<a href="/review">Reviewers</a>');
     expect(page).toContain('<script src="/track.js"></script>');
   });
 

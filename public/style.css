@@ -53,7 +53,7 @@
   .word-prompt { margin: 0; font: 700 1.7rem var(--display); }
   .actions { display: flex; gap: 10px; flex-wrap: wrap; }
   /* A form is its own stack: the card gap does not reach inside it. */
-  #form, #word-form, #meaning-form { display: grid; gap: 16px; }
+  #form, #word-form, #meaning-form, #link-form { display: grid; gap: 16px; }
   button { font: 700 1rem var(--body); border-radius: 14px; padding: 12px 18px; cursor: pointer; border: 1px solid rgba(0, 0, 0, .14); background: rgba(255, 255, 255, .55); color: #000; -webkit-backdrop-filter: blur(12px) saturate(140%); backdrop-filter: blur(12px) saturate(140%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 4px 14px rgba(0, 0, 0, .08); transition: transform .15s, box-shadow .15s; }
   /* Filled controls: a pale wash with an ink edge. The action reads by its outline, not by weight. */
   button.primary, .cta:not(.glass-btn), .seg button[aria-pressed="true"] { background: rgba(0, 0, 0, .03); color: #000; border: 1px solid rgba(0, 0, 0, .4); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .7), 0 4px 14px rgba(0, 0, 0, .08); }
@@ -83,7 +83,7 @@ small { display: block; font-size: .75em; color: var(--muted); font-weight: 400;
    English beneath as the same quiet uppercase caption the Translate card uses. */
 .card h2, .mypuan h2 { font: 400 1.3rem/1.25 var(--display); letter-spacing: -.005em; margin: 0; text-wrap: balance; }
 .card h2 small, .mypuan h2 small { display: block; margin: 5px 0 0; font: 700 .7rem/1.3 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.card-h .more { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line); color: var(--fg); text-decoration: none; background: rgba(255, 255, 255, .55); font-size: 1.05rem; }
+.card-h .more { flex: none; display: inline-flex; align-items: center; min-height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); color: var(--fg); text-decoration: none; background: rgba(255, 255, 255, .55); font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
 .card-h .more:hover { border-color: var(--hair); }
 #fb-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 #fb-list li { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 10px; }
@@ -576,6 +576,8 @@ body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week
   background: transparent; color: var(--fg); border: 0; border-bottom: 1px solid var(--hair); border-radius: 0; padding: 10px 0; box-shadow: none;
 }
 .blue textarea { font-size: 1.45rem; min-height: 72px; }
+/* The example in an empty box is a quiet hint, not a second headline. */
+.blue textarea::placeholder { font: 400 1rem/1.45 var(--body); }
 .blue textarea:focus, .blue input:not([type=radio]):not([type=checkbox]):focus, .blue select:focus { outline: 0; border-color: var(--fg); box-shadow: 0 2px 0 0 var(--ring); }
 .blue select option { background: #0c0b0a; color: #f4f1ea; }
 .blue ::placeholder { color: var(--muted); opacity: 1; }

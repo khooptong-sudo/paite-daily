@@ -260,7 +260,7 @@ ${publicWiki ? `<h3 style="margin-top:2rem">Tongdot | Tongsan and the Paite Wiki
 <section aria-labelledby="who">
 <p class="kicker"><b>06</b> The people behind it</p>
 <h2 id="who">Who runs this</h2>
-<p>Min Khooptong (<a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a>) builds and looks after Paite Daily from Lamka, with five volunteer reviewers. It is not a company, and it has no funding. The reviewers give their time for free, and the running costs are paid out of pocket.</p>
+<p><a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a> builds and looks after Paite Daily from Lamka, with five volunteer reviewers. It is not a company, and it has no funding. The reviewers give their time for free, and the running costs are paid out of pocket.</p>
 <p>This site carries no advertising and never will. Ads on a site for a small language would earn only a few dollars a month, and you would pay for them with your attention.</p>
 <p>If you would like to help with the running costs, there is a UPI code at the bottom of the page. It is completely optional.</p>
 </section>

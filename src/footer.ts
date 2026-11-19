@@ -20,7 +20,7 @@ export const FOOTER = `
       <p data-s="scanUpi">Scan with Any UPI App</p>
       <p>UPI ID: <b id="upi-id">khooptong@okicici</b> <button type="button" id="upi-copy">Copy</button></p>
     </div>
-    <p class="built">Built and maintained by <a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a> &middot; <a href="/about">About This Project</a></p>
+    <p class="built">Built and maintained by <a class="lab" href="https://lamkalabs.com" target="_blank" rel="noopener">Lamka <span>Labs</span></a> &middot; <a href="/about">About This Project</a> &middot; <a href="/review">Reviewers</a></p>
   </div>
 </footer>
 <script src="/footer.js"></script>`;

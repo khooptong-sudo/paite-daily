@@ -133,7 +133,7 @@ export function renderSameOpposite(data: SameOpposite, siteKey = ""): string {
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=onTurnstileLoad" defer></script>
 </head>
 <body class="cp blue">
-<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a><a class="back" href="/review">Reviewer <span aria-hidden="true">&rarr;</span></a></div><h1 data-s="sameOppTitle">Same &amp; Opposite</h1><p data-s="sameOppLine">Paite words that mean the same, and words that mean the opposite.</p></header>
+<header class="hero"><div class="hero-nav"><a class="back" href="/" data-back><span aria-hidden="true">&larr;</span> Back</a></div><h1 data-s="sameOppTitle">Same &amp; Opposite</h1><p data-s="sameOppLine">Paite words that mean the same, and words that mean the opposite.</p></header>
 <main class="gl">
 <p class="filters"><button type="button" data-f="all" aria-pressed="true" data-s="filterAll">All</button><button type="button" data-f="same" aria-pressed="false" data-s="relSame">Same Meaning</button><button type="button" data-f="opposite" aria-pressed="false" data-s="relOpposite">Opposite</button></p>
 ${body}
