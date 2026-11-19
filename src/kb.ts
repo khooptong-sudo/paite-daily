@@ -203,8 +203,18 @@ export async function withdrawSource(
     .first<{ kind: Kind; status: SourceStatus; r2_key: string | null }>();
   if (!src || src.kind === "site") return { error: "not_found" };
   if (src.status === "withdrawn") return { error: "already_withdrawn" };
-  // The delete trigger removes each passage from the full-text index as it goes.
-  await env.WIKI.prepare("DELETE FROM kb_chunks WHERE source_id = ?1").bind(id).run();
+  // No copy of the text may outlive it: scrub the cache, the ask log and article revisions that cite these passages.
+  // Citations are JSON: kb_ask_cache.cited and kb_article_revs.cited are [[chunkId, sha], ...]; kb_asks.answer has sources[].chunk.
+  const ids = JSON.stringify((await env.WIKI.prepare("SELECT id FROM kb_chunks WHERE source_id = ?1").bind(id).all<{ id: number }>()).results.map((r) => r.id));
+  const { results: revs } = await env.WIKI.prepare("SELECT id, body FROM kb_article_revs WHERE EXISTS (SELECT 1 FROM json_each(cited) j WHERE json_extract(j.value, '$[0]') IN (SELECT value FROM json_each(?1)))").bind(ids).all<{ id: number; body: string }>();
+  const gone = new Set<number>(JSON.parse(ids));
+  await env.WIKI.batch([
+    env.WIKI.prepare("DELETE FROM kb_ask_cache WHERE EXISTS (SELECT 1 FROM json_each(cited) j WHERE json_extract(j.value, '$[0]') IN (SELECT value FROM json_each(?1)))").bind(ids),
+    env.WIKI.prepare("UPDATE kb_asks SET answer = NULL WHERE answer IS NOT NULL AND EXISTS (SELECT 1 FROM json_each(answer, '$.sources') j WHERE json_extract(j.value, '$.chunk') IN (SELECT value FROM json_each(?1)))").bind(ids),
+    ...revs.map((r) => env.WIKI.prepare("UPDATE kb_article_revs SET body = ?2 WHERE id = ?1").bind(r.id, JSON.stringify((JSON.parse(r.body) as { type: string; chunk?: number }[]).filter((b) => !(b.type === "quote" && gone.has(b.chunk!)))))),
+    // The delete trigger removes each passage from the full-text index as it goes.
+    env.WIKI.prepare("DELETE FROM kb_chunks WHERE source_id = ?1").bind(id),
+  ]);
   if (src.r2_key) await env.WIKI_FILES.delete(src.r2_key);
   await env.WIKI.prepare(
     "UPDATE kb_sources SET status = 'withdrawn', withdrawn_reason = ?2, r2_key = NULL, decided_by = ?3, decided_at = ?4, updated_at = ?4 WHERE id = ?1",

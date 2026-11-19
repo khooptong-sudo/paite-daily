@@ -4,7 +4,7 @@ import { verifiedPairs } from "./chat";
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
 import { getGlossary } from "./glossary";
-import { bump, buildLexicon, expandTerms, fold, normSpan, words, type Cited, type Lexicon } from "./kbask";
+import { bump, buildLexicon, expandTerms, fold, normSpan, paiteSlip, words, type Cited, type Lexicon } from "./kbask";
 import { hybridSearch } from "./kbvec";
 import { cleanText, isId } from "./text";
 import type { Env } from "./types";
@@ -57,10 +57,8 @@ export function checkBlocks(raw: unknown, passages: Map<number, string>, title: 
   for (const b of final) for (const id of b.type === "quote" ? [b.chunk] : b.type === "text" ? b.cites : []) if (!order.includes(id)) order.push(id);
   for (const b of final) {
     if (b.type === "quote") continue;
-    for (const w of words(b.text)) {
-      const f = fold(w);
-      if (lex.paiteOnly.has(f) && !allowed.has(f)) return bad(`paite_in_text:${f}`);
-    }
+    const f = paiteSlip(b.text, lex, allowed);
+    if (f) return bad(`paite_in_text:${f}`);
   }
   return { ok: true, blocks: final, cited: order };
 }
