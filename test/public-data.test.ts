@@ -45,7 +45,8 @@ describe("export", () => {
     await env.DB.prepare("INSERT INTO reviews (sentence_id, reviewer_email, decision, accepted_answer_id, final_paite, register) VALUES (?1,'rev@example.org','accept',?2,'Ka dam e.','spoken')").bind(id, a!.id).run();
     const [line] = await exportLines();
     expect(line.licence).toBe("CC0-1.0");
-    expect(line.also_correct).toEqual(["Ka dam hi.", "Ka dam."]);
+    // Both variants are CC BY, so none may sit in also_correct under the CC0 line licence.
+    expect(line.also_correct).toEqual([]);
     expect(line.variants).toEqual([{ paite: "Ka dam hi.", licence: "CC-BY-4.0" }, { paite: "Ka dam.", licence: "CC-BY-4.0" }]);
   });
 

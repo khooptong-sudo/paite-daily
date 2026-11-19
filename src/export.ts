@@ -69,7 +69,8 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
     verified_at: row.created_at,
     // What the contributor agreed to when they sent it (migration 0031). CC BY when unknown, since it waives the least.
     licence: row.licence ?? "CC-BY-4.0",
-    also_correct: (also.get(row.sentence_id) ?? []).map((x) => x.paite),
+    // Only variants under the line's own licence; every variant with its licence is in `variants`.
+    also_correct: (also.get(row.sentence_id) ?? []).filter((x) => x.licence === (row.licence ?? "CC-BY-4.0")).map((x) => x.paite),
     // each variant under its own contributor's licence; top-level `licence` is the accepted text's
     variants: also.get(row.sentence_id) ?? [],
     explanation: row.explanation,
