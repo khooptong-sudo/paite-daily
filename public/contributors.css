@@ -313,10 +313,11 @@
 .to-wall a { color: var(--fg); font-weight: 600; text-underline-offset: 4px; }
 /* Same & Opposite page: section headings, pair rows, and the Same / Opposite choice. */
 .gl .so { margin-top: 18px; }
+.gl .so ul.rows { padding: 2px 16px 12px; }
 .gl .so h2 { margin: 0 0 6px; font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .gl .so .k { color: var(--muted); font-size: .88rem; }
 .gl .so li a { color: var(--fg); text-underline-offset: 2px; }
-.gl .so input:not([type=radio]) { width: 100%; padding: 12px 14px; font: inherit; color: #000; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.gl .so input:not([type=radio]) { width: 100%; padding: 12px 14px; font: inherit; color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
 .gl .filters.kinds { margin: 12px 0 0; }
 .gl .filters.kinds label { cursor: pointer; }
 .gl .filters.kinds input { position: absolute; opacity: 0; pointer-events: none; }
