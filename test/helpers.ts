@@ -13,7 +13,7 @@ import type { Deps } from "../src/types";
 beforeEach(async () => {
   // Per-worker caches would carry one test's words into the next.
   clearGapCache(); clearRulesCache(); clearSpellingCache(); forgetSalt();
-  await env.DB.batch(["reviewer_login_attempts", "reviewer_password_links", "reviewer_sessions", "reviewer_passwords", "grammar_checks","recordings", "chat_wants", "job_locks", "word_submissions", "reviewer_applications", "reviewers", "proverb_answers", "proverbs", "glossary", "locks", "skips", "reviewer_phones", "reviews", "exports", "job_runs", "seen", "answers", "sentences", "errors", "events", "visit_stats", "visit_salts"].map((t) => env.DB.prepare(`DELETE FROM ${t}`)));
+  await env.DB.batch(["reviewer_login_attempts", "reviewer_password_links", "reviewer_sessions", "reviewer_passwords", "grammar_checks","recordings", "chat_wants", "job_locks", "word_submissions", "word_links", "reviewer_applications", "reviewers", "proverb_answers", "proverbs", "glossary", "locks", "skips", "reviewer_phones", "reviews", "exports", "job_runs", "seen", "answers", "sentences", "errors", "events", "visit_stats", "visit_salts"].map((t) => env.DB.prepare(`DELETE FROM ${t}`)));
   // The wiki database too; chunks first so the FTS delete trigger clears the index.
   await env.WIKI.batch(["kb_test_results", "kb_test_runs", "kb_tests", "kb_article_revs", "kb_articles", "kb_vectors","kb_ask_dismissed", "kb_flags","kb_ask_cache", "kb_asks", "kb_counters", "kb_chunks", "kb_sources"].map((t) => env.WIKI.prepare(`DELETE FROM ${t}`)));
 });

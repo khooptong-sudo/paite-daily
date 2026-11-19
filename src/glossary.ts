@@ -3,6 +3,7 @@ import { finalPaite } from "./final";
 import { publicReviewerNames } from "./access";
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
+import { paiteWords } from "./spelling";
 import { cap } from "./text";
 import type { Env } from "./types";
 
@@ -82,6 +83,58 @@ export async function getGlossaryForReview(env: Env, limit = 500): Promise<Revie
   }));
 }
 
+export type Extras = { same: Map<string, string[]>; opposite: Map<string, string[]>; seen: Map<string, { paite: string; english: string }[]> };
+
+const hkey = (w: string) => w.trim().normalize("NFC").toLowerCase();
+
+/** Same Meaning, Opposite and Seen in Use for the word list, all from the list, approved links and verified sentences. Keys are lower-cased headwords. */
+export async function getWordExtras(env: Env, xs: Entry[]): Promise<Extras> {
+  const heads = new Map<string, { w: string; es: Entry[] }>();
+  for (const e of xs) { const k = hkey(e.paite); const h = heads.get(k); if (h) h.es.push(e); else heads.set(k, { w: e.paite.trim().normalize("NFC"), es: [e] }); }
+  // key -> (lower word -> first spelling seen)
+  const rel = { same: new Map<string, Map<string, string>>(), opposite: new Map<string, Map<string, string>>() };
+  const link = (m: Map<string, Map<string, string>>, a: string, b: string) => {
+    const ka = hkey(a), kb = hkey(b);
+    if (ka === kb) return;
+    const g = m.get(ka) ?? new Map<string, string>();
+    if (!g.has(kb)) g.set(kb, heads.get(kb)?.w ?? b.trim().normalize("NFC"));
+    m.set(ka, g);
+  };
+  const byMeaning = new Map<string, string[]>();
+  for (const { w, es } of heads.values()) for (const e of es) { const k = e.english.trim().toLowerCase(); byMeaning.set(k, [...(byMeaning.get(k) ?? []), w]); }
+  for (const ws of byMeaning.values()) for (const a of ws) for (const b of ws) link(rel.same, a, b);
+  const { results: links } = await env.DB.prepare("SELECT paite, other, kind FROM word_links WHERE status = 'approved' ORDER BY id").all<{ paite: string; other: string; kind: "same" | "opposite" }>();
+  for (const l of links) { link(rel[l.kind], l.paite, l.other); link(rel[l.kind], l.other, l.paite); }
+  const done = (m: Map<string, Map<string, string>>) => new Map([...m].map(([k, g]) => [k, [...g.values()].sort((a, b) => a.localeCompare(b)).slice(0, 8)] as [string, string[]]));
+
+  // Seen in use: one pass over the verified lines; a headword matches when its words appear in a row.
+  const first = new Map<string, { k: string; t: string[] }[]>();
+  const used = new Map<string, Set<string>>();
+  for (const [k, { w, es }] of heads) {
+    const t = paiteWords(w);
+    if (!t.length) continue;
+    first.set(t[0], [...(first.get(t[0]) ?? []), { k, t }]);
+    used.set(k, new Set(es.flatMap((e) => (e.example ? [e.example.paite.trim().toLowerCase()] : []))));
+  }
+  const seen = new Map<string, { paite: string; english: string }[]>();
+  if (first.size) {
+    const { results } = await env.DB.prepare(
+      `SELECT ${finalPaite("a")} AS paite, s.english FROM answers a JOIN sentences s ON s.id = a.sentence_id
+       WHERE a.status IN ('accepted', 'also_correct') AND s.direction = 'en2pai' ORDER BY a.id DESC LIMIT 5000`,
+    ).all<{ paite: string; english: string }>();
+    for (const r of results) {
+      const line = r.paite.trim().toLowerCase(), tok = paiteWords(r.paite);
+      for (let i = 0; i < tok.length; i++) for (const { k, t } of first.get(tok[i]) ?? []) {
+        const got = seen.get(k) ?? [], u = used.get(k)!;
+        if (got.length >= 2 || u.has(line) || !t.every((x, j) => tok[i + j] === x)) continue;
+        u.add(line);
+        seen.set(k, [...got, { paite: r.paite.trim(), english: r.english }]);
+      }
+    }
+  }
+  return { same: done(rel.same), opposite: done(rel.opposite), seen };
+}
+
 export const glossaryJson = (xs: Entry[]) =>
   JSON.stringify({ entries: [...xs].sort((a, b) => a.paite.localeCompare(b.paite)).map(({ id, by, ...e }) => e) }, null, 2) + "\n";
 
@@ -121,13 +174,24 @@ render();if(el)el.scrollIntoView()}
 fromHash();addEventListener("hashchange",fromHash);
 })();`;
 
-export function renderGlossary(xs: Entry[]): string {
+export function renderGlossary(xs: Entry[], extras?: Extras): string {
   // One entry per headword: same spelling after trim + NFC (case kept), its meanings in list order.
   const words = new Map<string, Entry[]>();
   for (const e of [...xs].sort((a, b) => a.paite.localeCompare(b.paite))) {
     const w = e.paite.trim().normalize("NFC");
     words.set(w, [...(words.get(w) ?? []), e]);
   }
+  const idOf = new Map<string, number>();
+  for (const [w, es] of words) if (!idOf.has(hkey(w))) idOf.set(hkey(w), es[0].id);
+  // A related word that is on the list links to it; any other stays plain text.
+  const ref = (w: string) => (idOf.has(hkey(w)) ? `<a href="#w-${idOf.get(hkey(w))}">${esc(w)}</a>` : esc(w));
+  const extra = (w: string) => {
+    if (!extras) return "";
+    const k = hkey(w), same = extras.same.get(k) ?? [], opp = extras.opposite.get(k) ?? [], seen = extras.seen.get(k) ?? [];
+    return (same.length ? `<p class="rel"><span class="lbl" data-s="relSame">Same Meaning</span> ${same.map(ref).join(", ")}</p>` : "")
+      + (opp.length ? `<p class="rel"><span class="lbl" data-s="relOpposite">Opposite</span> ${opp.map(ref).join(", ")}</p>` : "")
+      + (seen.length ? `<div class="seen"><span class="lbl" data-s="seenInUse">Seen in Use</span>${seen.map((x) => `<span class="ex">${esc(x.paite)}<br>${esc(x.english)}</span>`).join("")}</div>` : "");
+  };
   const groups = new Map<string, [string, Entry[]][]>();
   for (const [w, es] of words) {
     const l = w.charAt(0).toUpperCase();
@@ -135,7 +199,7 @@ export function renderGlossary(xs: Entry[]): string {
     groups.set(k, [...(groups.get(k) ?? []), [w, es]]);
   }
   const meaning = (e: Entry) => `<p class="m">${esc(e.english)}</p>${e.note ? `<span class="n">${esc(e.note)}</span>` : ""}${e.example ? `<span class="ex">${esc(e.example.paite)}<br>${esc(e.example.english)}</span>` : ""}${e.by || e.reviewed_by ? `<span class="n by">${[e.by ? `Added by ${esc(e.by)}` : "", e.reviewed_by ? `Reviewed by ${esc(e.reviewed_by)}` : ""].filter(Boolean).join(" · ")}</span>` : `<span class="n by" data-s="${e.source === "contributed" ? "srcContributed" : "srcNote"}">${e.source === "contributed" ? "Added by a contributor" : "From a contributor's note"}</span>`}`;
-  const li = ([w, es]: [string, Entry[]]) => `<li id="w-${es[0].id}" data-q="${esc(es.flatMap((e) => [e === es[0] ? w : "", e.english, e.note, e.example?.paite, e.example?.english]).filter(Boolean).join(" ").toLowerCase())}"><b class="w">${esc(w)}</b>${es.length > 1 ? `<ol class="mn">${es.map((e, i) => `<li${i ? ` id="w-${e.id}"` : ""}>${meaning(e)}</li>`).join("")}</ol>` : meaning(es[0])}</li>`;
+  const li = ([w, es]: [string, Entry[]]) => `<li id="w-${es[0].id}" data-q="${esc(es.flatMap((e) => [e === es[0] ? w : "", e.english, e.note, e.example?.paite, e.example?.english]).filter(Boolean).join(" ").toLowerCase())}"><b class="w">${esc(w)}</b>${es.length > 1 ? `<ol class="mn">${es.map((e, i) => `<li${i ? ` id="w-${e.id}"` : ""}>${meaning(e)}</li>`).join("")}</ol>` : meaning(es[0])}${extra(w)}</li>`;
   // A to Z rail: one link per letter; the script turns it into a one-letter-at-a-time switch.
   const rail = groups.size > 1 ? `<nav class="az" aria-label="Letters">${[...groups.keys()].map((k) => `<a href="#l-${esc(k)}">${esc(k)}</a>`).join("")}</nav>` : "";
   const body = groups.size

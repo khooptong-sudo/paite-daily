@@ -266,6 +266,35 @@
   });
   nextMeaning();
 
+  // Same or Opposite: one word from the list; the contributor gives a Paite word that means the same or the opposite.
+  let linkWord = null;
+  const ls = (m, ok = false) => { $("l-status").innerHTML = m; $("l-status").className = "status " + (ok ? "ok" : m ? "err" : ""); };
+  async function nextLink() {
+    const card = $("link-form").closest("section");
+    try {
+      const r = await api("/api/link/next");
+      if (r.status === 204) { linkWord = null; card.hidden = true; return; }
+      if (!r.ok) { linkWord = null; $("l-word").textContent = ""; return; }
+      linkWord = await r.json();
+      card.hidden = false;
+      $("l-word").textContent = linkWord.paite;
+    } catch { linkWord = null; }
+  }
+  $("link-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const same = $("l-same").value.trim(), opposite = $("l-opposite").value.trim();
+    if (!linkWord) return;
+    if (!same && !opposite) { ls(tBoth("linkNeedOne")); return; }
+    $("l-send").disabled = true;
+    try {
+      const r = await api("/api/link", { method: "POST", body: JSON.stringify({ id: linkWord.id, same, opposite, name: store.get("name", "") }) });
+      if (r.ok) { ls(tBoth("wordThanks"), true); $("link-form").reset(); refreshMe(); nextLink(); askName($("l-send")); }
+      else ls(tBoth(r.status === 429 ? "tooFast" : "offline"));
+    } catch { ls(tBoth("offline")); }
+    $("l-send").disabled = false;
+  });
+  nextLink();
+
   $("word-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const w = (id) => $(id).value.trim(), ws = (m, ok = false) => { $("w-status").innerHTML = m; $("w-status").className = "status " + (ok ? "ok" : m ? "err" : ""); };
@@ -346,7 +375,7 @@
 
   // "You: N" in each box. The counts are also kept for /proverbs, which has no session of its own.
   function showCounts(me) {
-    const n = { sentences: me.total || 0, words: me.words || 0, meanings: me.meanings || 0, sayings: me.sayings || 0, recordings: me.recordings || 0 };
+    const n = { sentences: me.total || 0, words: me.words || 0, meanings: me.meanings || 0, links: me.links || 0, sayings: me.sayings || 0, recordings: me.recordings || 0 };
     store.set("me", n);
     document.querySelectorAll("[data-you]").forEach((el) => { const v = n[el.dataset.you]; el.textContent = "You: " + v; el.hidden = !v; });
   }

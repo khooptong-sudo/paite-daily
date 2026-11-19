@@ -233,6 +233,11 @@
 .gl .rows li .n { color: var(--muted); font-size: .88rem; }
 .gl .rows li .ex { margin-top: 4px; padding-left: 10px; border-left: 2px solid var(--line); color: var(--fg); font: italic 400 .95rem/1.35 var(--italic); }
 .gl .rows li .n.by { margin-top: 4px; font-size: .76rem; }
+.gl .rel { margin: 6px 0 0; font-size: .9rem; line-height: 1.35; }
+.gl .rel a { color: var(--fg); text-underline-offset: 2px; }
+.gl .seen { margin-top: 6px; }
+.gl .lbl { display: block; color: var(--muted); font-size: .68rem; letter-spacing: .06em; text-transform: uppercase; }
+.gl .rel .lbl { display: inline; margin-right: 6px; }
 .gl .rows > ul > li { padding: 10px 0; }
 .gl .showmore { display: block; width: 100%; min-height: 44px; margin-top: 12px; font: inherit; font-size: .85rem; letter-spacing: .06em; text-transform: uppercase; color: var(--fg); background: transparent; border: 1px solid var(--line); border-radius: 12px; cursor: pointer; }
 .gl .showmore:hover { border-color: var(--hair); }

@@ -3,6 +3,7 @@
 // item is added. Add new items at the top of NEWS.
 (() => {
   const NEWS = [
+    { id: "2026-11-19-relations", date: "2026-11-19", title: "Same, opposite and seen in use", text: "The word list now shows words with the same or opposite meaning, and sentences where a word is used. You can suggest same and opposite words on the front page.", href: "/glossary" },
     { id: "2026-11-16-about", date: "2026-11-16", title: "About This Project, in plainer words", text: "The About page is rewritten in short, everyday sentences, and the long parts are now simple lists, so it is easier to read. The answer box also shows a hint in Paite, and the buttons line up neatly.", href: "/about" },
     { id: "2026-11-15-wordlist", date: "2026-11-15", title: "An easier word list", text: "The Paite Word List now shows one letter at a time, so there is far less to scroll. Each word appears once, with its meanings numbered underneath. Search looks across every letter.", href: "/glossary" },
     { id: "2026-11-15-thread", date: "2026-11-15", title: "A pale thread, while you wait", text: "When you send an answer, a pale thread appears at the edge of the shawl. It is woven in for good once a reviewer checks it. The front page is also calmer on phones: the greeting sits on two even lines, and the What\u0027s New count is a quiet number instead of a bright badge." },

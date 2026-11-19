@@ -8,7 +8,7 @@ import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, sharedSen
 import { readSession, signSession } from "./session";
 import { cleanText, isId, isPhoneId } from "./text";
 import { refillOnDemand } from "./refill";
-import { nextWordToTranslate, submitMeaning, submitWord } from "./words";
+import { nextLinkWord, nextWordToTranslate, submitLink, submitMeaning, submitWord } from "./words";
 import { submitProverbAnswer, submitProverbPair } from "./proverbs";
 import { nextLine, submitRecording, verifiedCount } from "./recordings";
 import { checkGrammar } from "./grammar";
@@ -112,11 +112,12 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
               (SELECT COALESCE(SUM(status IN ('accepted', 'also_correct')), 0) FROM answers WHERE phone_id = ?1) AS verified,
               (SELECT count(*) FROM word_submissions WHERE phone_id = ?1 AND source = 'word') AS words,
               (SELECT count(*) FROM word_submissions WHERE phone_id = ?1 AND source = 'meaning') AS meanings,
+              (SELECT count(*) FROM word_links WHERE phone_id = ?1) AS links,
               (SELECT count(*) FROM proverb_answers WHERE phone_id = ?1) + (SELECT count(*) FROM proverbs WHERE submitted_by = ?1) AS sayings,
               (SELECT count(*) FROM recordings WHERE phone_id = ?1) AS recordings`,
-    ).bind(phoneId).first<{ total: number; verified: number; words: number; meanings: number; sayings: number; recordings: number }>();
+    ).bind(phoneId).first<{ total: number; verified: number; words: number; meanings: number; links: number; sayings: number; recordings: number }>();
     // One count per section: the puan's share card and each box's "You: N" read these.
-    return json({ total: r!.total, verified: r!.verified, words: r!.words, meanings: r!.meanings, sayings: r!.sayings, recordings: r!.recordings, badge: badgeFor(r!.verified), streak: await streakFor(env.DB, phoneId, deps.now()) });
+    return json({ total: r!.total, verified: r!.verified, words: r!.words, meanings: r!.meanings, links: r!.links, sayings: r!.sayings, recordings: r!.recordings, badge: badgeFor(r!.verified), streak: await streakFor(env.DB, phoneId, deps.now()) });
   }
 
   if (pathname === "/api/week" && req.method === "GET") return json(await weekFor(env, phoneId, deps.now()));
@@ -145,6 +146,12 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
     return w ? json(w) : new Response(null, { status: 204 });
   }
   if (pathname === "/api/word/meaning" && req.method === "POST") return submitMeaning(env, phoneId, await body(req));
+
+  if (pathname === "/api/link/next" && req.method === "GET") {
+    const w = await nextLinkWord(env, phoneId);
+    return w ? json(w) : new Response(null, { status: 204 });
+  }
+  if (pathname === "/api/link" && req.method === "POST") return submitLink(env, phoneId, await body(req));
 
   if (pathname === "/api/skip" && req.method === "POST") {
     const b = await body(req);

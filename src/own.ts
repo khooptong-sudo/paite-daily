@@ -44,6 +44,7 @@ export async function ownWaiting(db: D1Database, me: Me): Promise<number> {
        (SELECT count(*) FROM answers a JOIN sentences x ON x.id = a.sentence_id
           WHERE a.status = 'new' AND x.status IN ('open', 'full') AND ${ownSql("a.phone_id", "a.contributor_name", "a.created_at", s)})
      + (SELECT count(*) FROM word_submissions w WHERE w.status = 'pending' AND ${ownSql("w.phone_id", "w.contributor_name", "w.created_at", s)})
+     + (SELECT count(*) FROM word_links w WHERE w.status = 'pending' AND ${ownSql("w.phone_id", "w.contributor_name", "w.created_at", s)})
      + (SELECT count(*) FROM proverb_answers a JOIN proverbs p ON p.id = a.proverb_id
           WHERE a.status = 'new' AND (p.status IN ('open', 'pending') OR (p.status = 'live' AND p.accepting_more = 1))
             AND ${ownSql("a.phone_id", "a.contributor_name", "a.created_at", s)})

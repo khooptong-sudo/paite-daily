@@ -414,6 +414,35 @@
     } catch {}
   }
 
+  // Same and Opposite: pending word links, oldest first. The reviewer may correct the contributor's word.
+  async function newLinks() {
+    try {
+      const r = await fetch("/review/api/links/pending");
+      if (!r.ok) return;
+      const { links } = await r.json();
+      const decide = (w, li, decision, label, extra) => {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.setAttribute("aria-label", label + " link: " + w.paite + " and " + w.other);
+        b.addEventListener("click", async () => {
+          const bs = li.querySelectorAll("button"); bs.forEach((x) => (x.disabled = true));
+          const x = await post("/review/api/links/decide", { id: w.id, decision, ...(extra ? extra() : {}) });
+          if (x.ok || x.status === 409) li.remove(); else bs.forEach((y) => (y.disabled = false));
+        });
+        return b;
+      };
+      $("newlinks").replaceChildren(...links.map((w) => {
+        const li = document.createElement("li"); li.className = "answer";
+        const t = document.createElement("p"); t.textContent = w.paite + " \u2014 " + (w.kind === "same" ? "same meaning" : "opposite") + " \u2014 " + w.other;
+        const m = document.createElement("div"); m.className = "meta"; m.textContent = w.name ? "by " + w.name : "";
+        const io = document.createElement("input"); io.maxLength = 60; io.value = w.other; io.placeholder = "Paite word";
+        const row = document.createElement("div"); row.className = "row3"; row.append(io);
+        const bar = document.createElement("div"); bar.className = "row3";
+        bar.append(decide(w, li, "approve", "Approve", () => ({ other: io.value })), decide(w, li, "reject", "Reject"));
+        li.append(t, m, row, bar);
+        return li;
+      }));
+    } catch {}
+  }
+
   // Owner only: pending applications and the reviewer list.
   async function people() {
     const row = (title, sub, ...btns) => {
@@ -503,5 +532,5 @@
 
   // Link this browser's contributor phone id to the signed-in reviewer (for the badge on /contributors).
   const linkPhone = () => { try { const id = JSON.parse(localStorage.getItem("pd:phone")); if (id) post("/review/api/link-phone", { phoneId: id }).catch(() => {}); } catch {} };
-  me().then((ok) => { if (ok) { linkPhone(); loadRules().then(next).then(() => { if (lastUndo !== null) showUndo(lastUndo); }); words(); newWords(); dashboard(); if (isOwner) { if (window.pdVisitors) window.pdVisitors(); health(); people(); insights(); } } });
+  me().then((ok) => { if (ok) { linkPhone(); loadRules().then(next).then(() => { if (lastUndo !== null) showUndo(lastUndo); }); words(); newWords(); newLinks(); dashboard(); if (isOwner) { if (window.pdVisitors) window.pdVisitors(); health(); people(); insights(); } } });
 })();

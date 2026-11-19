@@ -216,6 +216,20 @@
       <p class="status" id="m-status" role="status"></p>
     </form>
   </section>
+  <section class="card" aria-labelledby="link-h">
+    <h2 id="link-h" data-s="sameOpposite">Same or Opposite</h2>
+    <p class="you" data-you="links" hidden></p>
+    <p class="licence" data-s="sameOppositeNote">A word from the list is shown. Give a Paite word that means the same, or the opposite. One is enough.</p>
+    <form id="link-form" novalidate>
+      <p class="word-prompt" id="l-word" aria-live="polite"></p>
+      <label for="l-same" data-s="sameLabel">Same meaning</label>
+      <input data-hint="hintSame" id="l-same" data-lang="pai" maxlength="60" autocomplete="off">
+      <label for="l-opposite" data-s="oppositeLabel">Opposite meaning</label>
+      <input data-hint="hintOpposite" id="l-opposite" data-lang="pai" maxlength="60" autocomplete="off">
+      <div class="actions"><button type="submit" class="primary" id="l-send" data-s="send"></button></div>
+      <p class="status" id="l-status" role="status"></p>
+    </form>
+  </section>
   <section class="card" aria-labelledby="word-h">
     <h2 id="word-h" data-s="addWord"></h2>
     <p class="you" data-you="words" hidden></p>

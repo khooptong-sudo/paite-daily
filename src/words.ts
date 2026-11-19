@@ -43,6 +43,35 @@ export async function submitMeaning(env: Env, phoneId: string, b: Record<string,
   return json({ ok: true });
 }
 
+/** One listed word this phone has not linked yet, or null when it has done them all. */
+export async function nextLinkWord(env: Env, phoneId: string): Promise<{ id: number; paite: string } | null> {
+  const r = await env.DB.prepare(
+    `SELECT g.id, g.paite FROM glossary g
+     WHERE g.hidden = 0
+       AND NOT EXISTS (SELECT 1 FROM word_links l WHERE l.phone_id = ?1 AND lower(l.paite) = lower(g.paite))
+     ORDER BY random() LIMIT 1`,
+  ).bind(phoneId).first<{ id: number; paite: string }>();
+  return r ? { id: r.id, paite: cap(r.paite) } : null;
+}
+
+/** POST /api/link: a word with the same or the opposite meaning. Waits for a reviewer. Duplicates answer 200 without inserting. */
+export async function submitLink(env: Env, phoneId: string, b: Record<string, unknown>): Promise<Response> {
+  const given = { same: opt(b.same, 60), opposite: opt(b.opposite, 60) }, name = opt(b.name, 60);
+  if (!isId(b.id) || (b.same && !given.same) || (b.opposite && !given.opposite) || (!given.same && !given.opposite) || (b.name && !name)) return json({ error: "bad_request" }, 400);
+  const word = await env.DB.prepare("SELECT paite FROM glossary WHERE id = ?1 AND hidden = 0").bind(b.id).first<{ paite: string }>();
+  if (!word) return json({ error: "not_found" }, 404);
+  const paite = cap(word.paite);
+  for (const kind of ["same", "opposite"] as const) {
+    const other = given[kind];
+    if (!other || other.trim().toLowerCase() === paite.trim().toLowerCase()) continue;
+    const dup = await env.DB.prepare(
+      `SELECT 1 FROM word_links WHERE kind = ?3 AND ((lower(paite) = lower(?1) AND lower(other) = lower(?2)) OR (lower(paite) = lower(?2) AND lower(other) = lower(?1)))`,
+    ).bind(paite, other, kind).first();
+    if (!dup) await env.DB.prepare("INSERT INTO word_links (paite, other, kind, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5)").bind(paite, cap(other), kind, phoneId, name).run();
+  }
+  return json({ ok: true });
+}
+
 // A reviewer may correct a submission before approving it: both fields must be
 // given together, and the corrected text is what enters the glossary.
 const corrections = (b: Record<string, unknown>): { paite: string; english: string; note: string | null } | null => {
@@ -87,6 +116,26 @@ export async function handleWords(pathname: string, method: string, b: Record<st
         await env.DB.prepare("INSERT OR IGNORE INTO glossary (paite, english, note, source, contributor_name, reviewed_by) SELECT paite, english, note, 'contributed', contributor_name, ?2 FROM word_submissions WHERE id = ?1").bind(b.id, by).run();
       }
     }
+    return json({ ok: true });
+  }
+  if (pathname === "/review/api/links/pending" && method === "GET") {
+    const { results } = await env.DB.prepare(`SELECT id, paite, other, kind, contributor_name AS name FROM word_links WHERE status = 'pending'${notOwn} ORDER BY id LIMIT 50`).bind(...binds).all();
+    return json({ links: results });
+  }
+  if (pathname === "/review/api/links/decide" && method === "POST") {
+    if (!isId(b.id) || !["approve", "reject"].includes(b.decision as string)) return json({ error: "bad_request" }, 400);
+    const fix = b.other === undefined || b.other === null || b.other === "" ? null : cleanText(b.other, 60);
+    if (b.other && !fix) return json({ error: "bad_request" }, 400);
+    const approve = b.decision === "approve";
+    if (me && !me.owner) {
+      const own = await env.DB.prepare(`SELECT 1 AS ok FROM word_links WHERE id = ?5 AND status = 'pending' AND ${ownSql("phone_id", "contributor_name", "created_at", { e: 1, n: 2, o: 3, t: 4 })}`)
+        .bind(...binds, b.id).first();
+      if (own) return json({ error: "own_submission", message: "This is your own submission. Another reviewer will check it." }, 409);
+    }
+    const rv = approve ? await env.DB.prepare("SELECT name FROM reviewers WHERE lower(email) = lower(?1) LIMIT 1").bind(email).first<{ name: string }>() : null;
+    const r = await env.DB.prepare("UPDATE word_links SET status = ?1, decided_at = datetime('now'), decided_by = ?2, reviewed_by = ?3, other = COALESCE(?4, other) WHERE id = ?5 AND status = 'pending'")
+      .bind(approve ? "approved" : "rejected", email, approve ? (rv?.name ?? email) : null, approve && fix ? cap(fix) : null, b.id).run();
+    if (!r.meta.changes) return json({ error: "already_decided" }, 409);
     return json({ ok: true });
   }
   return null;
