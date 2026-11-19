@@ -85,7 +85,14 @@ export async function getGlossaryForReview(env: Env, limit = 500): Promise<Revie
 
 export type Extras = { same: Map<string, string[]>; opposite: Map<string, string[]>; seen: Map<string, { paite: string; english: string }[]> };
 
-const hkey = (w: string) => w.trim().normalize("NFC").toLowerCase();
+export const hkey = (w: string) => w.trim().normalize("NFC").toLowerCase();
+
+/** Lower-cased headword -> id of its first entry, in word order: where a word links to on the list. */
+export function headwordIds(xs: Entry[]): Map<string, number> {
+  const ids = new Map<string, number>();
+  for (const e of [...xs].sort((a, b) => a.paite.localeCompare(b.paite))) if (!ids.has(hkey(e.paite))) ids.set(hkey(e.paite), e.id);
+  return ids;
+}
 
 /** Same Meaning, Opposite and Seen in Use for the word list, all from the list, approved links and verified sentences. Keys are lower-cased headwords. */
 // The verified lines behind Seen in Use: the page is public and uncached, so the
@@ -191,8 +198,7 @@ export function renderGlossary(xs: Entry[], extras?: Extras): string {
     const w = e.paite.trim().normalize("NFC");
     words.set(w, [...(words.get(w) ?? []), e]);
   }
-  const idOf = new Map<string, number>();
-  for (const [w, es] of words) if (!idOf.has(hkey(w))) idOf.set(hkey(w), es[0].id);
+  const idOf = headwordIds(xs);
   // A related word that is on the list links to it; any other stays plain text.
   const ref = (w: string) => (idOf.has(hkey(w)) ? `<a href="#w-${idOf.get(hkey(w))}">${esc(w)}</a>` : esc(w));
   const extra = (w: string) => {
@@ -262,6 +268,7 @@ ${rail}${body}
 <span><b data-s="installApp">Install on this device</b><small data-s="installAppNote">Add Paite Daily to your home screen. No download.</small></span>
 <span class="go" aria-hidden="true">&darr;</span>
 </button>
+<p class="licence">Words that mean the same or the opposite: <a href="/same-opposite">Same &amp; Opposite</a>.</p>
 <p class="licence">Paite words for your phone keyboard, most used first, from verified sentences: <a href="/paite-gboard.zip" download>Gboard</a> (Settings, Dictionary, Personal dictionary, Import), <a href="/paite-wordlist.xml" download>AnySoftKeyboard</a>, or a <a href="/words.tsv" download>plain list</a>.</p>
 ${FOOTER}
 </main>

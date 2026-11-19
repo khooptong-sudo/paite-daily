@@ -9,7 +9,7 @@ import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, sharedSen
 import { readSession, signSession } from "./session";
 import { cleanText, isId, isPhoneId } from "./text";
 import { refillOnDemand } from "./refill";
-import { nextLinkWord, nextWordToTranslate, submitLink, submitMeaning, submitWord } from "./words";
+import { nextLinkWord, nextWordToTranslate, submitLink, submitMeaning, submitPair, submitWord } from "./words";
 import { submitProverbAnswer, submitProverbPair } from "./proverbs";
 import { nextLine, submitRecording, verifiedCount } from "./recordings";
 import { checkGrammar } from "./grammar";
@@ -157,6 +157,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
     return w ? json(w) : new Response(null, { status: 204 });
   }
   if (pathname === "/api/link" && req.method === "POST") return submitLink(env, phoneId, await body(req));
+  if (pathname === "/api/link/pair" && req.method === "POST") return submitPair(env, phoneId, await body(req));
 
   if (pathname === "/api/skip" && req.method === "POST") {
     const b = await body(req);

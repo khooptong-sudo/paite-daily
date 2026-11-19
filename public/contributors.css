@@ -311,3 +311,15 @@
 .wall span:nth-child(3n):not(:last-child)::after { background: #00a651; }
 .to-wall { margin: 10px 0 0; text-align: center; }
 .to-wall a { color: var(--fg); font-weight: 600; text-underline-offset: 4px; }
+/* Same & Opposite page: section headings, pair rows, and the Same / Opposite choice. */
+.gl .so { margin-top: 18px; }
+.gl .so h2 { margin: 0 0 6px; font-size: .75rem; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.gl .so .k { color: var(--muted); font-size: .88rem; }
+.gl .so li a { color: var(--fg); text-underline-offset: 2px; }
+.gl .so input:not([type=radio]) { width: 100%; padding: 12px 14px; font: inherit; color: #000; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; }
+.gl .filters.kinds { margin: 12px 0 0; }
+.gl .filters.kinds label { cursor: pointer; }
+.gl .filters.kinds input { position: absolute; opacity: 0; pointer-events: none; }
+.gl .filters.kinds span { display: inline-flex; align-items: center; min-height: 44px; font-size: .85rem; padding: 0 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); }
+.gl .filters.kinds input:checked + span { background: var(--fg); color: var(--accent-fg); border-color: var(--fg); }
+.gl .filters.kinds input:focus-visible + span { outline: 2px solid var(--fg); outline-offset: 2px; }

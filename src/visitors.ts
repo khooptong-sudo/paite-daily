@@ -447,7 +447,7 @@ export const RARE = ["city", "model", "isp", "tz"];
 
 const WEEKDAY = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const fmtDay = (d: string) => `${WEEKDAY[new Date(`${d}T00:00:00Z`).getUTCDay()]} ${Number(d.slice(8))} ${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][Number(d.slice(5, 7)) - 1]}`;
-const PAGE_NAMES: Record<string, string> = { "/": "the front page", "/proverbs": "Pau Upa", "/glossary": "the word list", "/contributors": "Panlate", "/about": "About", "/rules": "the spelling rules", "/places": "Places", "/wiki": "the Paite Wiki" };
+const PAGE_NAMES: Record<string, string> = { "/": "the front page", "/proverbs": "Pau Upa", "/same-opposite": "Same & Opposite", "/glossary": "the word list", "/contributors": "Panlate", "/about": "About", "/rules": "the spelling rules", "/places": "Places", "/wiki": "the Paite Wiki" };
 const pageName = (p: string) => PAGE_NAMES[p] ?? p;
 
 /** A few plain-English lines worked out from the numbers. No model: every figure is exact. */

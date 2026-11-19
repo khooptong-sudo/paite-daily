@@ -54,6 +54,15 @@ export async function nextLinkWord(env: Env, phoneId: string): Promise<{ id: num
   return r ? { id: r.id, paite: cap(r.paite) } : null;
 }
 
+/** One pending link, unless the words are equal or the pair is already there in either direction. */
+async function insertLink(env: Env, phoneId: string, paite: string, other: string | null, kind: "same" | "opposite", name: string | null): Promise<void> {
+  if (!other || other.trim().toLowerCase() === paite.trim().toLowerCase()) return;
+  const dup = await env.DB.prepare(
+    `SELECT 1 FROM word_links WHERE kind = ?3 AND ((lower(paite) = lower(?1) AND lower(other) = lower(?2)) OR (lower(paite) = lower(?2) AND lower(other) = lower(?1)))`,
+  ).bind(paite, other, kind).first();
+  if (!dup) await env.DB.prepare("INSERT INTO word_links (paite, other, kind, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5)").bind(paite, cap(other), kind, phoneId, name).run();
+}
+
 /** POST /api/link: a word with the same or the opposite meaning. Waits for a reviewer. Duplicates answer 200 without inserting. */
 export async function submitLink(env: Env, phoneId: string, b: Record<string, unknown>): Promise<Response> {
   const given = { same: opt(b.same, 60), opposite: opt(b.opposite, 60) }, name = opt(b.name, 60);
@@ -61,14 +70,15 @@ export async function submitLink(env: Env, phoneId: string, b: Record<string, un
   const word = await env.DB.prepare("SELECT paite FROM glossary WHERE id = ?1 AND hidden = 0").bind(b.id).first<{ paite: string }>();
   if (!word) return json({ error: "not_found" }, 404);
   const paite = cap(word.paite);
-  for (const kind of ["same", "opposite"] as const) {
-    const other = given[kind];
-    if (!other || other.trim().toLowerCase() === paite.trim().toLowerCase()) continue;
-    const dup = await env.DB.prepare(
-      `SELECT 1 FROM word_links WHERE kind = ?3 AND ((lower(paite) = lower(?1) AND lower(other) = lower(?2)) OR (lower(paite) = lower(?2) AND lower(other) = lower(?1)))`,
-    ).bind(paite, other, kind).first();
-    if (!dup) await env.DB.prepare("INSERT INTO word_links (paite, other, kind, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5)").bind(paite, cap(other), kind, phoneId, name).run();
-  }
+  for (const kind of ["same", "opposite"] as const) await insertLink(env, phoneId, paite, given[kind], kind, name);
+  return json({ ok: true });
+}
+
+/** POST /api/link/pair: any two words and how they relate, from the Same & Opposite page. Waits for a reviewer. */
+export async function submitPair(env: Env, phoneId: string, b: Record<string, unknown>): Promise<Response> {
+  const paite = cleanText(b.paite, 60), other = cleanText(b.other, 60), name = opt(b.name, 60);
+  if (!paite || !other || (b.kind !== "same" && b.kind !== "opposite") || (b.name && !name) || paite.trim().toLowerCase() === other.trim().toLowerCase()) return json({ error: "bad_request" }, 400);
+  await insertLink(env, phoneId, cap(paite), other, b.kind, name);
   return json({ ok: true });
 }
 

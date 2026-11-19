@@ -9,6 +9,7 @@ import { syncVectors } from "./kbvec";
 import { handleContributor } from "./contributor";
 import { getContributors, renderPage } from "./contributors";
 import { getGlossary, getWordExtras, renderGlossary } from "./glossary";
+import { getSameOpposite, renderSameOpposite, sameOppositeJson } from "./sameopposite";
 import { getProverbs, proverbsJson, renderProverbs } from "./proverbs";
 import { getRules, renderRules, rulesJson } from "./rules";
 import { keyboardFile } from "./keyboard";
@@ -30,6 +31,8 @@ export function createApp(deps: Deps) {
       if (pathname === "/glossary") { const xs = await getGlossary(env); return new Response(renderGlossary(xs, await getWordExtras(env, xs, deps.now())), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } }); }
       if (pathname === "/proverbs") return new Response(renderProverbs(await getProverbs(env), env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/proverbs.json") return new Response(proverbsJson(await getProverbs(env)), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300" } });
+      if (pathname === "/same-opposite") return new Response(renderSameOpposite(await getSameOpposite(env), env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+      if (pathname === "/same-opposite.json") return new Response(sameOppositeJson((await getSameOpposite(env)).pairs), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300" } });
       if (pathname === "/contributors") return new Response(renderPage(await getContributors(env), undefined, env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/rules") return new Response(renderRules(await getRules(env, deps.now())), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/rules.json") { const r = rulesJson(await getRules(env, deps.now())); r.headers.set("cache-control", "public, max-age=300"); return r; }

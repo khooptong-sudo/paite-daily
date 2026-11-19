@@ -56,7 +56,7 @@
   try { regionNames = new Intl.DisplayNames(["en"], { type: "region" }); } catch {}
   const countryName = (c) => { if (!c) return "Unknown"; try { return regionNames ? regionNames.of(c) : c; } catch { return c; } };
   const flag = (c) => (c && /^[A-Z]{2}$/.test(c) ? String.fromCodePoint(...[...c].map((x) => 0x1f1e6 + x.charCodeAt(0) - 65)) : "·");
-  const PAGES = { "/": "Front page", "/proverbs": "Pau Upa", "/glossary": "Word list", "/contributors": "Panlate", "/about": "About", "/rules": "Spelling rules", "/places": "Places", "/wiki": "Paite Wiki", "/review": "Review", "/admin": "Admin", "/404": "Not found" };
+  const PAGES = { "/": "Front page", "/proverbs": "Pau Upa", "/same-opposite": "Same & Opposite", "/glossary": "Word list", "/contributors": "Panlate", "/about": "About", "/rules": "Spelling rules", "/places": "Places", "/wiki": "Paite Wiki", "/review": "Review", "/admin": "Admin", "/404": "Not found" };
   const pageName = (p) => PAGES[p] || (p && p.startsWith("/wiki/") ? "Wiki article" : p || "/");
   const KINDS = { card: "Saw a sentence", answer: "Sent an answer", blocked: "Answer held back", chat: "Typed a chat line", ask: "Asked Tongdot | Tongsan", play: "Played a recording", share: "Shared", install: "Installed the app" };
   const SRC = { WhatsApp: "#25d366", Facebook: "#1877f2", Instagram: "#e1306c", Google: "#4285f4", Bing: "#00a4ef", YouTube: "#ff0033", Telegram: "#26a5e4", X: "var(--fg)", "Paite Daily app": "var(--vz)", "Shared link": "#b87a00", Email: "#8e6cd8", ChatGPT: "#10a37f", Direct: "var(--muted)" };
