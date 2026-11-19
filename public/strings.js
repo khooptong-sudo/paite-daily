@@ -171,6 +171,7 @@ window.STRINGS = {
   askSendNote: { pai: "", en: "Send" },
   askThanks: { pai: "", en: "Thank you. A reviewer will look at it." },
   askReviewers: { pai: "", en: "Reviewers only, until launch." },
+  askHow: { pai: "", en: "How it works" },
   askLicence: { pai: "", en: "CC BY 4.0" },
   paiteThin: { pai: "", en: "Paite Pau Upa (proverbs & idioms) are still being gathered. The English list is open for translating." },
 };

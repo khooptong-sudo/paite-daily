@@ -266,7 +266,7 @@ ${blocks}
 <ol>
 ${list}
 </ol>
-<p class="note">Written from the Paite Wiki's reviewed sources, drafted with AI help and checked by ${esc(name)} on ${date}. This article is available under <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a>.</p>
+<p class="note">Written from the Paite Wiki's reviewed sources, drafted with AI help and checked by ${esc(name)} on ${date}. This article is available under <a href="https://creativecommons.org/licenses/by/4.0/" rel="noopener">CC BY 4.0</a>. <a href="/wiki/how">How the Paite Wiki works</a></p>
 </main>`;
   return shell(`${art.title} · Paite Wiki`, `${art.title}: an article from the Paite Wiki.`, `https://paite.lamkalabs.com/wiki/${art.slug}`, body);
 }
@@ -275,9 +275,52 @@ export async function renderWikiIndex(env: Env): Promise<string> {
   const items = (await listArticles(env)).filter((a) => a.status === "published" && !a.stale).sort((x, y) => (y.publishedAt ?? 0) - (x.publishedAt ?? 0));
   const list = items.length ? `<ul>\n${items.map((a) => `<li><a href="/wiki/${esc(a.slug)}">${esc(a.title)}</a></li>`).join("\n")}\n</ul>` : "<p>No articles yet.</p>";
   const desc = "Articles written from reviewed sources about the Paite language, sayings, culture and history.";
-  const body = `<header class="hero"><div class="hero-nav"><a class="back" href="/"><span aria-hidden="true">&larr;</span> Back</a></div><h1>Paite Wiki</h1><p>${desc}</p></header>
+  const body = `<header class="hero"><div class="hero-nav"><a class="back" href="/"><span aria-hidden="true">&larr;</span> Back</a></div><h1>Paite Wiki</h1><p>${desc}</p><p><a href="/wiki/how">How the Paite Wiki works &rarr;</a></p></header>
 <main class="gl wiki">
 ${list}
 </main>`;
   return shell("Paite Wiki", desc, "https://paite.lamkalabs.com/wiki", body);
+}
+
+export function renderWikiHow(): string {
+  const body = `<header class="hero"><div class="hero-nav"><a class="back" href="/wiki"><span aria-hidden="true">&larr;</span> Paite Wiki</a></div><h1>How the Paite Wiki Works</h1></header>
+<main class="gl wiki">
+<p>The Paite Wiki answers questions about Paite words, sayings, culture and history. It is not a search engine and not a chatbot that knows everything. It only uses what the Paite community has given and checked.</p>
+<h2>Where the knowledge comes from</h2>
+<ul>
+<li><strong>From Paite Daily.</strong> Every checked saying, every word in the word list, and every sentence pair a reviewer has verified. When something changes on Paite Daily, the wiki follows within minutes.</li>
+<li><strong>From books, articles and websites.</strong> A reviewer adds the text, and a second reviewer must approve it before the wiki can use it. Nobody approves their own.</li>
+<li><strong>Only with permission.</strong> Each source is marked with what we may do with it. Some may be quoted. Some may only be pointed to, never quoted. If a source asks us to take it down, its text is removed.</li>
+</ul>
+<h2>How a question gets answered</h2>
+<ol>
+<li><strong>The wiki looks for passages</strong> that match your question, by the words you use and by what they mean. It also looks for the Paite or English for your words, using our word list.</li>
+<li><strong>An AI writes a short answer in English, from those passages only.</strong> It may not add what it knows from elsewhere. If the passages do not answer your question, it says so instead of guessing.</li>
+<li><strong>The site checks the answer before you see it.</strong>
+<ul>
+<li>Any Paite in the answer must be copied word for word from a passage. The AI never writes Paite of its own.</li>
+<li>Every quote is compared with its source, letter by letter.</li>
+<li>Every point must name the passage it came from.</li>
+</ul>
+If a check fails, you get no answer rather than a wrong one.</li>
+<li><strong>You see the answer with its sources,</strong> numbered, so you can read them yourself.</li>
+</ol>
+<h2>Human checks</h2>
+<ul>
+<li><strong>You can tell us when an answer is wrong.</strong> Every answer asks "Was this right?". A reviewer reads every "no".</li>
+<li><strong>Unanswered questions are not wasted.</strong> When the wiki cannot answer, reviewers see the question. It tells us what is missing, so we know what to gather next.</li>
+<li><strong>We test the wiki regularly.</strong> Reviewers ask it known questions to check it finds the right source, and tricky ones to check it keeps its rules, such as being asked to make up Paite or to ignore its instructions.</li>
+</ul>
+<h2>Articles</h2>
+<p>Some topics have a full article. An AI drafts it from approved sources only, with the same checks as answers. A reviewer then reads and edits it, and a second reviewer publishes it. Each article says who checked it and when. If a source it relies on changes or is withdrawn, the article is taken down until it is checked again. Articles are free to share under CC BY 4.0.</p>
+<h2>What it will not do</h2>
+<ul>
+<li>Write or translate into Paite. For that, ask a Paite speaker, or add a sentence on Paite Daily.</li>
+<li>Answer from outside its sources, even when you ask it to.</li>
+<li>Remember who you are. Questions are kept so we can improve the wiki, without your name.</li>
+</ul>
+<h2>Limits</h2>
+<p>To keep it free, each person can ask a set number of questions an hour, and the wiki has a daily limit. A question asked before is often answered straight away from a saved answer.</p>
+</main>`;
+  return shell("How the Paite Wiki Works · Paite Wiki", "How the Paite Wiki answers questions: where its knowledge comes from, the checks on every answer, and the people who review it.", "https://paite.lamkalabs.com/wiki/how", body);
 }

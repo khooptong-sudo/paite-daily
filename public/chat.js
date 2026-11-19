@@ -141,6 +141,11 @@
     return a;
   }
 
+  const how = el("a", "ask-who", t("askHow"));
+  how.href = "/wiki/how";
+  how.hidden = true;
+  note.after(how);
+
   function setMode(m) {
     mode = m;
     [...modes.querySelectorAll("[data-mode]")].forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.mode === m)));
@@ -149,11 +154,13 @@
       input.placeholder = t("askPlaceholder");
       submitBtn.textContent = t("askButton");
       note.textContent = t("askNote");
+      how.hidden = false;
     } else {
       input.maxLength = 120;
       input.placeholder = t("chatPlaceholder") || "Type an English line…";
       submitBtn.textContent = t("chatAsk");
       note.textContent = t("chatNote");
+      how.hidden = true;
     }
     store.set("chatMode", m);
   }

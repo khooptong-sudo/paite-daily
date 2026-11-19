@@ -38,7 +38,7 @@ describe("ask mode", () => {
   });
   it("7. new labels carry no Paite but the mode name", () => {
     const keys = [...strings.matchAll(/^\s*(ask\w+): \{ pai: "([^"]*)"/gm)].filter((m) => m[1] !== "askName" && m[1] !== "askHelp");
-    expect(keys.length).toBe(17);
+    expect(keys.length).toBe(18);
     for (const [, k, pai] of keys) expect(pai).toBe(k === "askMode" ? "Tongdot | Tongsan" : "");
   });
 });
