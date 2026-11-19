@@ -5,6 +5,7 @@
   const LEVELS = [1000, 500, 250, 100, 50, 10];
   const KEY = "pd:milestones";
   const COLOURS = ["#d71920", "#f6ff00", "#00a651", "#000000"];
+  const shown = new Set();
   const read = () => { try { return JSON.parse(localStorage.getItem(KEY)) || []; } catch { return []; } };
 
   function burst(card) {
@@ -22,10 +23,11 @@
     const v = (e.detail && e.detail.verified) || 0;
     const reached = LEVELS.filter((l) => v >= l);
     if (!reached.length) return;
-    const seen = read();
+    const seen = [...read(), ...shown];
     const fresh = reached.filter((l) => !seen.includes(l));
     if (!fresh.length) return;
     // Remember every level reached, but celebrate only the highest new one.
+    fresh.forEach((l) => shown.add(l));
     try { localStorage.setItem(KEY, JSON.stringify([...seen, ...fresh])); } catch {}
     const card = document.createElement("div");
     card.className = "milestone";

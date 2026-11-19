@@ -119,10 +119,14 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
               (SELECT count(*) FROM word_submissions WHERE phone_id = ?1 AND source = 'meaning') AS meanings,
               (SELECT count(*) FROM word_links WHERE phone_id = ?1) AS links,
               (SELECT count(*) FROM proverb_answers WHERE phone_id = ?1) + (SELECT count(*) FROM proverbs WHERE submitted_by = ?1) AS sayings,
-              (SELECT count(*) FROM recordings WHERE phone_id = ?1) AS recordings`,
-    ).bind(phoneId).first<{ total: number; verified: number; words: number; meanings: number; links: number; sayings: number; recordings: number }>();
+              (SELECT count(*) FROM recordings WHERE phone_id = ?1) AS recordings,
+              COALESCE(
+                (SELECT b.contributor_name FROM answers b WHERE b.phone_id = ?1 AND b.status IN ('accepted', 'also_correct') AND TRIM(COALESCE(b.contributor_name, '')) <> '' ORDER BY b.id DESC LIMIT 1),
+                (SELECT w2.contributor_name FROM word_submissions w2 WHERE w2.phone_id = ?1 AND w2.status = 'approved' AND TRIM(COALESCE(w2.contributor_name, '')) <> '' ORDER BY w2.id DESC LIMIT 1)
+              ) AS name`,
+    ).bind(phoneId).first<{ total: number; verified: number; words: number; meanings: number; links: number; sayings: number; recordings: number; name: string | null }>();
     // One count per section: the puan's share card and each box's "You: N" read these.
-    return json({ total: r!.total, verified: r!.verified, words: r!.words, meanings: r!.meanings, links: r!.links, sayings: r!.sayings, recordings: r!.recordings, badge: badgeFor(r!.verified), streak: await streakFor(env.DB, phoneId, deps.now()) });
+    return json({ total: r!.total, verified: r!.verified, words: r!.words, meanings: r!.meanings, links: r!.links, sayings: r!.sayings, recordings: r!.recordings, name: r!.name, badge: badgeFor(r!.verified), streak: await streakFor(env.DB, phoneId, deps.now()) });
   }
 
   if (pathname === "/api/week" && req.method === "GET") return json(await weekFor(env, phoneId, deps.now()));

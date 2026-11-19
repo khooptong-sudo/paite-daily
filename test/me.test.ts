@@ -17,7 +17,7 @@ describe("/api/me", () => {
     await env.DB.prepare("UPDATE answers SET status = 'also_correct' WHERE phone_id = ?1 AND sentence_id = ?2").bind(PHONE_A, ids[1]).run();
     await env.DB.prepare("UPDATE answers SET status = 'rejected' WHERE phone_id = ?1 AND sentence_id = ?2").bind(PHONE_A, ids[2]).run();
     const r = await call("/api/me", { session: await session(PHONE_A) });
-    expect(await r.json()).toEqual({ total: 3, verified: 2, words: 0, meanings: 0, links: 0, sayings: 0, recordings: 0, badge: null, streak: 0 });
+    expect(await r.json()).toEqual({ total: 3, verified: 2, words: 0, meanings: 0, links: 0, sayings: 0, recordings: 0, name: null, badge: null, streak: 0 });
   });
 
 
@@ -29,6 +29,20 @@ describe("/api/me", () => {
     await env.DB.prepare("INSERT INTO proverbs (kind, paite, english, entered_from, status, source, submitted_by) VALUES ('idiom', 'y', 'Break a leg.', 'pai2en', 'pending', 'contributed', ?1)").bind(PHONE_A).run();
     const r = await call("/api/me", { session: await session(PHONE_A) });
     expect(await r.json()).toMatchObject({ total: 0, words: 2, meanings: 1, sayings: 2 });
+  });
+});
+
+describe("/api/me name", () => {
+  it("is the newest non-blank name from verified work, else null", async () => {
+    const ids = await addSentences("One.", "Two.", "Three.");
+    const ins = (i: number, name: string, st: string) => env.DB.prepare("INSERT INTO answers (sentence_id, phone_id, paite, register, contributor_name, status) VALUES (?1, ?2, 'x', 'both', ?3, ?4)").bind(ids[i], PHONE_A, name, st).run();
+    const me = async (p: string) => (await (await call("/api/me", { session: await session(p) })).json()) as { name: string | null };
+    await ins(0, "Old", "accepted");
+    expect((await me(PHONE_A)).name).toBe("Old");
+    await ins(1, "Ann", "accepted");
+    await ins(2, "  ", "accepted");
+    expect((await me(PHONE_A)).name).toBe("Ann");
+    expect((await me(PHONE_B)).name).toBeNull();
   });
 });
 

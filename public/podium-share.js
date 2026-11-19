@@ -41,7 +41,7 @@
     const blob = await new Promise((r) => c.toBlob(r, "image/png"));
     const file = new File([blob], "paite-daily-panlate.png", { type: "image/png" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: `${name}: ${label} ${when} on Paite Daily. https://paite.lamkalabs.com/contributors?via=share` });
-    if (window.pdTrack) window.pdTrack("share");
     else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
+    if (window.pdTrack) window.pdTrack("share");
   }
 })();

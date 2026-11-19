@@ -25,7 +25,7 @@
   let session = null, current = null;
 
   const status = (msg, ok = false) => { $("status").innerHTML = msg; $("status").className = "status " + (ok ? "ok" : msg ? "err" : ""); };
-  const todayKey = () => "count:" + new Date().toISOString().slice(0, 10);
+  const todayKey = () => "count:" + new Date(Date.now() + 5.5 * 3600e3).toISOString().slice(0, 10);
   const showToday = () => { const n = store.get(todayKey(), 0); $("today").textContent = n ? `🔥 ${n} ${t("today")}` : ""; };
 
   // Defined before the deferred Turnstile script runs (this file is a plain script at the end of <body>).
@@ -138,7 +138,7 @@
       $("sentence").textContent = "";
       $("send").disabled = false;
       // The challenge and the session are not the visitor's connection. Say so, so a reload is the obvious next step.
-      const blocked = e && (e.message === "turnstile" || e.message === "session");
+      const blocked = e && (/^turnstile/.test(e.message) || e.message === "session");
       // Offline keeps whatever status is showing, so "Saved on this phone" is not wiped.
       if (blocked || navigator.onLine !== false) status(tBoth(blocked ? "verifyFailed" : "offline"));
       if (!blocked) $("sentence").textContent = "You are offline. Answers you already sent are saved and will go when you are back.";
@@ -231,7 +231,7 @@
       if (r.ok) flushOutbox();
     } catch (err) {
       // fetch throws only when the network fails; a failed challenge or session is not that.
-      if (!(err && (err.message === "turnstile" || err.message === "session"))) { saveOffline(); return; }
+      if (!(err && (/^turnstile/.test(err.message) || err.message === "session"))) { saveOffline(); return; }
       status(tBoth("offline"));
       if (window.pdTrack) window.pdTrack("blocked", { path: "answer" });
       $("send").disabled = false; $("skip").disabled = false;
