@@ -64,7 +64,8 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
       : { english: row.english, paite: row.final_paite }),
     register: row.register,
     contributor: row.contributor_name ?? "",
-    verified_by: name(row.reviewer_email) ?? "Reviewer",
+    // The dataset field reads "Reviewer" for an email nobody can name (the page phrase is "a reviewer").
+    verified_by: ((n) => (n && n !== "a reviewer" ? n : "Reviewer"))(name(row.reviewer_email)),
     verified_at: row.created_at,
     // What the contributor agreed to when they sent it (migration 0031). CC BY when unknown, since it waives the least.
     licence: row.licence ?? "CC-BY-4.0",
