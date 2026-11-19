@@ -3,6 +3,7 @@ import { handleApply, hashIp } from "./apply";
 import { reviewerName } from "./access";
 import { ask, flagAnswer } from "./kbask";
 import { getGoal } from "./goal";
+import { contributorOfTheDay } from "./today";
 import { badgeFor, getContributors } from "./contributors";
 import { answersInLastMinute, feedbackFor, nextSentence, recordAnswer, sharedSentence, skipSentence, type Register } from "./db";
 import { readSession, signSession } from "./session";
@@ -57,6 +58,10 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   if (pathname === "/api/apply" && req.method === "POST") return handleApply(req, env, deps, ctx);
   if (pathname === "/api/contributors" && req.method === "GET") return json(await getContributors(env), 200, "public, max-age=300");
   if (pathname === "/api/goal" && req.method === "GET") return json(await getGoal(env), 200, "public, max-age=300");
+  if (pathname === "/api/today" && req.method === "GET") {
+    const t = await contributorOfTheDay(env, deps.now());
+    return t ? json(t, 200, "public, max-age=300") : new Response(null, { status: 204 });
+  }
 
   // The chat demo is for visitors: no session, no Turnstile. The only write is a
   // line somebody asked for and we could not answer, which is deduped by wording.
