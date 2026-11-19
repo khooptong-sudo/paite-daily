@@ -1,6 +1,6 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { contributorOfTheDay } from "../src/today";
+import { clearTodayCache, contributorOfTheDay } from "../src/today";
 import { addSentences, call, fakeDeps, PHONE_A, PHONE_B, PHONE_C } from "./helpers";
 
 // 2027-01-15 12:00 UTC = 17:30 IST on 15 Jan, so "yesterday" in IST is 14 Jan (13 Jan 18:30 to 14 Jan 18:30 UTC).
@@ -30,6 +30,7 @@ describe("contributor of the day", () => {
     await verified(PHONE_A, "Mang", "2027-01-14 18:45:00"); // IST 15 Jan: today, not yesterday
     expect(await contributorOfTheDay(env, NOW)).toBeNull();
     await verified(PHONE_B, "Tial", "2027-01-13 18:45:00"); // IST 14 Jan: yesterday
+    clearTodayCache();
     expect(await contributorOfTheDay(env, NOW)).toMatchObject({ name: "Tial", period: "day" });
   });
 
@@ -42,6 +43,7 @@ describe("contributor of the day", () => {
   it("falls back to the week, then to nobody", async () => {
     expect(await contributorOfTheDay(env, NOW)).toBeNull();
     await verified(PHONE_A, "Mang", "2027-01-10 05:00:00");
+    clearTodayCache();
     expect(await contributorOfTheDay(env, NOW)).toEqual({ name: "Mang", sentences: 1, words: 0, period: "week" });
   });
 
@@ -49,7 +51,9 @@ describe("contributor of the day", () => {
     await verified(PHONE_A, "Mang", "2027-01-14 05:00:00");
     await verified(PHONE_B, "Tial", "2027-01-14 05:00:00");
     await verified(PHONE_C, "Vung", "2027-01-14 05:00:00");
-    const one = await contributorOfTheDay(env, NOW), two = await contributorOfTheDay(env, NOW + 3_600_000);
+    const one = await contributorOfTheDay(env, NOW);
+    clearTodayCache();
+    const two = await contributorOfTheDay(env, NOW + 3_600_000);
     expect(two).toEqual(one);
     expect(["Mang", "Tial", "Vung"]).toContain(one!.name);
   });
@@ -58,9 +62,17 @@ describe("contributor of the day", () => {
     const empty = await call("/api/today", {}, fakeDeps({ now: () => NOW }));
     expect(empty.status).toBe(204);
     await verified(PHONE_A, "Mang", "2027-01-14 05:00:00");
+    clearTodayCache();
     const r = await call("/api/today", {}, fakeDeps({ now: () => NOW }));
     expect(r.status).toBe(200);
     expect(r.headers.get("cache-control")).toBe("public, max-age=300");
     expect(await r.json()).toEqual({ name: "Mang", sentences: 1, words: 0, period: "day" });
+  });
+
+  it("keeps the answer for ten minutes, then reads again", async () => {
+    expect(await contributorOfTheDay(env, NOW)).toBeNull();
+    await verified(PHONE_A, "Mang", "2027-01-14 05:00:00");
+    expect(await contributorOfTheDay(env, NOW + 60_000)).toBeNull();
+    expect(await contributorOfTheDay(env, NOW + 11 * 60_000)).toMatchObject({ name: "Mang" });
   });
 });
