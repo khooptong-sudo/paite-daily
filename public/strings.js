@@ -79,7 +79,7 @@ window.STRINGS = {
   giveMeaningNote: { pai: "Kammal lakkhawmte apat hong kitaklang, English in a khiakna hon gelh awle.", en: "A word from the list is shown. Write what it means in English." },
   meaningLabel: { pai: "", en: "Meaning in English" },
   sameOpposite: { pai: "", en: "Same or Opposite" },
-  sameOppositeNote: { pai: "", en: "A word from the list is shown. Give a Paite word that means the same, or the opposite. One is enough." },
+  sameOppositeNote: { pai: "Thumal hong kipia pen a kibatpih leh alang hong pe ve, synonym leh antonym ahi aw.", en: "A word from the list is shown. Give a Paite word that means the same, or the opposite. One is enough." },
   sameLabel: { pai: "", en: "Same meaning" },
   oppositeLabel: { pai: "", en: "Opposite meaning" },
   hintSame: { pai: "", en: "A Paite word" },
