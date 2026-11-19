@@ -85,6 +85,10 @@ export async function getGlossaryForReview(env: Env, limit = 500): Promise<Revie
 
 export type Extras = { same: Map<string, string[]>; opposite: Map<string, string[]>; seen: Map<string, { paite: string; english: string }[]> };
 
+/** SQL for word_links l: true when a side is a headword whose glossary rows are all hidden (a word not in the glossary at all is fine). */
+export const LINK_HIDDEN = `EXISTS (SELECT 1 FROM glossary g WHERE g.hidden = 1 AND lower(g.paite) IN (lower(l.paite), lower(l.other))
+  AND NOT EXISTS (SELECT 1 FROM glossary v WHERE v.hidden = 0 AND lower(v.paite) = lower(g.paite)))`;
+
 export const hkey = (w: string) => w.trim().normalize("NFC").toLowerCase();
 
 /** Lower-cased headword -> id of its first entry, in word order: where a word links to on the list. */
@@ -124,7 +128,7 @@ export async function getWordExtras(env: Env, xs: Entry[], now = Date.now()): Pr
   const byMeaning = new Map<string, string[]>();
   for (const { w, es } of heads.values()) for (const e of es) { const k = e.english.trim().toLowerCase(); byMeaning.set(k, [...(byMeaning.get(k) ?? []), w]); }
   for (const ws of byMeaning.values()) for (const a of ws) for (const b of ws) link(rel.same, a, b);
-  const { results: links } = await env.DB.prepare("SELECT paite, other, kind FROM word_links WHERE status = 'approved' ORDER BY id").all<{ paite: string; other: string; kind: "same" | "opposite" }>();
+  const { results: links } = await env.DB.prepare(`SELECT paite, other, kind FROM word_links l WHERE status = 'approved' AND NOT ${LINK_HIDDEN} ORDER BY id`).all<{ paite: string; other: string; kind: "same" | "opposite" }>();
   for (const l of links) { link(rel[l.kind], l.paite, l.other); link(rel[l.kind], l.other, l.paite); }
   const done = (m: Map<string, Map<string, string>>) => new Map([...m].map(([k, g]) => [k, [...g.values()].sort((a, b) => a.localeCompare(b)).slice(0, 8)] as [string, string[]]));
 

@@ -160,7 +160,7 @@ describe("export verified_by", () => {
       const lines = gh.puts.flatMap((p) => decode(p.body.content).trim().split("\n")).map((l) => JSON.parse(l));
       expect(lines).toHaveLength(55);
       const by = new Set(lines.map((l) => l.verified_by));
-      expect([...by].sort()).toEqual(["Owner", "Rev One", "Reviewer"]);
+      expect([...by].sort()).toEqual(["Owner", "Rev One", "a reviewer"]);
     } finally { env.REVIEWERS = saved; }
   }, 30_000); // 55 rows seeded one by one: slow when the whole suite runs at once
 });

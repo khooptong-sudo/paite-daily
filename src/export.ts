@@ -1,4 +1,4 @@
-import { activeReviewers, publicReviewerNames } from "./access";
+import { publicReviewerNames } from "./access";
 import { audioPath, bytesToBase64, manifestText, PUBLISHED_CLIPS, type Clip } from "./audiomanifest";
 import { runBackup, runWikiBackup } from "./backup";
 import { runDigest } from "./digest";
@@ -45,17 +45,17 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
   }
 
   // one query per 50 sentences for the also-correct answers
-  const also = new Map<number, string[]>();
+  const also = new Map<number, { paite: string; licence: string }[]>();
   const sids = [...new Set(results.map((r) => r.sentence_id))];
   for (let i = 0; i < sids.length; i += 50) {
     const chunk = sids.slice(i, i + 50);
     const rows = await env.DB.prepare(
-      `SELECT sentence_id, paite FROM answers WHERE status = 'also_correct' AND sentence_id IN (${chunk.map((_, j) => `?${j + 1}`).join(",")}) ORDER BY id`,
-    ).bind(...chunk).all<{ sentence_id: number; paite: string }>();
-    for (const x of rows.results) also.set(x.sentence_id, [...(also.get(x.sentence_id) ?? []), x.paite]);
+      `SELECT sentence_id, paite, licence FROM answers WHERE status = 'also_correct' AND sentence_id IN (${chunk.map((_, j) => `?${j + 1}`).join(",")}) ORDER BY id`,
+    ).bind(...chunk).all<{ sentence_id: number; paite: string; licence: string | null }>();
+    for (const x of rows.results) also.set(x.sentence_id, [...(also.get(x.sentence_id) ?? []), { paite: x.paite, licence: x.licence ?? "CC-BY-4.0" }]);
   }
   // pai2en: paite is the prompt, english is the contributor's (reviewed) answer, original_english is the round-trip source.
-  const names = new Map((await activeReviewers(env)).map((r) => [r.email, r.name]));
+  const name = await publicReviewerNames(env);
   const lines = results.map((row) => JSON.stringify({
     id: `community:${row.sentence_id}`,
     direction: row.direction,
@@ -64,11 +64,13 @@ async function putRange(env: Env, fetcher: typeof fetch, exportId: number, first
       : { english: row.english, paite: row.final_paite }),
     register: row.register,
     contributor: row.contributor_name ?? "",
-    verified_by: names.get(row.reviewer_email.toLowerCase()) ?? "Reviewer",
+    verified_by: name(row.reviewer_email) ?? "Reviewer",
     verified_at: row.created_at,
     // What the contributor agreed to when they sent it (migration 0031). CC BY when unknown, since it waives the least.
     licence: row.licence ?? "CC-BY-4.0",
-    also_correct: also.get(row.sentence_id) ?? [],
+    also_correct: (also.get(row.sentence_id) ?? []).map((x) => x.paite),
+    // each variant under its own contributor's licence; top-level `licence` is the accepted text's
+    variants: also.get(row.sentence_id) ?? [],
     explanation: row.explanation,
   }));
 

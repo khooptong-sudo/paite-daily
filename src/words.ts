@@ -84,8 +84,9 @@ export async function submitPair(env: Env, phoneId: string, b: Record<string, un
 
 // A reviewer may correct a submission before approving it: both fields must be
 // given together, and the corrected text is what enters the glossary.
-const corrections = (b: Record<string, unknown>): { paite: string; english: string; note: string | null } | null => {
-  if (b.paite === undefined && b.english === undefined && b.note === undefined) return null;
+// undefined: no correction sent. null: one was sent but is partial or invalid.
+const corrections = (b: Record<string, unknown>): { paite: string; english: string; note: string | null } | null | undefined => {
+  if (b.paite === undefined && b.english === undefined && b.note === undefined) return undefined;
   const paite = cleanText(b.paite, 60), english = cleanText(b.english, 120);
   const blankNote = b.note === undefined || b.note === null || (typeof b.note === "string" && !b.note.trim());
   const note = blankNote ? null : cleanText(b.note, 200);
@@ -106,6 +107,7 @@ export async function handleWords(pathname: string, method: string, b: Record<st
     if (!isId(b.id) || !["approve", "reject"].includes(b.decision as string)) return json({ error: "bad_request" }, 400);
     const fix = corrections(b);
     const approve = b.decision === "approve";
+    if (approve && fix === null) return json({ error: "bad_correction" }, 400);
     // Only the request that flips pending -> decided may insert, so a second decision cannot double-insert.
     if (me && !me.owner) {
       const own = await env.DB.prepare(`SELECT 1 AS ok FROM word_submissions WHERE id = ?5 AND status = 'pending' AND ${ownSql("phone_id", "contributor_name", "created_at", { e: 1, n: 2, o: 3, t: 4 })}`)
@@ -141,6 +143,16 @@ export async function handleWords(pathname: string, method: string, b: Record<st
       const own = await env.DB.prepare(`SELECT 1 AS ok FROM word_links WHERE id = ?5 AND status = 'pending' AND ${ownSql("phone_id", "contributor_name", "created_at", { e: 1, n: 2, o: 3, t: 4 })}`)
         .bind(...binds, b.id).first();
       if (own) return json({ error: "own_submission", message: "This is your own submission. Another reviewer will check it." }, 409);
+    }
+    if (approve && fix) {
+      const cur = await env.DB.prepare("SELECT paite, kind FROM word_links WHERE id = ?1 AND status = 'pending'").bind(b.id).first<{ paite: string; kind: string }>();
+      if (cur) {
+        if (fix.toLowerCase() === cur.paite.trim().toLowerCase()) return json({ error: "bad_correction" }, 400);
+        const dup = await env.DB.prepare(
+          `SELECT 1 FROM word_links WHERE status = 'approved' AND kind = ?3 AND ((lower(paite) = lower(?1) AND lower(other) = lower(?2)) OR (lower(paite) = lower(?2) AND lower(other) = lower(?1)))`,
+        ).bind(cur.paite, fix, cur.kind).first();
+        if (dup) return json({ error: "duplicate" }, 409);
+      }
     }
     const rv = approve ? await env.DB.prepare("SELECT name FROM reviewers WHERE lower(email) = lower(?1) LIMIT 1").bind(email).first<{ name: string }>() : null;
     const r = await env.DB.prepare("UPDATE word_links SET status = ?1, decided_at = datetime('now'), decided_by = ?2, reviewed_by = ?3, other = COALESCE(?4, other) WHERE id = ?5 AND status = 'pending'")

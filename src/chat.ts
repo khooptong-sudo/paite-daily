@@ -23,7 +23,7 @@ const SCENES: { key: string; label: string; lines: string[] }[] = [
 ];
 
 /** Compared without case, punctuation or doubled spaces. */
-const key = (s: string) => normaliseEnglish(s).replace(/[^\p{L}\p{N}'\s]/gu, " ").replace(/\s+/g, " ").trim();
+const key = (s: string) => normaliseEnglish(s).replace(/[\u2018\u2019\u02bc]/g, "'").replace(/[^\p{L}\p{N}'\s]/gu, " ").replace(/\s+/g, " ").trim();
 
 // Words that carry no meaning on their own; matching on them produces noise.
 // Question words stay in: "how much is this" must not collapse to nothing. Pronouns and "not"

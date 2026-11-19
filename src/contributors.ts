@@ -23,8 +23,8 @@ export async function getContributors(env: Env): Promise<Contributors> {
        SELECT t.sentences, t.words, t.sentencesWeek, t.wordsWeek,
          EXISTS (SELECT 1 FROM reviewer_phones r WHERE r.phone_id = t.phone_id) AS reviewer,
          COALESCE(
-           (SELECT b.contributor_name FROM answers b WHERE b.phone_id = t.phone_id AND TRIM(COALESCE(b.contributor_name, '')) <> '' ORDER BY b.id DESC LIMIT 1),
-           (SELECT w2.contributor_name FROM word_submissions w2 WHERE w2.phone_id = t.phone_id AND TRIM(COALESCE(w2.contributor_name, '')) <> '' ORDER BY w2.id DESC LIMIT 1)
+           (SELECT b.contributor_name FROM answers b WHERE b.phone_id = t.phone_id AND b.status IN ('accepted', 'also_correct') AND TRIM(COALESCE(b.contributor_name, '')) <> '' ORDER BY b.id DESC LIMIT 1),
+           (SELECT w2.contributor_name FROM word_submissions w2 WHERE w2.phone_id = t.phone_id AND w2.status = 'approved' AND TRIM(COALESCE(w2.contributor_name, '')) <> '' ORDER BY w2.id DESC LIMIT 1)
          ) AS name
        FROM (
          -- an accepted sentence, and an accepted word, count the same way

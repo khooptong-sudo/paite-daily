@@ -154,14 +154,13 @@ describe("review word endpoints", () => {
     await rev("/review/api/words/decide", { id, decision: "approve" });
     expect((await env.DB.prepare("SELECT reviewed_by FROM glossary").first<any>()).reviewed_by).toBe("rev@example.org");
   });
-  it("stores a reviewer's correction when a word is approved, and ignores a half-filled one", async () => {
+  it("stores a reviewer's correction when a word is approved, and refuses a half-filled one", async () => {
     asReviewer();
     await word({ paite: "dam", english: "well", name: "Ann" });
     const ids = (await env.DB.prepare("SELECT id FROM word_submissions ORDER BY id").all<{ id: number }>()).results;
-    // only one field given: not a correction, the submission is stored as it came
-    expect((await rev("/review/api/words/decide", { id: ids[0].id, decision: "approve", english: "well enough" })).status).toBe(200);
-    expect(await env.DB.prepare("SELECT paite, english, note FROM glossary").all().then((r) => r.results))
-      .toEqual([{ paite: "Dam", english: "Well", note: null }]);
+    // only one field given: a partial correction is refused (400), nothing is approved
+    expect((await rev("/review/api/words/decide", { id: ids[0].id, decision: "approve", english: "well enough" })).status).toBe(400);
+    expect(await env.DB.prepare("SELECT paite FROM glossary").all().then((r) => r.results)).toEqual([]);
   });
   it("approves with the reviewer's corrected text, note included", async () => {
     asReviewer();

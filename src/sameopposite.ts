@@ -1,7 +1,7 @@
 import { publicReviewerNames } from "./access";
 import { esc } from "./contributors";
 import { FOOTER } from "./footer";
-import { getGlossary, hkey, headwordIds } from "./glossary";
+import { getGlossary, hkey, headwordIds, LINK_HIDDEN } from "./glossary";
 import type { Env } from "./types";
 
 export type Pair = { paite: string; other: string; kind: "same" | "opposite"; added_by: string | null; reviewed_by: string | null };
@@ -11,7 +11,7 @@ export type SameOpposite = { pairs: Pair[]; shared: Shared[]; ids: Map<string, n
 /** Checked pairs, newest first, and the English meanings that two or more listed words share. */
 export async function getSameOpposite(env: Env): Promise<SameOpposite> {
   const { results } = await env.DB.prepare(
-    "SELECT paite, other, kind, contributor_name AS added_by, reviewed_by FROM word_links WHERE status = 'approved' ORDER BY id DESC",
+    `SELECT paite, other, kind, contributor_name AS added_by, reviewed_by FROM word_links l WHERE status = 'approved' AND NOT ${LINK_HIDDEN} ORDER BY id DESC`,
   ).all<Pair>();
   const name = await publicReviewerNames(env);
   const pairs = results.map((r) => ({ ...r, reviewed_by: name(r.reviewed_by) }));

@@ -76,7 +76,7 @@
       for (const x of (await r.json()).rules) { if (!rules.has(x.from)) rules.set(x.from, []); rules.get(x.from).push(x); }
     } catch {}
   }
-  const swapWord = (text, from, to) => text.replace(new RegExp(`(^|[^\p{L}'’])(${from.replace(/'/g, "['’]")})(?=$|[^\p{L}'’])`, "giu"),
+  const swapWord = (text, from, to) => text.replace(new RegExp(`(^|[^\\p{L}'’])(${from.replace(/'/g, "['’]")})(?=$|[^\\p{L}'’])`, "giu"),
     (_, pre, w) => pre + (w[0] !== w[0].toLowerCase() ? to[0].toUpperCase() + to.slice(1) : to));
   // House style (owner, 26 Oct): ending a sentence with uh, uhi, ahi or hi is an older way
   // of writing that is dying out. The hint offers to drop that last word, punctuation kept.

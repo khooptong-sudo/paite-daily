@@ -26,8 +26,8 @@ async function pick(env: Env, today: string): Promise<Today> {
       `SELECT * FROM (
          SELECT t.phone_id, t.sentences, t.words,
            COALESCE(
-             (SELECT b.contributor_name FROM answers b WHERE b.phone_id = t.phone_id AND TRIM(COALESCE(b.contributor_name, '')) <> '' ORDER BY b.id DESC LIMIT 1),
-             (SELECT w2.contributor_name FROM word_submissions w2 WHERE w2.phone_id = t.phone_id AND TRIM(COALESCE(w2.contributor_name, '')) <> '' ORDER BY w2.id DESC LIMIT 1)
+             (SELECT b.contributor_name FROM answers b WHERE b.phone_id = t.phone_id AND b.status IN ('accepted', 'also_correct') AND TRIM(COALESCE(b.contributor_name, '')) <> '' ORDER BY b.id DESC LIMIT 1),
+             (SELECT w2.contributor_name FROM word_submissions w2 WHERE w2.phone_id = t.phone_id AND w2.status = 'approved' AND TRIM(COALESCE(w2.contributor_name, '')) <> '' ORDER BY w2.id DESC LIMIT 1)
            ) AS name
          FROM (
            SELECT phone_id, SUM(s) AS sentences, SUM(w) AS words FROM (
