@@ -229,7 +229,7 @@ ${publicWiki ? `<h3 style="margin-top:2rem">Tongdot | Tongsan and the Paite Wiki
 <h2 id="open">Free to use, and safe if this site ever stops</h2>
 <p>All of it is kept in two public places on GitHub. Every night, the site copies its newly checked sentences and voice recordings to the first one. The second one holds the code that runs this site.</p>
 <div class="cards">
-<a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>The sentences, on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The checked sentences and voice recordings from this site, along with the Paite Bible, a dictionary, hymns, corrections and files ready for training translation tools.</span></a>
+<a class="card2" href="https://github.com/khooptong-sudo/paite-open-language-data" target="_blank" rel="noopener"><small>The sentences, on GitHub</small><strong>khooptong-sudo/paite-open-language-data</strong><span>The checked sentences and voice recordings from this site, along with the Paite Bible, the checked word list, corrections and files ready for training translation tools.</span></a>
 <a class="card2" href="https://github.com/khooptong-sudo/paite-daily" target="_blank" rel="noopener"><small>The code, on GitHub</small><strong>khooptong-sudo/paite-daily</strong><span>Everything that runs this site. Free to reuse under the MIT or Apache 2.0 licence, whichever you prefer.</span></a>
 <a class="card2" href="https://huggingface.co/datasets/LamkaLabs/paite-open-language-data" target="_blank" rel="noopener"><small>The same sentences, on Hugging Face</small><strong>LamkaLabs/paite-open-language-data</strong><span>Copied from GitHub every Monday, for people who build AI tools.</span></a>
 <a class="card2" href="https://doi.org/10.5281/zenodo.23349155" target="_blank" rel="noopener"><small>Saved releases on Zenodo</small><strong>doi.org/10.5281/zenodo.23349155</strong><span>A permanent link you can cite. It always points to the newest release (now v1.2.0).</span></a>
@@ -248,8 +248,6 @@ ${publicWiki ? `<h3 style="margin-top:2rem">Tongdot | Tongsan and the Paite Wiki
 <dd>The Laisiangthou translation by John Samte, shared with his permission. Credit John Samte, and ask him first before using it to make money.</dd>
 <dt>English Bible <code>bible/world-english-bible/</code></dt>
 <dd>The World English Bible, which belongs to everyone (public domain).</dd>
-<dt>Dictionary and hymns <code>dictionary/</code>, <code>songs/</code></dt>
-<dd>These still belong to their writers and publishers; we do not give anyone rights to them. They are included only for non-commercial research, teaching and keeping the language alive.</dd>
 <dt>Files for training translation tools <code>training/</code></dt>
 <dd>These mix all of the parts above. Each row says which part it came from, so you can see which rules apply.</dd>
 <dt>The code of this site</dt>
