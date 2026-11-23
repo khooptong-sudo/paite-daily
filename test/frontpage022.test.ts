@@ -5,10 +5,11 @@ import html from "../public/index.html?raw";
 const at = (s: string, from = 0) => { const i = html.indexOf(s, from); expect(i, s).toBeGreaterThan(-1); return i; };
 
 describe("calmer front page (raw html checks)", () => {
-  it("Translate card comes before What's New, Contributor of the Day and the chat", () => {
+  it("Contributor of the Day sits above the Translate card (owner, 23 Nov); Translate comes before What's New and the chat", () => {
     const tr = at('<div class="label" id="label"');
+    expect(at('id="goal"')).toBeLessThan(at('id="cotd"'));
+    expect(at('id="cotd"')).toBeLessThan(tr);
     expect(tr).toBeLessThan(at('id="whatsnew"'));
-    expect(tr).toBeLessThan(at('id="cotd"'));
     expect(tr).toBeLessThan(at('id="chat"'));
   });
   it("More Ways to Help holds the four task cards, after the chat and before the first link panel", () => {

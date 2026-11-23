@@ -988,3 +988,8 @@ body.blue::before { content: ""; display: block; position: fixed; inset: 0; z-in
 .play-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
 .play-row .by-line { margin-top: 0; }
 .ask-sources .play { width: 28px; height: 28px; min-height: 28px; margin-left: 8px; }
+/* Play buttons outside the chat bubbles (plan 023): a quiet disc like the site's other round buttons, not the chat's blue. */
+.blue .play-row .play, .blue .ask-sources .play { background: var(--fg); color: var(--bg); border: 0; }
+.blue .play-row .play { margin-left: 0; }
+.blue .play-row .play.on, .blue .ask-sources .play.on { box-shadow: 0 0 0 3px var(--ring); }
+.blue .rows .w[lang="pck"] { font-family: var(--display); font-weight: 400; font-size: 1.25rem; }
