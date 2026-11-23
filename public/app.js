@@ -168,16 +168,19 @@
     $("outbox-note").textContent = n ? `${n} waiting to send` : "";
   };
   function queueAnswer(body) {
-    store.set("outbox", [...store.get("outbox", []), { body, at: Date.now() }].slice(-50));
+    const box = store.get("outbox", []);
+    if (box.length >= 50) return false;
+    store.set("outbox", [...box, { body, at: Date.now() }]);
     showOutbox();
+    return true;
   }
   let flushing = false;
   async function flushOutbox() {
     if (flushing) return;
     flushing = true;
-    let sent = 0;
+    let sent = 0, left = store.get("outbox", []).length;
     try {
-      for (;;) {
+      while (left-- > 0) {
         const item = store.get("outbox", [])[0];
         if (!item || navigator.onLine === false) break;
         // The answer may have waited since before a name existed: carry the name now.
@@ -185,6 +188,7 @@
         try { const queued = JSON.parse(body); if (!queued.name) { queued.name = store.get("name", ""); body = JSON.stringify(queued); } } catch {}
         const r = await api("/api/answer", { method: "POST", body });
         // 400 and 409 will never succeed (bad or closed sentence); 429 and the rest can wait.
+        if (r.status >= 500) { const q = store.get("outbox", []); store.set("outbox", [...q.slice(1), q[0]]); continue; } // retry later, do not block the rest
         if (!r.ok && r.status !== 400 && r.status !== 409) break;
         store.set("outbox", store.get("outbox", []).slice(1));
         if (r.ok) sent++;
@@ -207,7 +211,7 @@
     const body = JSON.stringify({ sentenceId: current.id, paite, register, name: store.get("name", ""), explanation: $("explanation").value.trim(), place: $("place").value.trim() });
     // No network: keep the answer on the phone and carry on as if it had gone.
     const saveOffline = () => {
-      queueAnswer(body);
+      if (!queueAnswer(body)) { status("Too many answers are waiting on this phone. Connect to the internet so they can send."); $("send").disabled = false; $("skip").disabled = false; return; }
       status("Saved on this phone. It will send by itself when you are back online.", true);
       $("paite").value = ""; $("explanation").value = "";
       askName($("send"));
@@ -217,6 +221,7 @@
     try {
       const r = await api("/api/answer", { method: "POST", body });
       if (r.status === 429) { status(tBoth("tooFast")); $("send").disabled = false; $("skip").disabled = false; return; }
+      if (r.status === 400) { status("That answer could not be saved. Please check it and try again."); $("send").disabled = false; $("skip").disabled = false; return; }
       if (!r.ok && r.status !== 409) { status(tBoth("offline")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (r.ok) {
         if (window.pdTrack) window.pdTrack("answer");
@@ -226,6 +231,7 @@
         status(n % 5 === 0 ? tBoth("thanks") : "", true);
         askName($("send"));
       }
+      if (r.status === 409) status("Someone just finished this sentence. Here is the next one.");
       $("paite").value = ""; $("explanation").value = "";
       next();
       if (r.ok) flushOutbox();

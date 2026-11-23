@@ -246,26 +246,33 @@
     return card;
   }
 
+  let seq = 0;
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const text = input.value.trim();
     if (!text) return;
     if (window.pdTrack) window.pdTrack(mode === "ask" ? "ask" : "chat");
     note.textContent = "…";
+    const mine = ++seq;
     if (mode === "ask") {
       try {
         const r = await fetch(askUrl, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q: text }), credentials: "same-origin" });
         if (!r.ok) throw new Error();
-        note.replaceChildren(answerCard(await r.json()));
+        const a = await r.json();
+        if (mine !== seq) return;
+        note.replaceChildren(answerCard(a));
       } catch {
+        if (mine !== seq) return;
         note.textContent = t("offline") || "Could not reach the server.";
       }
       return;
     }
     try {
       const d = await (await fetch("/api/chat/match?q=" + encodeURIComponent(text))).json();
+      if (mine !== seq) return;
       if (d.match) say(d.match); else miss(text);
     } catch {
+      if (mine !== seq) return;
       note.textContent = t("offline") || "Could not reach the server.";
     }
   });

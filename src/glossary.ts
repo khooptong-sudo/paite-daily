@@ -187,7 +187,7 @@ q.addEventListener("input",render);
 rail.forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();var L=a.textContent,g=byL[L];if(g.dim)return;
 if(q.value.trim()){g.scrollIntoView();return}
 if(L===cur)return;location.hash=key(L)})});
-function fromHash(){var h=decodeURIComponent(location.hash.slice(1)),el=null,m;
+function fromHash(){var h;try{h=decodeURIComponent(location.hash.slice(1))}catch(e){h=""}var el=null,m;
 if(m=/^w-[0-9]+$/.test(h)&&document.getElementById(h)){el=m;var g=el.closest("details.rows"),li=el.closest("ul > li");cur=g.dataset.letter;q.value="";
 while(g.items.indexOf(li)>=g.lim)g.lim+=PAGE}
 else{var l=h.replace(/^l-/,"");for(var L in byL)if(key(L)===l.toLowerCase()||L===l){cur=L;q.value=""}}

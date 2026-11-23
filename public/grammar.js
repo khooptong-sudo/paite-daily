@@ -105,5 +105,7 @@
     else if (el._spell) el._spell.hidden = true;
   };
   const init = () => document.querySelectorAll("[data-lang]").forEach((el) => window.pdLang(el, el.dataset.lang));
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+  // app.js sets window.paiteApi after this file runs, so run again once the page has loaded.
+  document.addEventListener("DOMContentLoaded", init);
+  if (document.readyState !== "loading") init();
 })();
