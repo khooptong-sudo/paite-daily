@@ -128,7 +128,7 @@ export function sourceOf(ref: string | null, via: string | null, inApp: string |
   if (/(^|\.)instagram\.com$|^com\.instagram\./.test(h)) return "Instagram";
   if (h === "gemini.google.com") return "Gemini";
   if (h === "com.google.android.gm" || /(^|\.)mail\.google\.com$/.test(h)) return "Email";
-  if (/(^|\.)google\.[a-z.]+$|^com\.google\.android\.googlequicksearchbox$/.test(h)) return "Google";
+  if (/^(www\.)?google\.(com|co\.[a-z]{2}|com\.[a-z]{2}|[a-z]{2,3})$|^com\.google\.android\.googlequicksearchbox$/.test(h)) return "Google";
   if (/(^|\.)bing\.com$/.test(h)) return "Bing";
   if (/(^|\.)duckduckgo\.com$/.test(h)) return "DuckDuckGo";
   if (/^(t\.co|twitter\.com|x\.com)$/.test(h)) return "X";
@@ -154,6 +154,11 @@ async function saltFor(env: Env, day: string): Promise<string> {
   return salted.salt;
 }
 export const forgetSalt = () => { salted = null; };
+
+/** A per-address key for the event limiter: hash of today's salt and the IP, with its own prefix. The IP is never stored. */
+export async function addressKey(env: Env, ip: string, now: number): Promise<string> {
+  return (await sha256Hex(`rate|${await saltFor(env, istDay(now))}|${ip}`)).slice(0, 16);
+}
 
 /** Today's visitor code for this request: changes every IST day, and the IP is never kept. */
 export async function visitorCode(env: Env, ip: string, ua: string, now: number): Promise<string> {
@@ -312,8 +317,22 @@ export function keysOf(v: Visit, dim: string): string[] {
 }
 const PER_VISIT = ["source", "country", "region", "city", "device", "browser", "os", "returning", "hour", ...TECH, "pwa", "depth", "dwell", "tzcheck"];
 
-/** Every dimension's totals for a set of visits. Visitors are distinct codes within the set. */
-export function summarise(visits: Visit[]): Row[] {
+/**
+ * The values of a rare dimension (city, model, isp, tz) that two or more different visitors shared on the same IST day.
+ * The visitor code changes every day, so one person on two days is two codes: only a same-day match counts.
+ */
+export function sharedPerDay(visits: Visit[], dim: string): Set<string> {
+  const who = new Map<string, Set<string>>();
+  for (const v of visits) for (const k of keysOf(v, dim)) {
+    const id = `${istDay(v.t0)}\u0000${k}`;
+    (who.get(id) ?? who.set(id, new Set()).get(id)!).add(v.visitor);
+  }
+  return new Set([...who].filter(([, s]) => s.size >= CITY_MIN).map(([id]) => id.slice(id.indexOf("\u0000") + 1)));
+}
+
+/** Every dimension's totals for a set of visits. Visitors are distinct codes within the set. hideRare: fold a rare value no two visitors shared on one day into key "". */
+export function summarise(visits: Visit[], hideRare = false): Row[] {
+  const shared = new Map(hideRare ? RARE.map((d) => [d, sharedPerDay(visits, d)]) : []);
   const acc = new Map<string, { dim: string; key: string; who: Set<string>; visits: number; hits: number; bounces: number; ms: number }>();
   const add = (dim: string, key: string, v: Visit, hits: number, ms: number, bounce = v.bounce) => {
     const k = `${dim}\u0000${key}`;
@@ -326,7 +345,7 @@ export function summarise(visits: Visit[]): Row[] {
   for (const v of visits) {
     const views = v.pages.length;
     add("all", "", v, views, v.ms);
-    for (const dim of PER_VISIT) for (const key of keysOf(v, dim)) add(dim, key, v, views, v.ms);
+    for (const dim of PER_VISIT) for (const key of keysOf(v, dim)) add(dim, shared.get(dim)?.has(key) === false ? "" : key, v, views, v.ms);
     if (views) {
       add("entry", v.pages[0], v, 1, 0);
       add("exit", v.pages[views - 1], v, 1, 0);
@@ -363,12 +382,13 @@ async function eventsBetween(env: Env, from: number, to: number): Promise<Ev[]> 
 
 /** Totals for a time window, straight from the raw events. */
 export async function windowRows(env: Env, from: number, to: number): Promise<Row[]> {
-  return summarise(toVisits(await eventsBetween(env, from, to)));
+  return summarise(toVisits(await eventsBetween(env, from, to)), true);
 }
 
 /** Store one complete IST day's totals. The ('all','') row is written even for an empty day. */
 async function rollDay(env: Env, day: string): Promise<void> {
-  const rows = await windowRows(env, dayStart(day), dayStart(day) + DAY);
+  // A rare value (or the lump of them) seen by fewer than two visitors that day is never stored.
+  const rows = (await windowRows(env, dayStart(day), dayStart(day) + DAY)).filter((r) => !(RARE.includes(r.dim) && r.visitors < CITY_MIN));
   if (!rows.some((r) => r.dim === "all")) rows.push({ dim: "all", key: "", visitors: 0, visits: 0, hits: 0, bounces: 0, ms: 0 });
   const ins = env.DB.prepare("INSERT OR REPLACE INTO visit_stats (day, dim, key, visitors, visits, hits, bounces, ms) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)");
   const stmts = [env.DB.prepare("DELETE FROM visit_stats WHERE day = ?1").bind(day), ...rows.map((r) => ins.bind(day, r.dim, r.key, r.visitors, r.visits, r.hits, r.bounces, r.ms))];
@@ -391,7 +411,8 @@ export async function ensureRolled(env: Env, now: number): Promise<string[]> {
 /** Nightly: roll the finished days, then drop raw events past 30 days and salts past two. */
 export async function runVisitorRollup(env: Env, now: number): Promise<{ rolled: number; deleted: number } | null> {
   const rolled = await ensureRolled(env, now);
-  const del = await env.DB.prepare("DELETE FROM events WHERE at < ?1").bind(sqlTime(dayStart(addDays(istDay(now), -RAW_DAYS - 1)))).run();
+  const del = await env.DB.prepare("DELETE FROM events WHERE at < ?1").bind(sqlTime(now - RAW_DAYS * DAY)).run();
+  await env.DB.prepare("DELETE FROM event_rate WHERE hour < ?1").bind(sqlTime(now - 2 * DAY).slice(0, 13)).run();
   await env.DB.prepare("DELETE FROM visit_salts WHERE day < ?1").bind(addDays(istDay(now), -1)).run();
   const deleted = del.meta.changes ?? 0;
   return rolled.length || deleted ? { rolled: rolled.length, deleted } : null;
@@ -433,7 +454,7 @@ function list(m: Map<string, Row>, dim: string, by: "visitors" | "visits" | "hit
 /** Values shared by fewer than CITY_MIN visitors (a city, a phone model, a network, a time zone) are folded into one unnamed row. */
 function foldRare(m: Map<string, Row>, dim: string, limit = 12): Item[] {
   const all = list(m, dim, "visitors", 100000);
-  const named = all.filter((c) => c.visitors >= CITY_MIN).slice(0, limit);
+  const named = all.filter((c) => c.key && c.visitors >= CITY_MIN).slice(0, limit);
   const rest = all.filter((c) => !named.includes(c));
   if (rest.length) {
     const r = rest.reduce((s, c) => ({ visitors: s.visitors + c.visitors, visits: s.visits + c.visits, hits: s.hits + c.hits, share: s.share + c.share }), { visitors: 0, visits: 0, hits: 0, share: 0 });
@@ -552,10 +573,12 @@ type Built = {
 async function build(env: Env, q: Query, now: number, needRaw = false): Promise<Built> {
   const today = istDay(now), { from, to, g } = q, n = daysIn(from, to);
   const prevFrom = addDays(from, -n), prevTo = addDays(to, -n), rawStart = addDays(today, -RAW_DAYS);
-  const label = n === 1 && to === today ? "same time yesterday" : n === 1 ? "day" : `${n} days`;
+  let label = n === 1 ? "day" : `${n} days`;
   const keys = bucketKeys(from, to, g, n, to === today ? now : null), prevKeys = bucketKeys(prevFrom, prevTo, g, n, null);
   if (q.filters.length || needRaw || q.range === "today") {
     if (from < rawStart) throw new NeedRaw();
+    // Only here is yesterday cut at the same time of day; the stored totals compare with a whole day.
+    if (n === 1 && to === today) label = "same time yesterday";
     const pool = toVisits(await eventsBetween(env, dayStart(from), Math.min(dayStart(to) + DAY, now + 1)));
     const visits = q.filters.length ? pool.filter((v) => matches(v, q.filters)) : pool;
     let prevVisits: Visit[] = [];
@@ -571,7 +594,7 @@ async function build(env: Env, q: Query, now: number, needRaw = false): Promise<
       for (const v of visits) { const x = new Date(v.t0 + IST); heat[(x.getUTCDay() + 6) % 7][x.getUTCHours()]++; }
     }
     return {
-      q, n, today, m: merge(summarise(visits)), prevM: prevVisits.length ? merge(summarise(prevVisits)) : null, heat, label, visits, pool,
+      q, n, today, m: merge(summarise(visits, true)), prevM: prevVisits.length ? merge(summarise(prevVisits, true)) : null, heat, label, visits, pool,
       series: keys.map((k) => pointOf(k, summarise(cur.get(k) ?? []))), prevSeries: prevKeys.map((k) => pointOf(k, summarise(was.get(k) ?? []))),
     };
   }
@@ -680,9 +703,8 @@ async function detail(env: Env, q: Query, now: number) {
 async function pivot(env: Env, q: Query, a: string, b: string, now: number) {
   const { visits, pool } = await build(env, q, now, true);
   // A value only one visitor has is shown as "Other", as everywhere else.
-  const who = (dim: string) => { const mp = new Map<string, Set<string>>(); for (const v of pool!) for (const k of keysOf(v, dim)) (mp.get(k) ?? mp.set(k, new Set()).get(k)!).add(v.visitor); return mp; };
-  const seen = new Map(RARE.filter((d) => d === a || d === b).map((d) => [d, who(d)]));
-  const keys = (v: Visit, dim: string) => keysOf(v, dim).map((k) => ((seen.get(dim)?.get(k)?.size ?? CITY_MIN) < CITY_MIN ? "" : k));
+  const seen = new Map(RARE.filter((d) => d === a || d === b).map((d) => [d, sharedPerDay(pool!, d)]));
+  const keys = (v: Visit, dim: string) => keysOf(v, dim).map((k) => (seen.get(dim)?.has(k) === false ? "" : k));
   const cells = new Map<string, { r: string; c: string; who: Set<string>; visits: number; hits: number }>();
   const rowN = new Map<string, number>(), colN = new Map<string, number>();
   for (const v of visits!) for (const r of new Set(keys(v, a))) for (const c of new Set(keys(v, b))) {
@@ -712,11 +734,7 @@ async function exportCsv(env: Env, q: Query, p: URLSearchParams, now: number): P
   if (what === "visits") {
     const { visits, pool } = await build(env, q, now, true);
     // City, phone model, network and time zone are written only when two or more visitors in the window share them.
-    const named = new Map(RARE.map((d) => {
-      const mp = new Map<string, Set<string>>();
-      for (const v of pool!) for (const k of keysOf(v, d)) (mp.get(k) ?? mp.set(k, new Set()).get(k)!).add(v.visitor);
-      return [d, new Set([...mp].filter(([, s]) => s.size >= CITY_MIN).map(([k]) => k))] as const;
-    }));
+    const named = new Map(RARE.map((d) => [d, sharedPerDay(pool!, d)] as const));
     const ok = (v: Visit, d: string) => keysOf(v, d).some((k) => named.get(d)!.has(k));
     body = csv([
       ["start_utc", "source", "country", "region", "city", "device", "browser", "browser_version", "system", "system_version", "brand", "model", "network", "language", "time_zone", "screen_width", "pixel_density", "connection", "theme", "system_theme", "installed_app", "returning", "pages", "seconds", "left_at_once", "first_page", "last_page"],
@@ -737,9 +755,9 @@ async function exportCsv(env: Env, q: Query, p: URLSearchParams, now: number): P
 async function namedPlaces(env: Env, now: number): Promise<{ cities: Set<string>; isps: Set<string> }> {
   const since = sqlTime(now - RAW_DAYS * DAY);
   const { results } = await env.DB.prepare(
-    "SELECT country, region, city, count(DISTINCT COALESCE(visitor, vid)) AS n FROM events WHERE city IS NOT NULL AND at >= ?1 GROUP BY country, region, city",
+    "SELECT country, region, city, count(DISTINCT COALESCE(visitor, vid)) AS n FROM events WHERE city IS NOT NULL AND at >= ?1 GROUP BY country, region, city, date(at, '+330 minutes')",
   ).bind(since).all<{ country: string; region: string; city: string; n: number }>();
-  const nets = await env.DB.prepare("SELECT isp, count(DISTINCT COALESCE(visitor, vid)) AS n FROM events WHERE isp IS NOT NULL AND at >= ?1 GROUP BY isp").bind(since).all<{ isp: string; n: number }>();
+  const nets = await env.DB.prepare("SELECT isp, count(DISTINCT COALESCE(visitor, vid)) AS n FROM events WHERE isp IS NOT NULL AND at >= ?1 GROUP BY isp, date(at, '+330 minutes')").bind(since).all<{ isp: string; n: number }>();
   return {
     cities: new Set(results.filter((r) => r.n >= CITY_MIN).map((r) => `${r.country}|${r.region}|${r.city}`)),
     isps: new Set(nets.results.filter((r) => r.n >= CITY_MIN).map((r) => r.isp)),

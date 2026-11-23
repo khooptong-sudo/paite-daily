@@ -1,5 +1,5 @@
 import { json, type Env } from "./types";
-import { brandOf, cleanVia, ispOf, placeOf, readAgent, sqlTime, visitorCode, VW_BUCKETS } from "./visitors";
+import { addressKey, brandOf, cleanVia, ispOf, placeOf, readAgent, sqlTime, visitorCode, VW_BUCKETS } from "./visitors";
 
 // Error tracking and first-party visit counting. No cookie, no third party, no IP stored:
 // `vid` is a random id the browser keeps for the tab, a referrer is cut down to its host, and
@@ -65,6 +65,8 @@ export async function errorPage(req: Request, env: Env): Promise<Response> {
 // POST /api/event - public, no session. A broken or hostile body is dropped, never an error page.
 // Bots are not counted. The IP is used only to make today's visitor code (visitors.ts) and is never stored.
 export async function handleEvent(req: Request, env: Env, now = Date.now()): Promise<Response> {
+  // Do Not Track and Global Privacy Control: not counted at all.
+  if (req.headers.get("DNT") === "1" || req.headers.get("Sec-GPC") === "1") return new Response(null, { status: 204 });
   let b: Record<string, unknown> = {};
   try {
     const parsed = await req.json();
@@ -102,6 +104,10 @@ export async function handleEvent(req: Request, env: Env, now = Date.now()): Pro
   const target = kind === "out" ? (typeof b.target === "string" && /^[A-Za-z0-9.-]{1,80}$/.test(b.target) ? b.target.toLowerCase() : null)
     : kind === "jserror" ? (str(b.target, 300)?.replace(/[\u0000-\u001f\u007f]/g, " ").trim().slice(0, 120) || null) : null;
   try {
+    // One address cannot flood the table either: at most 300 events an hour from the same salted hash (the IP itself is never stored).
+    const mine = await env.DB.prepare("INSERT INTO event_rate (key, hour, n) VALUES (?1, ?2, 1) ON CONFLICT (key, hour) DO UPDATE SET n = n + 1 WHERE n < 300")
+      .bind(await addressKey(env, req.headers.get("CF-Connecting-IP") ?? "unknown", now), sqlTime(now).slice(0, 13)).run();
+    if (!mine.meta.changes) return new Response(null, { status: 204 });
     if (vid) {
       // One device cannot flood the table: over 60 events a minute from the same tab id, drop them.
       const hot = await env.DB.prepare("SELECT count(*) AS n FROM events WHERE vid = ?1 AND at > ?2").bind(vid, sqlTime(now - 60_000)).first<{ n: number }>();

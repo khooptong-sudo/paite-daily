@@ -9,7 +9,7 @@
 // fast the page was and how far it was read. A click on a link to another site sends only that site's
 // name; a script error sends a short message (at most three a tab). Nothing typed is ever sent.
 (function () {
-  if (navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.globalPrivacyControl === true) return;
+  if (navigator.doNotTrack === "1" || window.doNotTrack === "1" || navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1" || navigator.globalPrivacyControl === true) return;
   var vid = null, ret = null, via = null;
   try {
     vid = sessionStorage.getItem("pd:vid");
