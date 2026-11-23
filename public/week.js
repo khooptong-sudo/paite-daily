@@ -1,10 +1,20 @@
-// Your Week, on the front page: the last seven days in one line, and a Share chip that draws
-// a 1080 x 1920 status card for WhatsApp. Hidden until the person has sent something.
+// Your Work, on the front page: the streak and the last seven days in one line, the list of lines a
+// reviewer corrected for you, and (as a fallback for the card's Share chip) a 1080 x 1920 week card.
+// Hidden until there is something to show; mypuan.js draws the shawl and owns the Share click.
 (() => {
-  const card = document.getElementById("week");
+  const card = document.getElementById("yourwork");
   if (!card) return;
-  let w = null;
+  let w = null, streak = 0;
+  const ywShow = () => { card.hidden = !["week-line", "mypuan", "yw-fixed"].some((i) => !document.getElementById(i).hidden); };
   const line = () => `${w.sent} sent · ${w.verified} verified · ${w.words} words` + (w.rank ? ` · #${w.rank} this week` : "");
+  const show = () => {
+    const parts = [];
+    if (streak >= 2) parts.push(`${streak} days in a row`);
+    if (w && w.sent > 0) parts.push("This week: " + line());
+    const el = document.getElementById("week-line");
+    el.textContent = parts.join(" · "); el.hidden = !parts.length;
+    ywShow();
+  };
   // app.js sets paiteApi once it has a session helper; wait for it, but not forever.
   let tries = 0;
   const ready = () => window.paiteApi ? load() : ++tries < 30 && setTimeout(ready, 300);
@@ -13,13 +23,33 @@
       const r = await window.paiteApi("/api/week");
       if (!r.ok) return;
       w = await r.json();
-      if (!(w.sent > 0)) return;
-      document.getElementById("week-line").textContent = line();
-      card.hidden = false;
+      if (w.sent > 0) window.ywWeek = w;
+      show();
     } catch {}
   }
   ready();
-  document.getElementById("week-share").addEventListener("click", () => share().catch(() => {}));
+  document.addEventListener("paite:me", (e) => { streak = e.detail.streak || 0; show(); });
+  // Corrected for You: the newest three corrections, built with textContent only.
+  document.addEventListener("paite:feedback", (e) => {
+    const items = (e.detail || []).filter((i) => (i.result === "fixed" || i.result === "other") && i.corrected).sort((a, b) => b.reviewId - a.reviewId).slice(0, 3);
+    const ul = document.getElementById("yw-fixed-list");
+    ul.textContent = "";
+    const row = (cls, label, node) => {
+      const d = document.createElement("div"); d.className = cls;
+      if (label) { const l = document.createElement("small"); l.textContent = label; d.append(l, " "); }
+      d.append(node); return d;
+    };
+    for (const it of items) {
+      const li = document.createElement("li"), m = document.createElement("mark");
+      m.textContent = it.corrected;
+      li.append(row("en", null, it.english || ""), row("", "Yours", it.yours || ""), row("", "Corrected", m));
+      if (it.reviewer) li.append(row("", null, "— " + it.reviewer));
+      ul.append(li);
+    }
+    document.getElementById("yw-fixed").hidden = !items.length;
+    ywShow();
+  });
+  window.ywWeekShare = () => share().catch(() => {});
   async function share() {
     await document.fonts.ready;
     const c = document.createElement("canvas"); c.width = 1080; c.height = 1920;

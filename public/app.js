@@ -361,7 +361,10 @@
 
   async function feedback() {
     try {
-      const { items } = await (await api("/api/feedback?after=" + store.get("fbSeen", 0))).json();
+      const { items: all } = await (await api("/api/feedback?after=0")).json();
+      // Your Work lists every correction; the notice below is only for reviews not seen yet.
+      document.dispatchEvent(new CustomEvent("paite:feedback", { detail: all }));
+      const seen = store.get("fbSeen", 0), items = all.filter((i) => i.reviewId > seen);
       if (!items.length) return;
       const div = (cls, key, node) => {
         const d = document.createElement("div"); d.className = cls;

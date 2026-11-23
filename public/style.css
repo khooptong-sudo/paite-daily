@@ -81,8 +81,8 @@ small { display: block; font-size: .75em; color: var(--muted); font-weight: 400;
 .card-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 /* Card titles, one voice everywhere: the Paite title in the display serif, and its
    English beneath as the same quiet uppercase caption the Translate card uses. */
-.card h2, .mypuan h2 { font: 400 1.3rem/1.25 var(--display); letter-spacing: -.005em; margin: 0; text-wrap: balance; }
-.card h2 small, .mypuan h2 small { display: block; margin: 5px 0 0; font: 700 .7rem/1.3 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.card h2 { font: 400 1.3rem/1.25 var(--display); letter-spacing: -.005em; margin: 0; text-wrap: balance; }
+.card h2 small, .yw-sub small { display: block; margin: 5px 0 0; font: 700 .7rem/1.3 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
 .card-h .more { flex: none; display: inline-flex; align-items: center; min-height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--line); color: var(--fg); text-decoration: none; background: rgba(255, 255, 255, .55); font-size: .72rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
 .card-h .more:hover { border-color: var(--hair); }
 #fb-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
@@ -266,11 +266,21 @@ button.primary small, .seg button[aria-pressed="true"] small { color: var(--mute
 .share-chip:hover:not(:disabled) { background: rgba(0, 0, 0, .05); }
 .share-chip small { display: none; }
 
-/* Your puan (mypuan.js): the personal shawl, woven one thread per verified line. */
-.mypuan { width: 100%; max-width: 560px; margin: 16px auto 0; display: grid; gap: 8px; }
-.mypuan[hidden] { display: none; }
-.mypuan-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.mypuan canvas { display: block; width: 100%; border-radius: 10px; box-shadow: 0 10px 24px -16px rgba(0, 0, 0, .55); }
+/* Your Work shawl block (mypuan.js): sits inside the card, no panel of its own. */
+.yw-shawl { display: grid; gap: 8px; width: 100%; }
+.yw-shawl[hidden], .yw-fixed[hidden], .yw-line[hidden] { display: none; }
+.yw-sub { margin: 0; font: 400 1.05rem/1.25 var(--display); }
+.yw-shawl canvas { display: block; width: 100%; border-radius: 10px; box-shadow: 0 10px 24px -16px rgba(0, 0, 0, .55); }
+.yw-how { margin-top: 2px; }
+.yw-fixed { width: 100%; display: grid; gap: 10px; }
+.yw-fixed h3 { margin: 0; font: 700 .75rem/1.3 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+#yw-fixed-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+#yw-fixed-list li { display: grid; gap: 4px; border-top: 1px solid var(--line); padding-top: 10px; }
+#yw-fixed-list li:first-child { border-top: 0; padding-top: 0; }
+#yw-fixed-list .en { color: var(--muted); font-size: .85rem; }
+#yw-fixed-list mark { background: #000; color: #fff; padding: 1px 6px; border-radius: 6px; font-weight: 700; }
+.blue #yw-fixed-list mark { background: var(--fg); color: var(--bg); }
+.blue #yw-fixed-list .en { font-family: var(--italic); font-style: italic; font-size: 1.08rem; }
 .mypuan-note { margin: 0; font-size: .82rem; color: var(--muted); }
 .mypuan-how { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: .86rem; line-height: 1.45; color: var(--muted); }
 .mypuan-how b { color: var(--fg); }
@@ -314,14 +324,14 @@ body.blue::before { display: none; }
 html:has(body.blue) { background: #eef2fb; min-height: 100%; }
 body.blue { min-height: 100vh; }
 /* Header, goal and shawl sit on the dark top: solid white type. */
-.blue header, .blue header a, .blue header h1, .blue .goal, .blue .goal b, .blue .mypuan h2, .blue .mypuan-how, .blue .mypuan-how b, .blue .mypuan-note { color: #fff; }
-.blue header .streak, .blue .goal, .blue .mypuan h2 small, .blue .mypuan-how, .blue .mypuan-note { color: #dfe7ff; }
+.blue header, .blue header a, .blue header h1, .blue .goal, .blue .goal b, .blue .mypuan-how, .blue .mypuan-how b, .blue .mypuan-note { color: #fff; }
+.blue header .streak, .blue .goal, .blue .yw-sub small, .blue .mypuan-how, .blue .mypuan-note { color: #dfe7ff; }
 .blue header h1 { letter-spacing: -.01em; }
 .blue header .badge { background: #fff; color: #0b1430; }
-.blue header .share-chip, .blue .mypuan .share-chip { color: #fff; border: 1.5px solid rgba(255, 255, 255, .85); }
-.blue header .share-chip:hover, .blue .mypuan .share-chip:hover { background: rgba(255, 255, 255, .12); }
+.blue header .share-chip { color: #fff; border: 1.5px solid rgba(255, 255, 255, .85); }
+.blue header .share-chip:hover { background: rgba(255, 255, 255, .12); }
 /* The WhatsApp mark is a black drawing: white on the dark top, as the text beside it. */
-.blue header .share-chip img, .blue .mypuan .share-chip img { filter: invert(1); }
+.blue header .share-chip img { filter: invert(1); }
 .blue .goal-bar { background: rgba(255, 255, 255, .18); border-color: rgba(255, 255, 255, .3); }
 .blue :focus-visible { outline-color: #7aa7ff; }
 /* Frosted white cards. */
@@ -455,7 +465,7 @@ canvas.puan-ripple { display: block; width: 100%; max-width: 560px; height: auto
 
 /* Your Week (week.js): a short progress line and a share chip, only once something was sent. */
 .week { gap: 8px; justify-items: start; }
-.week p { margin: 0; color: var(--fg); font-weight: 600; }
+.week > p { margin: 0; color: var(--fg); font-weight: 600; }
 /* Its Share chip sits right after the title, so it does not line up under the shawl's Share on the right. */
 .week-top { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 16px; }
 .week-top .share-chip { margin-left: 0; }
@@ -598,7 +608,7 @@ body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week
 /* The main action is a pill sized to its words, not a full-width bar. */
 .blue .actions button.primary, .blue form > button.primary, .blue #fb-ok { flex: 0 1 auto; min-width: 200px; padding: 14px 34px; }
 @media (max-width: 480px) { .blue .actions button.primary { flex: 1; min-width: 0; } }
-.blue .share-chip, .blue .card .share-chip, .blue header .share-chip, .blue .mypuan .share-chip { color: var(--fg); border: 1px solid var(--hair); background: transparent; }
+.blue .share-chip, .blue .card .share-chip, .blue header .share-chip { color: var(--fg); border: 1px solid var(--hair); background: transparent; }
 .blue .share-chip:hover:not(:disabled) { background: rgba(244, 241, 234, .08); }
 .blue .share-chip img, .blue .card .share-chip img { filter: invert(1); }
 .blue .chip { color: var(--fg); border-color: var(--hair); }
@@ -630,7 +640,6 @@ body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week
 .blue .whatsnew { border-top: 0; padding: 0 0 24px; }
 .blue .news li { border-top-color: var(--line); }
 .blue .news a { color: #f2b705; }
-.blue .mypuan { margin: 0 0 32px; }
 .blue :focus-visible, .blue .card :focus-visible, .blue .cp main :focus-visible, .blue .whatsnew :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
 .blue .play { background: var(--blue); }
 .blue small { color: var(--muted); }
@@ -679,9 +688,9 @@ html[data-theme=light] body.blue {
 html[data-theme=light]:has(body.blue) { background: #f5f1e8; color-scheme: light; }
 html[data-theme=light] .blue ::selection { background: #15120f; color: #f5f1e8; }
 html[data-theme=light] .blue header, html[data-theme=light] .blue header a, html[data-theme=light] .blue .goal,
-html[data-theme=light] .blue .mypuan h2, html[data-theme=light] .blue .mypuan-how, html[data-theme=light] .blue .mypuan-how b,
+html[data-theme=light] .blue .mypuan-how, html[data-theme=light] .blue .mypuan-how b,
 html[data-theme=light] .blue .mypuan-note, html[data-theme=light] .blue .hero .back, html[data-theme=light] .blue header a[style] { color: var(--fg) !important; }
-html[data-theme=light] .blue .mypuan h2 small, html[data-theme=light] .blue .mypuan-how, html[data-theme=light] .blue .mypuan-note { color: var(--muted) !important; }
+html[data-theme=light] .blue .yw-sub small, html[data-theme=light] .blue .mypuan-how, html[data-theme=light] .blue .mypuan-note { color: var(--muted) !important; }
 /* Paper-coloured English only on filled ink buttons. The .cta links are outlined on paper now, so their
    English keeps the muted ink from the MAIN BUTTONS layer (it was paper on paper, invisible). */
 html[data-theme=light] .blue button.primary small, html[data-theme=light] .blue .seg button[aria-pressed="true"] small { color: rgba(245, 241, 232, .7); }
@@ -838,12 +847,12 @@ canvas.kp { display: block; width: 100%; height: clamp(110px, 15vw, 180px); bord
 /* PAITE UPRIGHT, ENGLISH ITALIC (12 Nov). Paite in Young Serif, upright; its English always the
    quiet italic beneath or beside it, in Instrument Serif Italic. Replaces the stacked tiny caps. */
 body.blue { --italic: "Instrument Serif", Georgia, "Times New Roman", serif; }
-.blue small, .blue .card h2 small, .blue .mypuan h2 small, .blue.cp .hero h1 small, .blue.cp .hero p small, .blue .seg button small, .blue .label small {
+.blue small, .blue .card h2 small, .blue .yw-sub small, .blue.cp .hero h1 small, .blue.cp .hero p small, .blue .seg button small, .blue .label small {
   font-family: var(--italic); font-style: italic; font-weight: 400; letter-spacing: 0; text-transform: none; font-size: max(1em, 1rem); line-height: 1.25;
 }
 .blue .label { font: 400 clamp(1.3rem, 3vw, 1.6rem)/1.15 var(--display); letter-spacing: -.005em; text-transform: none; color: var(--fg); }
 .blue .label small { display: block; margin-top: 3px; font-size: clamp(1.05rem, 2.4vw, 1.25rem); color: var(--muted); }
-.blue .card h2 small, .blue .mypuan h2 small { margin-top: 3px; font-size: clamp(1.05rem, 2.4vw, 1.25rem); color: var(--muted); }
+.blue .card h2 small, .blue .yw-sub small { margin-top: 3px; font-size: clamp(1.05rem, 2.4vw, 1.25rem); color: var(--muted); }
 .blue.cp .hero h1 small { margin-top: 10px; font-size: clamp(1.2rem, 3vw, 1.6rem); color: var(--muted); }
 .blue .pan small { font-size: clamp(1.05rem, 2.6vw, 1.35rem); }
 .blue button small, .blue .cta small { font-size: 1rem; }
@@ -911,11 +920,6 @@ html[data-theme=light] .blue .ask-card { background: rgba(21, 18, 15, .035); }
 }
 .blue textarea:focus, .blue input:not([type=radio]):not([type=checkbox]):not([type=range]):focus, .blue select:focus,
 .blue .gl input[type=search]:focus, .blue .gl textarea:focus { border-color: var(--hair); box-shadow: none; }
-/* Same box and the same 20px rhythm for the woven-shawl panel and around the chat, as for every section. */
-.blue .mypuan {
-  max-width: none; margin: 20px 0 0; border: 1px solid var(--line); border-radius: 20px; background: var(--surface);
-  padding: 28px clamp(18px, 4vw, 32px); gap: 10px;
-}
 .blue .card.chat { padding: 0; margin-top: 20px; }
 /* Soft drop shadow under every box (owner, 15 Nov), modelled on the woven-shawl canvas: a short
    shadow pulled in at the sides, so the box lifts a little off the page and nothing more.
@@ -942,7 +946,7 @@ html[data-theme=light] body.blue {
           radial-gradient(65% 40% at 20% 78%, rgba(75, 59, 214, .12), transparent 70%);
 }
 body.blue::before { content: ""; display: block; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--wash); }
-.blue .card:not(.chat), .blue .card.chat .chat-box, .blue .mypuan, body.rv .block {
+.blue .card:not(.chat), .blue .card.chat .chat-box, body.rv .block {
   background: var(--grain), var(--glass-bg); border-color: var(--glass-edge);
   -webkit-backdrop-filter: blur(22px) saturate(115%); backdrop-filter: blur(22px) saturate(115%);
   box-shadow: inset 0 1px 0 var(--glass-hi), var(--lift);

@@ -27,6 +27,8 @@
   };
   const setFor = (name, n) => loom(name, n).set;
   let me = null;
+  // The Your Work card shows when any of its parts does; week.js keeps the same check.
+  const ywShow = () => { const y = document.getElementById("yourwork"); if (y) y.hidden = !["week-line", "mypuan", "yw-fixed"].some((i) => !document.getElementById(i).hidden); };
   // Every section counts as thread: sentences, words, sayings, meanings and recordings.
   const threads = (m) => (m.total || 0) + (m.words || 0) + (m.meanings || 0) + (m.sayings || 0) + (m.recordings || 0);
   // Pau Upa is Paite and takes no English plural.
@@ -70,6 +72,7 @@
     if (!me) return;
     const n = threads(me);
     box.hidden = n < 1;
+    ywShow();
     if (n < 1) return;
     const { set, cur, done } = loom(me.name, n);
     const w = c.clientWidth || 320, h = Math.round(Math.min(160, 24 + cur * 2.72)), d = Math.min(devicePixelRatio || 1, 2);
@@ -79,9 +82,11 @@
   }
   document.addEventListener("paite:me", (e) => { me = e.detail; draw(); });
   addEventListener("resize", draw);
-  document.getElementById("mypuan-share").addEventListener("click", async () => {
-    if (!me) return;
+  document.getElementById("yw-share").addEventListener("click", async () => {
+    const wk = window.ywWeek;
+    if (!me || threads(me) < 1) { if (wk && window.ywWeekShare) window.ywWeekShare(); return; }
     const n = threads(me);
+    const weekLine = wk ? `This week: ${wk.sent} sent · ${wk.verified} verified · ${wk.words} words` : "";
     await document.fonts.ready;
     const k = document.createElement("canvas"); k.width = 1080; k.height = 1920;
     const g = k.getContext("2d"), css = getComputedStyle(document.documentElement);
@@ -92,11 +97,12 @@
     g.textAlign = "center"; g.fillStyle = "#111"; g.font = `400 96px ${display}`; g.fillText("Nampuan Liangbat Gat", 540, 1360, 960);
     g.fillStyle = "#5d6066"; g.font = `44px ${body}`; g.fillText(`${me.name ? me.name + " · " : ""}${set.name} · ${plural(n, "thread")}` + (done ? ` · ${plural(done, "shawl")}` : ""), 540, 1440, 960);
     g.fillStyle = "#111"; g.font = `700 44px ${body}`; g.fillText(sections(me), 540, 1520, 960);
+    if (weekLine) { g.fillStyle = "#111"; g.font = `700 44px ${body}`; g.fillText(weekLine, 540, 1580, 960); }
     g.fillStyle = "#111"; g.font = `700 46px ${body}`; g.fillText("One verified sentence, one thread. Weave yours.", 540, 1640, 960);
     g.fillStyle = "#5d6066"; g.font = `40px ${body}`; g.fillText("paite.lamkalabs.com", 540, 1710);
     const blob = await new Promise((r) => k.toBlob(r, "image/png"));
     const file = new File([blob], "ka-puan.png", { type: "image/png" });
-    if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: "Nampuan Liangbat Gat: my shawl, woven from the Paite I gave. https://paite.lamkalabs.com/?via=share" }).catch(() => {});
+    if (navigator.canShare && navigator.canShare({ files: [file] })) await navigator.share({ files: [file], text: "Nampuan Liangbat Gat: my shawl, woven from the Paite I gave." + (weekLine ? " " + weekLine + "." : "") + " https://paite.lamkalabs.com/?via=share" }).catch(() => {});
     else { const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = file.name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000); }
     if (window.pdTrack) window.pdTrack("share");
   });

@@ -112,19 +112,26 @@
     </details>
     <button type="button" class="news-close" aria-label="Hide these updates">&times;</button>
   </section>
-  <section class="card week" id="week" hidden aria-labelledby="week-h">
-    <div class="week-top"><h2 id="week-h">Your Week</h2><button type="button" class="share-chip" id="week-share"><img src="/whatsapp.png" alt="" width="16" height="16" decoding="async">Share</button></div>
-    <p id="week-line"></p>
-  </section>
-  <section class="mypuan" id="mypuan" hidden aria-labelledby="mypuan-h">
-    <div class="mypuan-top"><h2 id="mypuan-h">Nampuan Liangbat Gat <small>Your woven shawl</small></h2><button type="button" class="share-chip" id="mypuan-share"><img src="/whatsapp.png" alt="" width="16" height="16" decoding="async">Share</button></div>
-    <ul class="mypuan-how">
-      <li><b>What it is.</b> A shawl woven from your Paite. Each sentence or word you give, once a reviewer verifies it, adds one thread.</li>
-      <li><b>How it is woven.</b> Your name picks one of three nampuan: Puandum, BA / Siamsin Puan or Ngoutekhelh. The colours are that shawl's own. The order of the bands is yours alone.</li>
-      <li><b>What it does.</b> It grows as you give. At 50 threads the shawl is finished and the next one goes on the loom: BA / Siamsin Puan, then Aksi Puan, the star shawl. Tap Share to post it as your WhatsApp status.</li>
-    </ul>
-    <canvas id="mypuan-c" role="img" aria-label="Your woven shawl"></canvas>
-    <p class="mypuan-note" id="mypuan-note"></p>
+  <section class="card week yourwork" id="yourwork" hidden aria-labelledby="yw-h">
+    <div class="week-top"><h2 id="yw-h">Your Work</h2><button type="button" class="share-chip" id="yw-share"><img src="/whatsapp.png" alt="" width="16" height="16" decoding="async">Share</button></div>
+    <p class="yw-line" id="week-line" hidden></p>
+    <div class="yw-shawl" id="mypuan" hidden>
+      <p class="yw-sub">Nampuan Liangbat Gat <small>Your woven shawl</small></p>
+      <canvas id="mypuan-c" role="img" aria-label="Your woven shawl"></canvas>
+      <p class="mypuan-note" id="mypuan-note"></p>
+      <details class="more-box fold yw-how">
+        <summary><span>How Your Shawl Is Woven</span><svg class="chat-chev" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></summary>
+        <ul class="mypuan-how">
+          <li><b>What it is.</b> A shawl woven from your Paite. Each sentence or word you give, once a reviewer verifies it, adds one thread.</li>
+          <li><b>How it is woven.</b> Your name picks one of three nampuan: Puandum, BA / Siamsin Puan or Ngoutekhelh. The colours are that shawl's own. The order of the bands is yours alone.</li>
+          <li><b>What it does.</b> It grows as you give. At 50 threads the shawl is finished and the next one goes on the loom: BA / Siamsin Puan, then Aksi Puan, the star shawl. Tap Share to post it as your WhatsApp status.</li>
+        </ul>
+      </details>
+    </div>
+    <div class="yw-fixed" id="yw-fixed" hidden>
+      <h3>Corrected for You</h3>
+      <ul id="yw-fixed-list"></ul>
+    </div>
   </section>
   <section class="card chat" id="chat" aria-labelledby="chat-h">
     <details class="chat-box" id="chat-box">
