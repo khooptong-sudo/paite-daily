@@ -256,9 +256,10 @@ export function renderGlossary(xs: Entry[], extras?: Extras): string {
 <link rel="icon" href="/icons/emblem-small.svg" type="image/svg+xml">
 <link rel="icon" href="/icons/icon-192.png" sizes="192x192">
 <script>document.documentElement.className="js"</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Instrument+Serif:ital@1&family=Inter:wght@400;600;700&display=swap">
+<link rel="preload" href="/fonts/youngserif-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/instrumentserif-italic-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts.css">
 <link rel="stylesheet" href="/style.css">
 <script src="/theme.js"></script>
 <link rel="stylesheet" href="/contributors.css">

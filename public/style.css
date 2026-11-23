@@ -125,7 +125,7 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 /* The band is the end of the page: no body padding under it (it showed as a strip of plain page colour). */
 body:has(.foot .reach) { padding-bottom: 0; }
 .foot .reach { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
-.foot .reach { --fg: #15120f; --muted: rgba(21, 18, 15, .62); --line: rgba(21, 18, 15, .14); --hair: rgba(21, 18, 15, .42); --surface: rgba(21, 18, 15, .03); }
+.foot .reach { --fg: #15120f; --muted: rgba(21, 18, 15, .70); --line: rgba(21, 18, 15, .14); --hair: rgba(21, 18, 15, .42); --surface: rgba(21, 18, 15, .03); }
 /* footer.js sets the canvas's left edge, width and height so it covers the viewport width down to the page end. */
 .foot .silk { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
 .foot .reach > :not(.silk) { position: relative; }
@@ -133,7 +133,7 @@ body:has(.foot .reach) { padding-bottom: 0; }
    footer.js sets its width and left margin so it runs edge to edge across the viewport. */
 .foot .loom { justify-self: start; display: block; width: 100%; height: 222px; margin: -112px 0 36px; touch-action: pan-y; cursor: crosshair; }
 @media (max-width: 560px) { .foot .loom { height: 172px; margin-bottom: 24px; } }
-.foot .reach-kicker { font-size: .7rem; letter-spacing: .3em; text-transform: uppercase; color: rgba(21, 18, 15, .58); }
+.foot .reach-kicker { font-size: .7rem; letter-spacing: .3em; text-transform: uppercase; color: rgba(21, 18, 15, .70); }
 .foot .reach-title { font: 400 clamp(2.4rem, 9vw, 3.8rem)/1.02 var(--display); letter-spacing: -.02em; color: #15120f; }
 .foot .reach-note { max-width: 46ch; font-size: .98rem; line-height: 1.6; text-wrap: balance; }
 /* Hairline links: no boxes, split by thin rules. Coffee keeps its underline; the others draw theirs on hover. */
@@ -161,13 +161,14 @@ body:has(.foot .reach) { padding-bottom: 0; }
   .foot .links a { flex-direction: column; justify-content: center; gap: 4px; padding: 8px 12px; }
 }
 .foot a:focus-visible { outline: 2px solid #15120f; outline-offset: 2px; }
-.foot .coffee-note { max-width: 38ch; margin-top: -10px; font-size: .78rem; line-height: 1.4; color: rgba(21, 18, 15, .58); }
+.foot .coffee-note { max-width: 38ch; margin-top: -10px; font-size: .78rem; line-height: 1.4; color: rgba(21, 18, 15, .70); }
 #upi { justify-items: center; width: min(100%, 360px); background: rgba(255, 255, 255, .55); border-color: rgba(21, 18, 15, .14); box-shadow: none; color: rgba(21, 18, 15, .8); }
 #upi p { margin: 0; }
 #upi b { color: #15120f; }
 .qr { background: #fff; padding: 12px; border-radius: 16px; width: min(100%, 220px); line-height: 0; }
-.foot .built { width: 100%; margin-top: 52px; padding-top: 20px; border-top: 1px solid rgba(21, 18, 15, .14); font-size: .8rem; color: rgba(21, 18, 15, .58); }
-.foot .built a { display: inline-block; padding: 6px 2px; color: #15120f; text-decoration: none; }
+.foot .built { width: 100%; margin-top: 52px; padding-top: 20px; border-top: 1px solid rgba(21, 18, 15, .14); font-size: .8rem; color: rgba(21, 18, 15, .70); }
+.foot .built a { display: inline-block; position: relative; padding: 6px 2px; color: #15120f; text-decoration: none; }
+.foot .built a::after { content: ""; position: absolute; inset: -6px 0; }
 /* "Lamka Labs" in bold ink, no underline (owner, 13 Nov). */
 .foot .built a.lab { text-decoration: none; }
 /* "About This Project" carries the red underline instead. */
@@ -760,7 +761,7 @@ html[data-theme=light] body.blue { --disc-arrow: url("data:image/svg+xml,%3Csvg 
 /* Fields in focus: a softer ring than buttons get, so typing does not shout (owner, 12 Nov). */
 .blue textarea:focus-visible, .blue input:not([type=radio]):not([type=checkbox]):focus-visible, .blue select:focus-visible,
 .blue .card textarea:focus-visible, .blue .card input:not([type=radio]):not([type=checkbox]):focus-visible, .blue .card select:focus-visible {
-  outline: 1.5px solid color-mix(in srgb, var(--ring) 55%, transparent); outline-offset: 4px;
+  outline: 1.5px solid color-mix(in srgb, var(--ring) 70%, transparent); outline-offset: 4px;
 }
 /* Front-page header: the theme switch sits beside Reviewer, About This Project under both. */
 .hdr-links:has(.theme-toggle) { display: grid; grid-template-columns: auto auto; align-items: center; justify-items: end; column-gap: 10px; row-gap: 8px; }

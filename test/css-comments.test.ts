@@ -5,7 +5,7 @@ import { env } from "cloudflare:test";
 // light mode got pale text on paper (23 Nov 2026). Brace counts stayed balanced, so check the comments themselves.
 // Fetched from the static assets: a ?raw import of a .css file comes back empty under vitest.
 const read = async (f: string): Promise<string> => (await (env as any).ASSETS.fetch(`https://paite.lamkalabs.com/${f}`)).text();
-const files = ["style.css", "review/pages.css", "review/visitors.css"];
+const files = ["style.css", "fonts.css", "review/pages.css", "review/visitors.css"];
 
 for (const name of files) {
   it(`${name} has no comment end outside a comment`, async () => {
