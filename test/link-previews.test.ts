@@ -48,4 +48,17 @@ describe("glossary and sayings link previews", () => {
     const d = await get("/proverbs?s=999999");
     expect(tag(d, "og:title")).toBe("Paite Proverbs &amp; Idioms");
   });
+
+  it("an English proverb previews in Paite once it has a Paite version, and invites one while it waits", async () => {
+    const done = await env.DB.prepare("INSERT INTO proverbs (kind, paite, english, entered_from, status) VALUES ('proverb', 'Vasa khat khut sunga', 'A bird in the hand', 'en2pai', 'live') RETURNING id").first<{ id: number }>();
+    const h = await get(`/proverbs?s=${done!.id}`);
+    expect(tag(h, "og:title")).toBe("Vasa khat khut sunga · Paite Sayings");
+    expect(tag(h, "og:description")).toBe("A bird in the hand");
+    const open = await env.DB.prepare("INSERT INTO proverbs (kind, english, entered_from, status) VALUES ('idiom', 'Head over heels', 'en2pai', 'open') RETURNING id").first<{ id: number }>();
+    const o = await get(`/proverbs?s=${open!.id}`);
+    if (tag(o, "og:title") !== "Paite Proverbs &amp; Idioms") {
+      expect(tag(o, "og:title")).toBe("Head over heels · Paite Sayings");
+      expect(tag(o, "og:description")).toBe("Waiting for its Paite version. Do you know it?");
+    }
+  });
 });

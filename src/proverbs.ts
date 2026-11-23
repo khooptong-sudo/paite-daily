@@ -237,9 +237,14 @@ function item(p: Proverb): string {
 
 export function renderProverbs(xs: Proverb[], siteKey = "", sid = 0): string {
   const hit = sid ? xs.find((p) => p.id === sid) : undefined;
-  const first = hit ? (hit.entered_from === "en2pai" ? hit.english : hit.paite) ?? lead(hit) : "";
+  // Paite first whenever it exists; an English proverb still waiting for its Paite version shows the English.
+  const first = hit ? hit.paite ?? hit.english ?? lead(hit) : "";
   const pTitle = hit ? `${first.slice(0, 90)} · Paite Sayings` : "Paite Proverbs & Idioms";
-  const pDesc = hit ? (hit.explainer_en ?? (hit.entered_from === "en2pai" ? hit.paite : hit.english) ?? hit.explainer ?? "").slice(0, 200) : "";
+  // A Paite saying: its English meaning (its English line may only be a literal gloss). An English proverb with a
+  // Paite version: the English proverb. One still waiting: an invitation.
+  const pDesc = !hit ? "" : !hit.paite ? "Waiting for its Paite version. Do you know it?"
+    : (hit.entered_from === "en2pai" ? hit.english ?? hit.explainer_en : hit.explainer_en ?? hit.english) ?? hit.explainer ?? "";
+  const pDescCut = pDesc.slice(0, 200);
   const pUrl = `https://paite.lamkalabs.com/proverbs${hit ? `?s=${hit.id}` : ""}`;
   const groups = new Map<string, Proverb[]>();
   for (const p of [...xs].sort((a, b) => lead(a).localeCompare(lead(b)))) {
@@ -270,14 +275,14 @@ export function renderProverbs(xs: Proverb[], siteKey = "", sid = 0): string {
 <meta property="og:locale" content="en_IN">
 <meta property="og:url" content="${esc(pUrl)}">
 <meta property="og:title" content="${esc(pTitle)}">
-<meta property="og:description" content="${hit ? esc(pDesc) : "Paite proverbs and idioms with an explainer for each, and English proverbs and idioms waiting for their Paite version."}">
+<meta property="og:description" content="${hit ? esc(pDescCut) : "Paite proverbs and idioms with an explainer for each, and English proverbs and idioms waiting for their Paite version."}">
 <meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${esc(pTitle)}">
-<meta name="twitter:description" content="${hit ? esc(pDesc) : "Paite proverbs and idioms, each with an explainer."}">
+<meta name="twitter:description" content="${hit ? esc(pDescCut) : "Paite proverbs and idioms, each with an explainer."}">
 <meta name="twitter:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta name="twitter:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <link rel="manifest" href="/manifest.webmanifest">
