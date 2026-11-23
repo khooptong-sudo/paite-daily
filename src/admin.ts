@@ -16,6 +16,14 @@ import { json, type Deps, type Env } from "./types";
  *   with no password yet starts with "Email me a link".
  * POSTs need the X-Admin header and a same-origin Origin, on top of the SameSite=Strict cookie.
  */
+// An address the server must never call: this machine, private ranges, and names with no dot (internal hosts).
+const privateHost = (url: string) => {
+  const h = new URL(url).hostname.toLowerCase();
+  const v4 = h.match(/^(\d+)\.(\d+)\.\d+\.\d+$/);
+  const [a, b] = v4 ? [+v4[1], +v4[2]] : [-1, -1];
+  return !h.includes(".") || h === "localhost" || h.endsWith(".localhost") || h.startsWith("[") || a === 127 || a === 10 || a === 0 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254);
+};
+
 export const ADMIN_COOKIE = "__Host-paite_admin";
 const SESSION_MS = 7 * 24 * 3_600_000, LINK_MS = 3_600_000, INVITE_MS = 7 * 24 * 3_600_000;
 const WINDOW_MS = 15 * 60_000, MAX_LOGIN_PER_EMAIL = 8, MAX_LOGIN_PER_IP = 20, MAX_LINK_PER_EMAIL = 3, MAX_LINK_PER_IP = 10;
@@ -171,7 +179,7 @@ export async function handleAdmin(req: Request, env: Env, deps: Deps, ctx?: Exec
     const baseUrl = (provider === "custom" ? str("baseUrl", 300) : preset.baseUrl).replace(/\/+$/, "");
     const model = str("model", 120) || preset.model;
     const key = typeof b.key === "string" ? b.key.trim() : "";
-    if (!/^https:\/\/[a-z0-9.-]+(:\d+)?(\/[\w./%-]*)?$/i.test(baseUrl)) return json({ error: "bad_url", message: "The endpoint must be an https:// address." }, 400);
+    if (!/^https:\/\/[a-z0-9.-]+(:\d+)?(\/[\w./%-]*)?$/i.test(baseUrl) || privateHost(baseUrl)) return json({ error: "bad_url", message: "The endpoint must be an https:// address." }, 400);
     if (!/^[\w./:@-]{1,120}$/.test(model)) return json({ error: "bad_model" }, 400);
     if (key && (key.length < 8 || key.length > 500 || /\s/.test(key))) return json({ error: "bad_key" }, 400);
     const old = await env.DB.prepare("SELECT provider, base_url, key_cipher, key_iv, key_hint FROM ai_settings WHERE id = 1").first<{ provider: string; base_url: string; key_cipher: string; key_iv: string; key_hint: string }>();

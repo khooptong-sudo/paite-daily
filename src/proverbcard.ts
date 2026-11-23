@@ -16,6 +16,8 @@ export type CardSave = {
   finalPaite?: string;
   finalEnglish?: string;
   alsoCorrect?: number[];
+  /** Corrected text for lines ticked also-correct, by answer id. */
+  variantEdits?: Record<string, string>;
   note?: string;
   rejectAll?: boolean;
   retire?: boolean;
@@ -91,6 +93,15 @@ export async function saveProverbReview(
   const finalEnglish = p.finalEnglish !== undefined ? cleanText(p.finalEnglish, 300) : null;
   if (p.finalEnglish !== undefined && !finalEnglish) return "bad_answer";
 
+  // A corrected variant keeps the reviewer's text; the original is kept on its variant review row (final_paite / final_english).
+  const edited = new Map<number, { text: string; paite: string | null; english: string | null }>();
+  for (const id of variants) {
+    const raw = p.variantEdits && typeof p.variantEdits === "object" ? p.variantEdits[id] : undefined;
+    const text = typeof raw === "string" ? cleanText(raw, 300) : "";
+    const was = text ? await env.DB.prepare("SELECT paite, english FROM proverb_answers WHERE id = ?1").bind(id).first<{ paite: string | null; english: string | null }>() : null;
+    if (was && text !== (was.paite ?? was.english)) edited.set(id, { text, ...was });
+  }
+
   const touched = JSON.stringify([p.acceptAnswerId, ...variants, ...losers]);
 
   await env.DB.batch([
@@ -100,8 +111,13 @@ export async function saveProverbReview(
     ).bind(p.proverbId, p.acceptAnswerId, email, finalPaite, finalEnglish, note, touched),
     ...variants.map((id) =>
       env.DB.prepare(
-        "INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision) VALUES (?1, ?2, ?3, 'variant')",
-      ).bind(p.proverbId, id, email),
+        "INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision, final_paite, final_english) VALUES (?1, ?2, ?3, 'variant', ?4, ?5)",
+      ).bind(p.proverbId, id, email, edited.get(id)?.paite ?? null, edited.get(id)?.english ?? null),
+    ),
+    ...[...edited].map(([id, e]) =>
+      env.DB.prepare(
+        "UPDATE proverb_answers SET paite = CASE WHEN paite IS NOT NULL THEN ?2 ELSE paite END, english = CASE WHEN paite IS NULL THEN ?2 ELSE english END WHERE id = ?1 AND status = 'new'",
+      ).bind(id, e.text),
     ),
     ...(variants.length
       ? [

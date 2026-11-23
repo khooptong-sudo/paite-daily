@@ -181,7 +181,14 @@ export async function undoProverbReview(env: Env, email: string, proverbId: numb
 
   const stmts = [env.DB.prepare("UPDATE proverb_reviews SET undone_at = datetime('now') WHERE id = ?1").bind(r.id)];
   if (ids.length) {
+    // A corrected variant goes back to the text the contributor wrote.
     stmts.push(
+      env.DB.prepare(
+        `UPDATE proverb_answers SET
+           paite = COALESCE((SELECT v.final_paite FROM proverb_reviews v WHERE v.answer_id = proverb_answers.id AND v.decision = 'variant' AND v.undone_at IS NULL AND lower(v.reviewer_email) = lower(?3) AND v.final_paite IS NOT NULL ORDER BY v.id DESC LIMIT 1), paite),
+           english = COALESCE((SELECT v.final_english FROM proverb_reviews v WHERE v.answer_id = proverb_answers.id AND v.decision = 'variant' AND v.undone_at IS NULL AND lower(v.reviewer_email) = lower(?3) AND v.final_english IS NOT NULL ORDER BY v.id DESC LIMIT 1), english)
+         WHERE proverb_id = ?1 AND id IN (SELECT value FROM json_each(?2))`,
+      ).bind(proverbId, JSON.stringify(ids), email),
       env.DB.prepare(
         `UPDATE proverb_reviews SET undone_at = datetime('now')
           WHERE proverb_id = ?1 AND lower(reviewer_email) = lower(?3) AND undone_at IS NULL AND decision = 'variant'

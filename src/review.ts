@@ -163,6 +163,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
       finalPaite: b.finalPaite as string | undefined,
       finalEnglish: b.finalEnglish as string | undefined,
       alsoCorrect: b.alsoCorrect as number[] | undefined,
+      variantEdits: b.variantEdits as Record<string, string> | undefined,
       note: b.note as string | undefined,
       rejectAll: b.rejectAll === true,
       retire: b.retire === true,
@@ -209,8 +210,12 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
   }
   if (pathname === "/review/api/link-phone" && req.method === "POST") {
     if (!isPhoneId(b.phoneId)) return json({ error: "bad_request" }, 400);
+    const phone = b.phoneId.toLowerCase();
+    // A phone already linked to someone else stays theirs; only the owner may move it.
+    const held = await env.DB.prepare("SELECT reviewer_email FROM reviewer_phones WHERE phone_id = ?1").bind(phone).first<{ reviewer_email: string }>();
+    if (held && held.reviewer_email.toLowerCase() !== email.toLowerCase() && !isOwner(env, email)) return json({ error: "phone_taken", message: "That phone is already linked to another reviewer." }, 409);
     await env.DB.prepare("INSERT INTO reviewer_phones (phone_id, reviewer_email) VALUES (?1, ?2) ON CONFLICT (phone_id) DO UPDATE SET reviewer_email = excluded.reviewer_email")
-      .bind(b.phoneId.toLowerCase(), email).run();
+      .bind(phone, email).run();
     return json({ ok: true });
   }
   if (pathname === "/review/api/health" && req.method === "GET") {

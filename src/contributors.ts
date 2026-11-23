@@ -18,10 +18,12 @@ export const badgeFor = (verified: number): Badge => ([500, 100, 50, 10] as cons
 const byCountThenName = <T extends { name: string }>(key: (x: T) => number) => (a: T, b: T) => key(b) - key(a) || a.name.localeCompare(b.name);
 
 export async function getContributors(env: Env): Promise<Contributors> {
+  // The badge is for current, listed reviewers only: not removed, and named in the table or the secret.
+  const current = (await activeReviewers(env)).filter((r) => r.listed).map((r) => r.email);
   const c = await env.DB.prepare(
     `SELECT * FROM (
        SELECT t.sentences, t.words, t.sentencesWeek, t.wordsWeek,
-         EXISTS (SELECT 1 FROM reviewer_phones r WHERE r.phone_id = t.phone_id) AS reviewer,
+         EXISTS (SELECT 1 FROM reviewer_phones r WHERE r.phone_id = t.phone_id AND lower(r.reviewer_email) IN (SELECT value FROM json_each(?1))) AS reviewer,
          COALESCE(
            (SELECT b.contributor_name FROM answers b WHERE b.phone_id = t.phone_id AND b.status IN ('accepted', 'also_correct') AND TRIM(COALESCE(b.contributor_name, '')) <> '' ORDER BY b.id DESC LIMIT 1),
            (SELECT w2.contributor_name FROM word_submissions w2 WHERE w2.phone_id = t.phone_id AND w2.status = 'approved' AND TRIM(COALESCE(w2.contributor_name, '')) <> '' ORDER BY w2.id DESC LIMIT 1)
@@ -40,8 +42,8 @@ export async function getContributors(env: Env): Promise<Contributors> {
          ) GROUP BY phone_id
        ) t
      ) WHERE name IS NOT NULL`,
-  ).all<{ name: string; sentences: number; words: number; sentencesWeek: number; wordsWeek: number; reviewer: number }>();
-  const counts = await env.DB.prepare("SELECT lower(reviewer_email) AS email, COUNT(*) AS n, SUM(created_at >= datetime('now', '-7 days')) AS w FROM reviews WHERE undone_at IS NULL GROUP BY 1")
+  ).bind(JSON.stringify(current)).all<{ name: string; sentences: number; words: number; sentencesWeek: number; wordsWeek: number; reviewer: number }>();
+  const counts = await env.DB.prepare("SELECT lower(reviewer_email) AS email, COUNT(*) AS n, SUM(created_at >= datetime('now', '-7 days')) AS w FROM reviews WHERE undone_at IS NULL AND NOT (decision = 'variant' AND accepted_answer_id IS NOT NULL) GROUP BY 1")
     .all<{ email: string; n: number; w: number }>();
   const done = new Map(counts.results.map((r) => [r.email, r]));
   // One person often uses several phones or browsers, each its own phone id. Rows with the

@@ -20,6 +20,8 @@ export type Decision = {
   register?: string;
   note?: string;
   alsoCorrect?: number[];
+  /** Corrected text for answers ticked also-correct, by answer id. */
+  variantEdits?: Record<string, string>;
 };
 
 /** A sentence holding one of this reviewer's own fresh answers goes to the other reviewers (own.ts). Slots ?1 now, ?3-?5. */
@@ -94,6 +96,7 @@ export async function decide(db: D1Database, email: string, now: number, d: Deci
   // Every write is guarded by the caller's live lock; the lock is deleted last, so a second submit writes nothing.
   const G = "EXISTS (SELECT 1 FROM locks WHERE sentence_id = ?1 AND reviewer_email = ?2 AND expires_at > ?3)";
   const stmts: D1PreparedStatement[] = [];
+  let lead = 0;
 
   if (d.decision === "accept") {
     if (!d.answerIds.includes(d.answerId as number)) return "bad_answer";
@@ -102,6 +105,20 @@ export async function decide(db: D1Database, email: string, now: number, d: Deci
     const finalPaite = d.finalPaite !== undefined ? cleanText(d.finalPaite, 300) : chosen.paite;
     if (!finalPaite) return "bad_answer";
     const also = (d.alsoCorrect ?? []).filter((x) => x !== d.answerId && d.answerIds.includes(x));
+    // A corrected variant is saved with the reviewer's text; the original goes into a history row written before the
+    // accept row (so the accept stays the newest review of the sentence, which undo needs).
+    const edits = d.variantEdits && typeof d.variantEdits === "object" ? d.variantEdits : {};
+    for (const id of also) {
+      const text = typeof edits[id] === "string" ? cleanText(edits[id], 300) : "";
+      const was = text ? await db.prepare("SELECT paite FROM answers WHERE id = ?1").bind(id).first<{ paite: string }>() : null;
+      if (!text || !was || was.paite === text) continue;
+      stmts.push(
+        db.prepare(`INSERT INTO reviews (sentence_id, reviewer_email, decision, accepted_answer_id, final_paite, note, answer_ids)
+          SELECT ?1, ?2, 'variant', ?4, ?5, 'edited variant: original text', ?6 WHERE ${G}`).bind(d.sentenceId, email, now, id, was.paite, ids),
+        db.prepare(`UPDATE answers SET paite = ?5 WHERE id = ?4 AND status = 'new' AND ${G}`).bind(d.sentenceId, email, now, id, text),
+      );
+    }
+    lead = stmts.length;
     stmts.push(
       db.prepare(`INSERT INTO reviews (sentence_id, reviewer_email, decision, accepted_answer_id, final_paite, register, note, answer_ids)
         SELECT ?1, ?2, 'accept', ?4, ?5, ?6, ?7, ?8 WHERE ${G}`).bind(d.sentenceId, email, now, d.answerId, finalPaite, register ?? chosen.register, note, ids),
@@ -131,7 +148,7 @@ export async function decide(db: D1Database, email: string, now: number, d: Deci
   }
   stmts.push(db.prepare("DELETE FROM locks WHERE sentence_id = ?1 AND reviewer_email = ?2").bind(d.sentenceId, email));
   const res = await db.batch(stmts);
-  return res[0].meta.changes === 1 ? res[0].meta.last_row_id : "no_lock";
+  return res[lead].meta.changes === 1 ? res[lead].meta.last_row_id : "no_lock";
 }
 
 export async function undo(db: D1Database, reviewId: number, email: string, owner: boolean): Promise<"ok" | "exported" | "missing" | "not_latest" | "not_yours"> {
@@ -142,7 +159,13 @@ export async function undo(db: D1Database, reviewId: number, email: string, owne
   if (reviewId <= (last?.n ?? 0)) return "exported";
   const latest = await db.prepare("SELECT MAX(id) AS n FROM reviews WHERE sentence_id = ?1 AND undone_at IS NULL").bind(r.sentence_id).first<{ n: number }>();
   if (latest?.n !== reviewId) return "not_latest";
+  // A corrected variant goes back to the text the contributor wrote (history rows were written just before this review).
+  const mine = `v.decision = 'variant' AND v.accepted_answer_id IS NOT NULL AND v.undone_at IS NULL AND v.sentence_id = ?2 AND v.id < ?1
+    AND v.answer_ids = (SELECT answer_ids FROM reviews WHERE id = ?1)`;
   await db.batch([
+    db.prepare(`UPDATE answers SET paite = (SELECT v.final_paite FROM reviews v WHERE ${mine} AND v.accepted_answer_id = answers.id ORDER BY v.id DESC LIMIT 1)
+      WHERE sentence_id = ?2 AND EXISTS (SELECT 1 FROM reviews v WHERE ${mine} AND v.accepted_answer_id = answers.id)`).bind(reviewId, r.sentence_id),
+    db.prepare(`UPDATE reviews SET undone_at = datetime('now') WHERE id IN (SELECT v.id FROM reviews v WHERE ${mine})`).bind(reviewId, r.sentence_id),
     db.prepare("UPDATE reviews SET undone_at = datetime('now') WHERE id = ?1").bind(reviewId),
     db.prepare("UPDATE answers SET status = 'new' WHERE sentence_id = ?2 AND id IN (SELECT value FROM json_each((SELECT COALESCE(answer_ids, '[]') FROM reviews WHERE id = ?1)))").bind(reviewId, r.sentence_id),
     db.prepare(`UPDATE sentences SET answer_count = (SELECT min(count(*), 2) FROM answers WHERE sentence_id = ?1 AND status = 'new'),

@@ -161,6 +161,8 @@
           proverbId: a.proverb_id,
           acceptAnswerId: c.id,
           alsoCorrect: variants,
+          // A ticked line is kept with the reviewer's corrected text.
+          variantEdits: Object.fromEntries(blocks.filter(function (b, i) { return i !== idx && b.box.checked && b.ta.value.trim() && b.ta.value.trim() !== b.c.text; }).map(function (b) { return [b.c.id, b.ta.value]; })),
           note: note.value,
         }, c.side || a.side || "paite", ta.value)).then(function (res) {
           if (!res.ok) { [ok, no].forEach(function (b) { b.disabled = false; }); say((res.body && res.body.message) || "That did not go through."); return; }

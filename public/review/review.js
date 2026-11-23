@@ -119,6 +119,7 @@
     const common = multi ? new Set([...sets[0]].filter((w) => sets.every((s) => s.has(w)))) : null;
     const swipeHint = document.createElement("p"); swipeHint.className = "meta swipe-hint"; swipeHint.hidden = !touch;
     swipeHint.textContent = multi ? "Swipe an answer right to accept it, left to reject that answer only. Marked words differ between the answers." : "Swipe the answer right to accept it, left to reject it.";
+    const editors = new Map();
     $("answers").replaceChildren(hint, swipeHint, ...card.answers.map((a) => {
       const box = document.createElement("div");
       box.className = "answer"; box.tabIndex = -1;
@@ -130,6 +131,7 @@
       if (a.ai_note) { const ai = document.createElement("div"); ai.className = "ai"; ai.textContent = "AI note (advisory)" + (a.ai_flag ? " [" + (rev && a.ai_flag === "english" ? "not_english" : a.ai_flag) + "]" : "") + ": " + a.ai_note; box.append(ai); }
       const edit = document.createElement("textarea"); edit.value = a.paite;
       const hints = rev ? null : ruleHints(a.paite, edit); edit.maxLength = 300; edit.setAttribute("aria-label", "Edit before accepting: " + a.paite); edit.dataset.lang = rev ? "en" : "pai";
+      editors.set(a.id, { edit, was: a.paite });
       const also = document.createElement("label"); also.hidden = !multi;
       const cb = document.createElement("input"); cb.type = "checkbox"; cb.dataset.answerId = a.id; cb.setAttribute("aria-label", "Also correct (keep as variant): " + a.paite);
       cb.addEventListener("change", () => box.classList.toggle("variant", cb.checked));
@@ -140,6 +142,9 @@
         decision: "accept", answerId: a.id,
         finalPaite: edit.value.trim() === a.paite ? undefined : edit.value,
         alsoCorrect: [...document.querySelectorAll("[data-answer-id]:checked")].map((c) => Number(c.dataset.answerId)).filter((id) => id !== a.id),
+        // A ticked variant is kept with the reviewer's corrected text, not the original.
+        variantEdits: Object.fromEntries([...document.querySelectorAll("[data-answer-id]:checked")].map((c) => Number(c.dataset.answerId)).filter((id) => id !== a.id)
+          .map((id) => [id, editors.get(id)]).filter(([, e]) => e && e.edit.value.trim() && e.edit.value.trim() !== e.was).map(([id, e]) => [id, e.edit.value])),
       }));
       const reject = document.createElement("button"); reject.type = "button"; reject.textContent = "✕ Reject"; reject.setAttribute("aria-label", "Reject this answer only: " + a.paite);
       reject.addEventListener("click", () => send({ decision: "reject", answerIds: [a.id] }, "Answer rejected. The rest stay open."));
@@ -236,18 +241,22 @@
   let busy = false;
   async function send(extra, done = "Saved.") {
     if (!card || busy) return;
-    busy = true; hideUndo();
+    busy = true;
     try {
       const r = await post("/review/api/decide", {
         sentenceId: card.sentence.id, answerIds: card.answers.map((a) => a.id),
         register: $("register").value || undefined, note: $("note").value || undefined, ...extra,
       });
       if (expired(r)) { status(EXPIRED); return; }
-      if (r.status === 409) status("Your lock ran out or someone else took this one. Loading the next.");
-      else if (!r.ok) { status("Could not save. Try again."); return; }
-      else { status(done, true); showUndo((await r.json()).reviewId); }
+      const j = await r.json().catch(() => ({}));
+      if (r.ok) { hideUndo(); status(done, true); if (j.reviewId) showUndo(j.reviewId); await next(true); return; }
+      // The server says what happened in "error"; a failed save leaves the previous Undo where it was.
+      if (j.error === "bad_answer") status("Part of this card was already decided by someone else. Loading the next.");
+      else if (j.error === "own_submission") status("This is your own submission. Another reviewer will check it. Loading the next.");
+      else if (j.error === "lock_lost" || r.status === 409) status("Your lock ran out or someone else took this one. Loading the next.");
+      else { status("Could not save. Try again."); return; }
       await next(true);
-    } catch { status(EXPIRED); }
+    } catch { status("No connection. Try again."); }
     finally { busy = false; }
   }
 
@@ -335,7 +344,9 @@
         cancel.addEventListener("click", () => { form.hidden = true; ip.value = e.paite; ie.value = e.english; inote.value = e.note ?? ""; });
         save.addEventListener("click", async () => {
           save.disabled = true;
-          const x = await post("/review/api/glossary/edit", { id: e.id, paite: ip.value, english: ie.value, note: inote.value });
+          let x;
+          try { x = await post("/review/api/glossary/edit", { id: e.id, paite: ip.value, english: ie.value, note: inote.value }); }
+          catch { save.disabled = false; status("No connection. Try again."); return; }
           save.disabled = false;
           if (x.ok) { status("Correction saved.", true); words(); }
           else if (x.status === 409) status("That word and meaning are already in the list.");
@@ -346,7 +357,9 @@
         vis.setAttribute("aria-label", (e.hidden ? "Show word: " : "Hide word: ") + e.paite);
         vis.addEventListener("click", async () => {
           vis.disabled = true;
-          const x = await post("/review/api/glossary/hide", { id: e.id, hidden: !e.hidden });
+          let x;
+          try { x = await post("/review/api/glossary/hide", { id: e.id, hidden: !e.hidden }); }
+          catch { vis.disabled = false; status("No connection. Try again."); return; }
           vis.disabled = false;
           if (x.ok) { status(e.hidden ? "Word is back in the list." : "Word hidden.", true); words(); }
           else status("Could not change that word.");
@@ -392,8 +405,14 @@
         const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.setAttribute("aria-label", label + " word: " + w.paite);
         b.addEventListener("click", async () => {
           const bs = li.querySelectorAll("button"); bs.forEach((x) => (x.disabled = true));
-          const x = await post("/review/api/words/decide", { id: w.id, decision, ...(extra ? extra() : {}) });
-          if (x.ok || x.status === 409) li.remove(); else bs.forEach((y) => (y.disabled = false));
+          const again = (m) => { bs.forEach((y) => (y.disabled = false)); status(m); };
+          const body = extra ? extra() : {};
+          if (decision === "approve" && "english" in body && !String(body.english).trim()) { again("Give the English meaning first."); return; }
+          let x;
+          try { x = await post("/review/api/words/decide", { id: w.id, decision, ...body }); } catch { again("No connection. Try again."); return; }
+          if (x.ok) li.remove();
+          else if (x.status === 409) { status("Someone else already decided this one."); li.remove(); }
+          else again(expired(x) ? "Sign-in expired. Reload the page." : "Could not save. Try again.");
         });
         return b;
       };
@@ -424,8 +443,13 @@
         const b = document.createElement("button"); b.type = "button"; b.textContent = label; b.setAttribute("aria-label", label + " link: " + w.paite + " and " + w.other);
         b.addEventListener("click", async () => {
           const bs = li.querySelectorAll("button"); bs.forEach((x) => (x.disabled = true));
-          const x = await post("/review/api/links/decide", { id: w.id, decision, ...(extra ? extra() : {}) });
-          if (x.ok || x.status === 409) li.remove(); else bs.forEach((y) => (y.disabled = false));
+          const again = (m) => { bs.forEach((y) => (y.disabled = false)); status(m); };
+          const body = extra ? extra() : {};
+          let x;
+          try { x = await post("/review/api/links/decide", { id: w.id, decision, ...body }); } catch { again("No connection. Try again."); return; }
+          if (x.ok) li.remove();
+          else if (x.status === 409) { status("Someone else already decided this one."); li.remove(); }
+          else again(expired(x) ? "Sign-in expired. Reload the page." : "Could not save. Try again.");
         });
         return b;
       };
