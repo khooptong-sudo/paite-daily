@@ -26,18 +26,23 @@ export async function fixEnglish(env: Env, text: string, fetcher: typeof fetch):
   return out && out.length <= text.length * 1.5 + 20 ? out : null;
 }
 
+/** Counts one check against `who` and says whether it was allowed. The limit is inside the insert, so parallel requests cannot all pass it. */
+export async function claimCheck(env: Env, who: string, now: number): Promise<boolean> {
+  const [ins] = await env.DB.batch([
+    env.DB.prepare(`INSERT INTO grammar_checks (who, at) SELECT ?1, ?2
+      WHERE (SELECT count(*) FROM grammar_checks WHERE who = ?1 AND at > ?2 - 60000) < ?3
+        AND (SELECT count(*) FROM grammar_checks WHERE who = ?1 AND at > ?2 - 86400000) < ?4`).bind(who, now, PER_MINUTE, PER_DAY),
+    env.DB.prepare("DELETE FROM grammar_checks WHERE at < ?1").bind(now - 86400000),
+  ]);
+  return ins.meta.changes > 0;
+}
+
 /** POST body {text}; `who` is the phone id or reviewer email the limit is counted against. */
 export async function checkGrammar(env: Env, who: string, b: Record<string, unknown>, now: number, fetcher: typeof fetch): Promise<Response> {
   const text = cleanText(b.text, 500);
   if (!text) return json({ error: "bad_request" }, 400);
   if (!(await aiConfig(env))) return json({ error: "unavailable" }, 503);
-  const used = await env.DB.prepare("SELECT SUM(at > ?2 - 60000) AS m, count(*) AS d FROM grammar_checks WHERE who = ?1 AND at > ?2 - 86400000")
-    .bind(who, now).first<{ m: number | null; d: number }>();
-  if ((used!.m ?? 0) >= PER_MINUTE || used!.d >= PER_DAY) return json({ error: "slow_down" }, 429);
-  await env.DB.batch([
-    env.DB.prepare("INSERT INTO grammar_checks (who, at) VALUES (?1, ?2)").bind(who, now),
-    env.DB.prepare("DELETE FROM grammar_checks WHERE at < ?1").bind(now - 86400000),
-  ]);
+  if (!(await claimCheck(env, who, now))) return json({ error: "slow_down" }, 429);
   let fixed: string | null;
   try { fixed = await fixEnglish(env, text, fetcher); } catch { fixed = null; }
   if (!fixed) return json({ error: "unavailable" }, 503);

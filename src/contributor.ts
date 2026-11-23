@@ -135,7 +135,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
   }
   if (pathname === "/api/record" && req.method === "POST") return submitRecording(req, env, phoneId, deps.now());
 
-  if (pathname === "/api/spelling" && req.method === "POST") return checkSpelling(env, await body(req), deps.now());
+  if (pathname === "/api/spelling" && req.method === "POST") return checkSpelling(env, await body(req), deps.now(), phoneId);
   if (pathname === "/api/grammar" && req.method === "POST") return checkGrammar(env, phoneId, await body(req), deps.now(), deps.fetch ?? ((u, i) => fetch(u, i)));
 
   if (pathname === "/api/word" && req.method === "POST") return submitWord(env, phoneId, await body(req));
@@ -179,7 +179,7 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
     }
     if ((await answersInLastMinute(env.DB, phoneId)) >= 10) return json({ error: "slow_down" }, 429);
     const result = await recordAnswer(env.DB, { phoneId, sentenceId: b.sentenceId as number, paite, register, name, explanation, place }, deps.now());
-    return result === "ok" ? json({ ok: true }) : json({ error: "closed" }, 409);
+    return result === "ok" ? json({ ok: true }) : result === "slow" ? json({ error: "slow_down" }, 429) : json({ error: "closed" }, 409);
   }
 
   return json({ error: "not_found" }, 404);

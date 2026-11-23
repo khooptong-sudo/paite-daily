@@ -58,10 +58,26 @@ export async function submitRecording(req: Request, env: Env, phoneId: string, n
   const key = `pending/${reviewId}/${crypto.randomUUID()}.${mime.split("/")[1]}`;
   await env.AUDIO.put(key, audio, { httpMetadata: { contentType: mime } });
   const name = await env.DB.prepare("SELECT contributor_name AS n FROM answers WHERE phone_id = ?1 AND contributor_name IS NOT NULL ORDER BY id DESC LIMIT 1").bind(phoneId).first<{ n: string }>();
-  await env.DB.prepare(
-    `INSERT INTO recordings (review_id, sentence_id, paite, phone_id, contributor_name, r2_key, mime, bytes, duration_ms, consent)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)`,
-  ).bind(reviewId, line.sentenceId, line.paite, phoneId, name?.n ?? null, key, mime, audio.byteLength, ms, CONSENT).run();
+  // The 5-a-minute, one-per-phone and VOICES_PER_LINE checks are inside the insert, so parallel uploads cannot all pass them.
+  let inserted = 0;
+  try {
+    inserted = (await env.DB.prepare(
+      `INSERT INTO recordings (review_id, sentence_id, paite, phone_id, contributor_name, r2_key, mime, bytes, duration_ms, consent)
+       SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10
+       WHERE (SELECT count(*) FROM recordings WHERE phone_id = ?4 AND created_at >= datetime(?11 / 1000, 'unixepoch', '-1 minute')) < 5
+         AND NOT EXISTS (SELECT 1 FROM recordings WHERE review_id = ?1 AND phone_id = ?4)
+         AND (SELECT count(*) FROM recordings WHERE review_id = ?1 AND status != 'rejected') < ?12`,
+    ).bind(reviewId, line.sentenceId, line.paite, phoneId, name?.n ?? null, key, mime, audio.byteLength, ms, CONSENT, now, VOICES_PER_LINE).run()).meta.changes;
+  } catch (e) {
+    if (!/UNIQUE constraint failed/.test(String(e))) { await env.AUDIO.delete(key); throw e; }
+  }
+  if (!inserted) {
+    await env.AUDIO.delete(key); // lost the race: no orphan clip
+    const recent = await env.DB.prepare("SELECT count(*) AS n FROM recordings WHERE phone_id = ?1 AND created_at >= datetime(?2 / 1000, 'unixepoch', '-1 minute')").bind(phoneId, now).first<{ n: number }>();
+    if (recent!.n >= 5) return json({ error: "slow_down" }, 429);
+    const mine = await env.DB.prepare("SELECT 1 FROM recordings WHERE review_id = ?1 AND phone_id = ?2").bind(reviewId, phoneId).first();
+    return json({ error: mine ? "already_recorded" : "line_full" }, 409);
+  }
   return json({ ok: true });
 }
 

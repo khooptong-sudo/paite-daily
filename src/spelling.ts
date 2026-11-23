@@ -1,4 +1,5 @@
 import { finalPaite } from "./final";
+import { claimCheck } from "./grammar";
 import { json, type Env } from "./types";
 
 // Is this spelled right? Each Paite word is checked against the words people have
@@ -6,7 +7,7 @@ import { json, type Env } from "./types";
 // is attested; an unseen word gets the closest attested spellings, most used first.
 // Nothing is generated: an unseen word may simply be new, and the page says so.
 
-const MAX_TEXT = 500, MAX_SUGGEST = 3, TTL = 10 * 60_000;
+const MAX_TEXT = 500, MAX_SUGGEST = 3, MAX_UNSEEN = 40, TTL = 10 * 60_000;
 
 /** Lower-case Paite words in a line, apostrophes kept (a', ka'), numbers dropped. */
 export const paiteWords = (text: string): string[] =>
@@ -58,17 +59,21 @@ export function suggest(word: string, words: Map<string, number>): { word: strin
 }
 
 /** POST /api/spelling and /review/api/spelling: { text } -> each distinct word, seen or not, with suggestions for the unseen. */
-export async function checkSpelling(env: Env, b: Record<string, unknown>, now: number): Promise<Response> {
+export async function checkSpelling(env: Env, b: Record<string, unknown>, now: number, who?: string): Promise<Response> {
   const text = typeof b.text === "string" ? b.text.trim() : "";
   if (!text || text.length > MAX_TEXT) return json({ error: "bad_request" }, 400);
+  // Contributors (who given) share the English-check limit; reviewers are not limited.
+  if (who && !(await claimCheck(env, `spell:${who}`, now))) return json({ error: "slow_down" }, 429);
   const words = await vocabulary(env, now);
+  let checked = 0;
   const seen = new Set<string>();
-  const out: { word: string; count: number; suggestions?: { word: string; count: number }[] }[] = [];
+  const out: { word: string; count: number; suggestions?: { word: string; count: number }[]; notChecked?: boolean }[] = [];
   for (const w of paiteWords(text)) {
     if (seen.has(w)) continue;
     seen.add(w);
     const count = words.get(w) ?? 0;
-    out.push(count ? { word: w, count } : { word: w, count: 0, suggestions: suggest(w, words) });
+    // Only the first MAX_UNSEEN unseen words get suggestions; the rest are marked notChecked.
+    out.push(count ? { word: w, count } : ++checked <= MAX_UNSEEN ? { word: w, count: 0, suggestions: suggest(w, words) } : { word: w, count: 0, suggestions: [], notChecked: true });
   }
   return json({ words: out, unseen: out.filter((w) => !w.count).length });
 }

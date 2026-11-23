@@ -84,17 +84,14 @@ export async function submitProverbAnswer(env: Env, phoneId: string, b: Record<s
   const column = wantsPaite ? "paite" : "english";
   const line = wantsPaite ? paite : english;
   if (!line) return json({ error: "bad_request" }, 400);
-  const dup = await env.DB.prepare(
-    `SELECT 1 FROM proverb_answers WHERE proverb_id = ?1 AND phone_id = ?2 AND lower(COALESCE(${column}, '')) = lower(?3)`,
+  // One statement, so a double tap cannot insert the rendering twice.
+  await env.DB.prepare(
+    `INSERT INTO proverb_answers (proverb_id, paite, english, explainer, explainer_en, phone_id, contributor_name)
+     SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7
+     WHERE NOT EXISTS (SELECT 1 FROM proverb_answers WHERE proverb_id = ?1 AND phone_id = ?6 AND lower(COALESCE(${column}, '')) = lower(?8))`,
   )
-    .bind(b.id, phoneId, line)
-    .first();
-  if (!dup)
-    await env.DB.prepare(
-      "INSERT INTO proverb_answers (proverb_id, paite, english, explainer, explainer_en, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-    )
-      .bind(b.id, wantsPaite ? cap(line) : null, wantsPaite ? null : cap(line), explainer, explainer_en, phoneId, name)
-      .run();
+    .bind(b.id, wantsPaite ? cap(line) : null, wantsPaite ? null : cap(line), explainer, explainer_en, phoneId, name, line)
+    .run();
   return json({ ok: true });
 }
 
@@ -110,14 +107,18 @@ export async function submitProverbPair(env: Env, phoneId: string, b: Record<str
   if (!paite || !english) return json({ error: "bad_request" }, 400);
   if ((b.explainer && !explainer) || (b.explainer_en && !explainer_en) || (b.name && !name)) return json({ error: "bad_request" }, 400);
   // Either line already known means the saying is already here: answer ok, insert nothing.
-  const dup = await env.DB.prepare("SELECT 1 FROM proverbs WHERE lower(paite) = lower(?1) OR lower(english) = lower(?2)").bind(paite, english).first();
-  if (!dup)
+  // One statement, with the unique index as backstop: a double tap answers ok with one row.
+  try {
     await env.DB.prepare(
       `INSERT INTO proverbs (kind, paite, english, explainer, explainer_en, entered_from, status, source, submitted_by, contributor_name)
-       VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'pending', 'contributed', ?7, ?8)`,
+       SELECT ?1, ?2, ?3, ?4, ?5, ?6, 'pending', 'contributed', ?7, ?8
+       WHERE NOT EXISTS (SELECT 1 FROM proverbs WHERE lower(paite) = lower(?9) OR lower(english) = lower(?10))`,
     )
-      .bind(kind, cap(paite), cap(english), explainer, explainer_en, direction, phoneId, name)
+      .bind(kind, cap(paite), cap(english), explainer, explainer_en, direction, phoneId, name, paite, english)
       .run();
+  } catch (e) {
+    if (!/UNIQUE constraint failed/.test(String(e))) throw e;
+  }
   return json({ ok: true });
 }
 
@@ -143,7 +144,7 @@ openHash();addEventListener("hashchange",openHash);
 
 var KEY="pd:phone",tsId=null,waiter=null;
 function phone(){var v=null;try{v=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!v){v=(window.crypto&&window.crypto.randomUUID)?window.crypto.randomUUID():String(Date.now())+Math.random().toString(36).slice(2);try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}
+if(!v||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)){v=(window.crypto&&window.crypto.randomUUID)?window.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(c){var r=window.crypto&&window.crypto.getRandomValues?window.crypto.getRandomValues(new Uint8Array(1))[0]&15:Math.random()*16|0;return(c==="x"?r:(r&3)|8).toString(16)});try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}
 return v}
 var tsReady=new Promise(function(res){if(window.turnstile)return res();window.onTurnstileLoad=res;
 var i=setInterval(function(){if(window.turnstile){clearInterval(i);res()}},50)});

@@ -9,7 +9,10 @@ export async function weekFor(env: Env, phoneId: string, now: number): Promise<W
           mine AS (SELECT count(*) AS n FROM answers, since WHERE phone_id = ?1 AND created_at >= t)
      SELECT (SELECT n FROM mine) AS sent,
             (SELECT count(*) FROM answers a, since WHERE a.phone_id = ?1 AND a.status IN ('accepted', 'also_correct')
-               AND EXISTS (SELECT 1 FROM reviews v WHERE v.accepted_answer_id = a.id AND v.undone_at IS NULL AND v.created_at >= t)) AS verified,
+               -- The accepted answer uses its index; also-correct and variant ids come from one pass over this week's reviews.
+               AND (EXISTS (SELECT 1 FROM reviews v WHERE v.accepted_answer_id = a.id AND v.undone_at IS NULL AND v.created_at >= t)
+                 OR a.id IN (SELECT j.value FROM reviews v, json_each(v.answer_ids) j, since s
+                              WHERE v.answer_ids IS NOT NULL AND v.undone_at IS NULL AND v.created_at >= s.t))) AS verified,
             (SELECT count(*) FROM word_submissions, since WHERE phone_id = ?1 AND created_at >= t) AS words,
             (SELECT count(*) FROM (SELECT phone_id, count(*) AS c FROM answers, since WHERE created_at >= t GROUP BY phone_id)
                WHERE c > (SELECT n FROM mine)) AS ahead`,

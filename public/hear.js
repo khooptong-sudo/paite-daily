@@ -42,7 +42,7 @@
     rec.onstop = () => {
       stream.getTracks().forEach((t) => t.stop()); clearTimeout(timer);
       ms = Date.now() - started; blob = new Blob(chunks, { type: (rec.mimeType || type || "audio/webm").split(";")[0] });
-      $("h-audio").src = URL.createObjectURL(blob); show("done"); say("Listen back. Send it, or record again.");
+      $("h-audio").src = URL.createObjectURL(blob); $("h-send").disabled = false; show("done"); say("Listen back. Send it, or record again.");
     };
     rec.start(); started = Date.now(); show("recording"); say("Recording. Read the line, then tap Stop.");
     timer = setTimeout(() => rec.state === "recording" && rec.stop(), MAX_MS);
@@ -54,14 +54,15 @@
   $("h-send").addEventListener("click", async () => {
     if (!blob || !line) return;
     $("h-send").disabled = true; say("Sending…");
+    let sent = false;
     try {
       const r = await window.paiteApi("/api/record?reviewId=" + line.reviewId, { method: "POST", body: blob,
         headers: { "content-type": blob.type, "X-Consent": CONSENT, "X-Duration": String(ms) } });
       if (r.status === 429) say("Slow down a little, then send again.");
       else if (!r.ok) say("Could not send this clip. Record it again.");
-      else { say("Thank you. A reviewer will listen to it."); document.dispatchEvent(new CustomEvent("paite:refresh")); if (window.paiteAskName) window.paiteAskName($("h-send")); setTimeout(() => next().catch(() => {}), 1200); }
+      else { sent = true; blob = null; say("Thank you. A reviewer will listen to it."); document.dispatchEvent(new CustomEvent("paite:refresh")); if (window.paiteAskName) window.paiteAskName($("h-send")); setTimeout(() => next().catch(() => {}), 1200); }
     } catch { say("Could not send. Check your connection."); }
-    $("h-send").disabled = false;
+    if (!sent) $("h-send").disabled = false; // after a sent clip it stays off until the next recording
   });
 
   document.addEventListener("paite:me", (e) => {

@@ -43,7 +43,7 @@ var sh=document.getElementById("shared");if(sh)sh.hidden=f==="opposite"}
 document.querySelectorAll("button[data-f]").forEach(function(b){b.addEventListener("click",function(){setF(b.dataset.f)})});
 var KEY="pd:phone",tsId=null,waiter=null;
 function phone(){var v=null;try{v=JSON.parse(localStorage.getItem(KEY))}catch(e){}
-if(!v){v=(window.crypto&&window.crypto.randomUUID)?window.crypto.randomUUID():String(Date.now())+Math.random().toString(36).slice(2);try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}
+if(!v||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v)){v=(window.crypto&&window.crypto.randomUUID)?window.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,function(c){var r=window.crypto&&window.crypto.getRandomValues?window.crypto.getRandomValues(new Uint8Array(1))[0]&15:Math.random()*16|0;return(c==="x"?r:(r&3)|8).toString(16)});try{localStorage.setItem(KEY,JSON.stringify(v))}catch(e){}}
 return v}
 var tsReady=new Promise(function(res){if(window.turnstile)return res();window.onTurnstileLoad=res;
 var i=setInterval(function(){if(window.turnstile){clearInterval(i);res()}},50)});

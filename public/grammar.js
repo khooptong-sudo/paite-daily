@@ -71,7 +71,8 @@
         for (const w of unseen) {
           const row = make("div", "spell-row");
           row.append(make("b", "", w.word));
-          if (w.suggestions.length) {
+          if (w.notChecked) row.append(make("span", "", "Not checked: the text has too many new words. Check a shorter part."));
+          else if (w.suggestions && w.suggestions.length) {
             row.append(make("span", "", "Seen:"));
             for (const s of w.suggestions) {
               const b = make("button", "share-chip", `${s.word} (${s.count})`);

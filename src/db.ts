@@ -84,7 +84,7 @@ export async function recordAnswer(
   db: D1Database,
   a: { phoneId: string; sentenceId: number; paite: string; register: Register; name: string | null; explanation?: string | null; place?: string | null },
   now: number,
-): Promise<"ok" | "closed"> {
+): Promise<"ok" | "closed" | "slow"> {
   const claim = await db
     .prepare(
       `UPDATE sentences
@@ -98,11 +98,13 @@ export async function recordAnswer(
     .bind(a.sentenceId, a.phoneId, now)
     .run();
   if (claim.meta.changes !== 1) return "closed";
+  let results: D1Result[] = [];
   try {
-    await db.batch([
-      db.prepare("INSERT INTO answers (sentence_id, paite, register, phone_id, contributor_name, explanation, place) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)")
+    // The 10-a-minute check is inside the insert, so parallel requests cannot all pass it.
+    results = await db.batch([
+      db.prepare("INSERT INTO answers (sentence_id, paite, register, phone_id, contributor_name, explanation, place) SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7 WHERE (SELECT count(*) FROM answers WHERE phone_id = ?4 AND created_at > datetime('now', '-60 seconds')) < 10")
         .bind(a.sentenceId, a.paite, a.register, a.phoneId, a.name, a.explanation ?? null, a.place ?? null),
-      db.prepare("INSERT INTO seen (phone_id, sentence_id, action) VALUES (?1, ?2, 'answered')").bind(a.phoneId, a.sentenceId),
+      db.prepare("INSERT INTO seen (phone_id, sentence_id, action) SELECT ?1, ?2, 'answered' WHERE changes() > 0").bind(a.phoneId, a.sentenceId),
     ]);
   } catch (e) {
     await db
@@ -112,6 +114,14 @@ export async function recordAnswer(
       .catch((err) => console.error("recordAnswer compensation failed", a.sentenceId, err));
     if (/UNIQUE constraint failed: seen\./.test(String(e))) return "closed"; // same phone raced itself (double tap)
     throw e;
+  }
+  if (!results[0].meta.changes) {
+    await db
+      .prepare("UPDATE sentences SET answer_count = answer_count - 1, status = 'open' WHERE id = ?1 AND status IN ('open', 'full')")
+      .bind(a.sentenceId)
+      .run()
+      .catch((err) => console.error("recordAnswer compensation failed", a.sentenceId, err));
+    return "slow";
   }
   return "ok";
 }
