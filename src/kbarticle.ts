@@ -223,10 +223,13 @@ const STYLE = `<style>
 .wiki .wask{display:flex;gap:8px;margin:.5rem 0}
 .wiki .wask input{flex:1;min-width:0}
 .wiki .whint{font-size:.85rem;color:var(--muted)}
-.wiki .wtry{margin-top:1rem}
 .wiki .wtry h3{font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:400;margin:0 0 .4rem}
 .wiki .wtry .chips{flex-wrap:wrap;overflow:visible;margin:0;padding:0}
-.wiki #wans{margin-top:1rem}
+.wiki .waskbox{display:flex;flex-direction:column;gap:.6rem}
+.wiki .waskbox>*{margin:0}
+.wiki .waskbox h2{margin-bottom:.2rem}
+.wiki #wans:empty{display:none}
+.wiki .wtry{margin-top:.6rem}
 </style>`;
 
 function shell(title: string, desc: string, canon: string, body: string): string {
@@ -328,11 +331,13 @@ ${items.map((a) => `<li><a href="/wiki/${esc(a.slug)}">${esc(a.title)}</a></li>`
   const desc = "Articles written from reviewed sources about the Paite language, sayings, culture and history.";
   const body = `<header class="hero"><div class="hero-nav"><a class="back" href="/"><span aria-hidden="true">&larr;</span> Back</a></div><h1>Paite Wiki</h1><p>${desc}</p><p><a href="/wiki/how">How the Paite Wiki works &rarr;</a></p></header>
 <main class="gl wiki">
+<section class="waskbox">
 <h2>Ask About Paite</h2>
 <form class="wask" id="wask" novalidate><input id="wq" type="text" maxlength="300" aria-label="Ask About Paite" autocomplete="off" data-check="off"><button type="submit" class="primary">Ask</button></form>
 <p class="whint">Answers come only from checked sources, and show where they come from.</p>
 <div id="wans" aria-live="polite"></div>
 ${samples}
+</section>
 ${list}
 </main>
 ${WIKI_ASK_JS}`;
