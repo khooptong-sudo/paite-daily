@@ -667,9 +667,9 @@ body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week
 .blue .p .pod-share { background: transparent; color: var(--fg); border-color: var(--hair); }
 .blue .p .pod-share img { filter: invert(1); }
 .blue .gl .send { background: var(--fg); color: var(--bg); border-color: var(--fg); border-radius: 999px; }
+
 /* INK, LIGHT ("paper"): the same editorial design in ink on warm paper. theme.js sets html[data-theme=light]
    when the phone is in light mode or the reader picked light; the Paper Silk footer is light on both. */
-   sets html[data-theme=light] unless the reader picked dark; the Paper Silk footer is light on both. */
 html[data-theme=light] body.blue {
   --bg: #f5f1e8; --fg: #15120f; --muted: rgba(21, 18, 15, .62); --line: rgba(21, 18, 15, .14); --hair: rgba(21, 18, 15, .42);
   --accent: #15120f; --accent-fg: #f5f1e8; --surface: rgba(21, 18, 15, .03);
