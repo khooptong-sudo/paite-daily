@@ -52,10 +52,13 @@
   secSources.append(el("div", { class: "row" }, picker), list);
   picker.addEventListener("change", loadSources);
 
+  let sourcesCall = 0;
   async function loadSources() {
     clear(list);
     const status = picker.value;
+    const mine = ++sourcesCall;
     const r = await call("/sources?status=" + encodeURIComponent(status));
+    if (mine !== sourcesCall) return; // a newer request has taken over
     if (!r.ok) { note(list, problem(r)); return; }
     if (!r.data.sources.length) { list.append(el("p", { class: "empty", text: "Nothing here." })); return; }
     for (const s of r.data.sources) list.append(sourceRow(s, status));
@@ -334,8 +337,16 @@
     };
     draw();
     const noteBox = el("input", { maxlength: "300", "aria-label": "Note" });
+    let dirty = false;
+    rows.addEventListener("input", () => { dirty = true; });
+    rows.addEventListener("click", () => { dirty = true; });
     const act = async (path, body, okText) => {
       clear(msg);
+      // Unsaved edits are saved first, so a status change never throws them away.
+      if (editable && dirty && path !== "/articles/save") {
+        const s = await call("/articles/save", { id, blocks, note: noteBox.value.trim() || undefined });
+        if (!s.ok) { note(msg, "Save first: " + (s.data.error === "check_failed" ? "the edit did not pass the checks (" + (s.data.reason || "unknown") + ")." : problem(s))); return; }
+      }
       const r2 = await call(path, body);
       if (r2.ok) { await loadArticles(); if (okText) { await openArticle(id); note(artView, okText, true); } else await openArticle(id); return; }
       const e = r2.data.error;

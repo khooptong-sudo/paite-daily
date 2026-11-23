@@ -94,9 +94,20 @@ async function row(env: Env, a: Raw, rev: Rev | null): Promise<ArticleRow> {
 
 export async function listArticles(env: Env): Promise<ArticleRow[]> {
   const { results } = await env.WIKI.prepare("SELECT * FROM kb_articles ORDER BY updated_at DESC, id DESC").all<Raw>();
-  const out: ArticleRow[] = [];
-  for (const a of results) out.push(await row(env, a, await currentRev(env, a)));
-  return out;
+  // Two queries in all: every current revision's citations, then every cited chunk, checked together.
+  const { results: revs } = await env.WIKI.prepare("SELECT r.id, r.cited FROM kb_article_revs r JOIN kb_articles a ON a.rev_id = r.id").all<{ id: number; cited: string }>();
+  const cites = new Map(revs.map((r) => [r.id, JSON.parse(r.cited) as [number, string][]]));
+  const ids = [...new Set([...cites.values()].flat().map((c) => c[0]))];
+  const have = new Map<number, string>();
+  for (let i = 0; i < ids.length; i += 90) {
+    const part = ids.slice(i, i + 90);
+    const { results: cs } = await env.WIKI.prepare(`SELECT c.id, c.sha256 FROM kb_chunks c JOIN kb_sources s ON s.id = c.source_id WHERE s.status = 'approved' AND c.id IN (${marks(part)})`).bind(...part).all<{ id: number; sha256: string }>();
+    for (const c of cs) have.set(c.id, c.sha256);
+  }
+  return results.map((a) => {
+    const cited = a.rev_id === null ? null : cites.get(a.rev_id) ?? null;
+    return { id: a.id, slug: a.slug, title: a.title, status: a.status, createdBy: a.created_by, publishedBy: a.published_by, publishedAt: a.published_at, updatedAt: a.updated_at, stale: !cited || !cited.every(([id, sha]) => have.get(id) === sha) };
+  });
 }
 
 export async function getArticle(env: Env, id: number): Promise<(ArticleRow & { blocks: Block[]; sources: Cited[]; revs: { id: number; author: string; note: string | null; at: number }[] }) | null> {
@@ -168,7 +179,7 @@ export async function saveArticle(env: Env, b: { id: unknown; blocks: unknown; n
   const note = b.note === undefined || b.note === null || b.note === "" ? null : cleanText(b.note, 300);
   const r = await env.WIKI.prepare("INSERT INTO kb_article_revs (article_id, body, cited, author, note, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6) RETURNING id")
     .bind(a.id, JSON.stringify(checked.blocks), JSON.stringify(checked.cited.map((id) => [id, sha.get(id)])), who.email, note, now).first<{ id: number }>();
-  await env.WIKI.prepare("UPDATE kb_articles SET rev_id = ?2, updated_at = ?3, status = 'draft' WHERE id = ?1").bind(a.id, r!.id, now).run();
+  await env.WIKI.prepare("UPDATE kb_articles SET rev_id = ?2, updated_at = ?3 WHERE id = ?1").bind(a.id, r!.id, now).run();
   return { ok: true };
 }
 

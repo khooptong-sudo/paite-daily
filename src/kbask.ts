@@ -148,7 +148,8 @@ export async function ask(env: Env, fetcher: typeof fetch, raw: unknown, who: { 
   const iso = new Date(now).toISOString();
 
   if (!(await bump(env, `ask:h:${who.key}:${iso.slice(0, 13)}`, who.via === "review" ? ASK.perHourReviewer : ASK.perHourPublic))) {
-    const askId = await log(env, q, qKey, who.via, "limited", now, { reason: "hour" });
+    // Only the first refused ask in an hour is logged; the rest are not counted row by row.
+    const askId = (await bump(env, `ask:lim:${who.key}:${iso.slice(0, 13)}`, 1)) ? await log(env, q, qKey, who.via, "limited", now, { reason: "hour" }) : null;
     return { ...none(askId), status: "limited" };
   }
 
@@ -228,9 +229,16 @@ export async function ask(env: Env, fetcher: typeof fetch, raw: unknown, who: { 
   return { ...answer, askId };
 }
 
-export async function flagAnswer(env: Env, askId: unknown, right: unknown, note: unknown, byKey: string, now: number): Promise<boolean> {
+export const FLAGS_PER_HOUR_PUBLIC = 30;
+export async function flagAnswer(env: Env, askId: unknown, right: unknown, note: unknown, byKey: string, now: number): Promise<boolean | "limited"> {
   if (!isId(askId) || typeof right !== "boolean") return false;
-  if (!(await env.WIKI.prepare("SELECT 1 FROM kb_asks WHERE id = ?1").bind(askId).first())) return false;
+  const pub = byKey.startsWith("ip:");
+  // A visitor can only flag an answer that is recent enough to still be on screen.
+  const ask_ = pub
+    ? await env.WIKI.prepare("SELECT 1 FROM kb_asks WHERE id = ?1 AND status IN ('answer','cached','none') AND at >= ?2").bind(askId, now - DAY).first()
+    : await env.WIKI.prepare("SELECT 1 FROM kb_asks WHERE id = ?1").bind(askId).first();
+  if (!ask_) return false;
+  if (pub && !(await bump(env, `flag:h:${byKey}:${new Date(now).toISOString().slice(0, 13)}`, FLAGS_PER_HOUR_PUBLIC))) return "limited";
   const n = note === undefined || note === null || note === "" ? null : cleanText(note, 300);
   if (note !== undefined && note !== null && note !== "" && n === null) return false;
   await env.WIKI.prepare("INSERT INTO kb_flags (ask_id, right, note, by_key, at) VALUES (?1, ?2, ?3, ?4, ?5) ON CONFLICT(ask_id, by_key) DO UPDATE SET right = excluded.right, note = excluded.note, at = excluded.at")

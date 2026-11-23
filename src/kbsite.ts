@@ -53,6 +53,14 @@ export async function syncSiteSources(env: Env, now: number): Promise<{ added: n
   ).all<{ id: number; site_key: string; title: string; url: string | null; chunk_id: number | null; sha256: string | null }>();
   // A failed read must never wipe the index.
   if (wanted.length === 0 && have.length > 50) throw new Error("site sync: no site data read, refusing to empty the wiki");
+  // A category is only pruned when its read matches a fresh count; a short read must not delete what it did not read.
+  const count = async (sql: string) => (await env.DB.prepare(sql).first<{ n: number }>())?.n ?? -1;
+  const read = (prefix: string) => wanted.filter((w) => w.siteKey.startsWith(prefix)).length;
+  const complete: Record<string, boolean> = {
+    "proverb:": read("proverb:") === (await count("SELECT COUNT(*) AS n FROM proverbs WHERE status = 'live'")),
+    "glossary:": read("glossary:") === (await count("SELECT COUNT(*) AS n FROM glossary WHERE hidden = 0")),
+    "pair:": read("pair:") > 0 || !have.some((h) => h.site_key.startsWith("pair:")),
+  };
   const byKey = new Map(have.map((h) => [h.site_key, h]));
   const keys = new Set(wanted.map((w) => w.siteKey));
   // Each group keeps a source insert next to its chunk insert (the chunk finds the source by site_key).
@@ -78,7 +86,7 @@ export async function syncSiteSources(env: Env, now: number): Promise<{ added: n
     }
   });
   for (const h of have) {
-    if (keys.has(h.site_key)) continue;
+    if (keys.has(h.site_key) || complete[h.site_key.slice(0, h.site_key.indexOf(":") + 1)] === false) continue;
     removed++;
     push(2, env.WIKI.prepare("DELETE FROM kb_chunks WHERE source_id = ?1").bind(h.id), env.WIKI.prepare("DELETE FROM kb_sources WHERE id = ?1").bind(h.id));
   }

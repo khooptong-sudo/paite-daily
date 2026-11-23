@@ -87,7 +87,8 @@ export async function handleContributor(req: Request, env: Env, deps: Deps, ctx?
     const b = await body(req);
     const key = "ip:" + (await hashIp(req.headers.get("CF-Connecting-IP") ?? "unknown", env.SESSION_SECRET));
     if (pathname === "/api/ask") return json(await ask(env, deps.fetch ?? fetch, b.q, { via: "public", key }, deps.now()));
-    return (await flagAnswer(env, b.askId, b.right, b.note, key, deps.now())) ? json({ ok: true }) : json({ error: "bad_request" }, 400);
+    const f = await flagAnswer(env, b.askId, b.right, b.note, key, deps.now());
+    return f === "limited" ? json({ error: "limited", message: "Too many marks just now. Please try again later." }, 429) : f ? json({ ok: true }) : json({ error: "bad_request" }, 400);
   }
 
   const phoneId = await readSession(req.headers.get("X-Session"), deps.now(), env.SESSION_SECRET);

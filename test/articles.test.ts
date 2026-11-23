@@ -120,7 +120,7 @@ describe("articles", () => {
     expect(bodies).toHaveLength(0);
   });
 
-  it("8. save keeps rewording and removals, refuses new passages, and returns pending to draft", async () => {
+  it("8. save keeps rewording and removals, refuses new passages, and keeps pending pending", async () => {
     const { chunk, id } = await drafted();
     const other = await addBook("Other book", "strength elsewhere", "open", "approved");
     const ed = { email: "editor@example.org" };
@@ -134,7 +134,7 @@ describe("articles", () => {
     await setStatus(env, id, "submit", { ...WHO, owner: false }, NOW);
     expect((await getArticle(env, id))!.status).toBe("pending");
     expect(await saveArticle(env, { id, blocks: [{ type: "text", text: "Again.", cites: [chunk] }], note: null }, ed, NOW)).toEqual({ ok: true });
-    expect((await getArticle(env, id))!.status).toBe("draft");
+    expect((await getArticle(env, id))!.status).toBe("pending");
     expect(await saveArticle(env, { id: 9999, blocks: [], note: null }, ed, NOW)).toEqual({ error: "not_found" });
   });
 
