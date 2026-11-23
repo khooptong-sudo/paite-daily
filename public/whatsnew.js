@@ -3,6 +3,7 @@
 // item is added. Add new items at the top of NEWS.
 (() => {
   const NEWS = [
+    { id: "2026-11-23-wiki", date: "2026-11-23", title: "Paite Wiki: ask about Paite", text: "Ask a question about Paite words, sayings, culture or history in Tongdot | Tongsan, in the chat on the front page. Every answer quotes its sources, and reviewers check them. How It Works explains where the answers come from.", href: "/wiki/how" },
     { id: "2026-11-19-sameopp", date: "2026-11-19", title: "Same & Opposite", text: "Same & Opposite has its own page: every checked pair, words that share a meaning, and a box to suggest a new pair.", href: "/same-opposite" },
     { id: "2026-11-19-today", date: "2026-11-19", title: "Contributor of the Day", text: "Each day the front page thanks one person whose work was verified the day before. Only people who gave a name are shown.", href: "/contributors" },
     { id: "2026-11-19-relations", date: "2026-11-19", title: "Same, opposite and seen in use", text: "The word list now shows words with the same or opposite meaning, and sentences where a word is used. You can suggest same and opposite words on the front page.", href: "/glossary" },

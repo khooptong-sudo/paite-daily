@@ -18,6 +18,8 @@ export default defineConfig(async () => {
             GITHUB_TOKEN: "test-github-token",
             REVIEWERS: JSON.stringify({ "rev@example.org": "Rev One", "owner@example.org": "Owner" }),
             OWNER_EMAIL: "owner@example.org",
+            // Live has the wiki public; tests start with it off and switch it on where they need it.
+            WIKI_PUBLIC: "",
           },
         },
       }),

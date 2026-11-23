@@ -18,6 +18,7 @@
     "TURNSTILE_SITE_KEY": "0x4AAAAAAFWPYZ0Pau14Cq6s",
     "CORPUS_REPO": "khooptong-sudo/paite-open-language-data",
     "CORPUS_BRANCH": "master",
-    "COMMUNITY_GOAL": "1000"
+    "COMMUNITY_GOAL": "1000",
+    "WIKI_PUBLIC": "1"
   }
 }
