@@ -192,15 +192,21 @@ q.addEventListener("input",render);
 rail.forEach(function(a){a.addEventListener("click",function(e){e.preventDefault();var L=a.textContent,g=byL[L];if(g.dim)return;
 if(q.value.trim()){g.scrollIntoView();return}
 if(L===cur)return;location.hash=key(L)})});
-function fromHash(){var h;try{h=decodeURIComponent(location.hash.slice(1))}catch(e){h=""}var el=null,m;
+function fromHash(){var h;try{h=decodeURIComponent(location.hash.slice(1))}catch(e){h=""}var el=null,m,W=/^[?&]w=([0-9]+)/.exec(location.search);
+if(!h&&W)h="w-"+W[1];
 if(m=/^w-[0-9]+$/.test(h)&&document.getElementById(h)){el=m;var g=el.closest("details.rows"),li=el.closest("ul > li");cur=g.dataset.letter;q.value="";
 while(g.items.indexOf(li)>=g.lim)g.lim+=PAGE}
 else{var l=h.replace(/^l-/,"");for(var L in byL)if(key(L)===l.toLowerCase()||L===l){cur=L;q.value=""}}
-render();if(el)el.scrollIntoView()}
+render();if(el){el.scrollIntoView();try{history.replaceState(null,"","/glossary?w="+h.slice(2)+"#"+h)}catch(e){}}else if(W&&h){try{history.replaceState(null,"","/glossary"+location.hash)}catch(e){}}}
 fromHash();addEventListener("hashchange",fromHash);
 })();`;
 
-export function renderGlossary(xs: Entry[], extras?: Extras): string {
+export function renderGlossary(xs: Entry[], extras?: Extras, w = 0): string {
+  const hit = w ? xs.find((e) => e.id === w) : undefined;
+  const ex = hit?.example;
+  const pTitle = hit ? `${hit.paite.trim()} · Paite Word List` : "Paite Word List";
+  const pDesc = hit ? (hit.english + (ex ? ` · “${ex.paite}” (${ex.english})` : "")).slice(0, 200) : "";
+  const pUrl = `https://paite.lamkalabs.com/glossary${hit ? `?w=${hit.id}` : ""}`;
   // One entry per headword: same spelling after trim + NFC (case kept), its meanings in list order.
   const words = new Map<string, Entry[]>();
   for (const e of [...xs].sort((a, b) => a.paite.localeCompare(b.paite))) {
@@ -238,16 +244,16 @@ export function renderGlossary(xs: Entry[], extras?: Extras): string {
 <meta property="og:site_name" content="Paite Daily">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_IN">
-<meta property="og:url" content="https://paite.lamkalabs.com/glossary">
-<meta property="og:title" content="Paite Word List">
-<meta property="og:description" content="The Paite Word List from our contributors: Paite words, English meanings and examples.">
+<meta property="og:url" content="${esc(pUrl)}">
+<meta property="og:title" content="${esc(pTitle)}">
+<meta property="og:description" content="${hit ? esc(pDesc) : "The Paite Word List from our contributors: Paite words, English meanings and examples."}">
 <meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Paite Word List">
-<meta name="twitter:description" content="The Paite word list from our contributors: Paite words, English meanings and examples.">
+<meta name="twitter:title" content="${esc(pTitle)}">
+<meta name="twitter:description" content="${hit ? esc(pDesc) : "The Paite word list from our contributors: Paite words, English meanings and examples."}">
 <meta name="twitter:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta name="twitter:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <link rel="manifest" href="/manifest.webmanifest">

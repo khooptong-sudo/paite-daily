@@ -245,7 +245,14 @@ function shell(title: string, desc: string, canon: string, body: string): string
 <meta property="og:title" content="${esc(title)}">
 <meta property="og:description" content="${esc(desc)}">
 <meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="${esc(title)}">
+<meta name="twitter:description" content="${esc(desc)}">
+<meta name="twitter:image" content="https://paite.lamkalabs.com/og.png?v=2">
+<meta name="twitter:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/favicon.ico" sizes="32x32">
 <link rel="icon" href="/icons/emblem-small.svg" type="image/svg+xml">

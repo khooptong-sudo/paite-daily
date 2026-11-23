@@ -8,7 +8,7 @@ import { queueWanted } from "./wants";
 import { syncSiteSources } from "./kbsite";
 import { syncVectors } from "./kbvec";
 import { handleContributor } from "./contributor";
-import { getContributors, renderPage } from "./contributors";
+import { esc, getContributors, renderPage } from "./contributors";
 import { getGlossary, getWordExtras, renderGlossary } from "./glossary";
 import { getSameOpposite, renderSameOpposite, sameOppositeJson } from "./sameopposite";
 import { getProverbs, proverbsJson, renderProverbs } from "./proverbs";
@@ -30,8 +30,8 @@ export function createApp(deps: Deps) {
     const { pathname } = new URL(req.url);
     try {
       if (pathname === "/api/event" && req.method === "POST") return await handleEvent(req, env, deps.now());
-      if (pathname === "/glossary") { const xs = await getGlossary(env); return new Response(renderGlossary(xs, await getWordExtras(env, xs, deps.now())), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } }); }
-      if (pathname === "/proverbs") return new Response(renderProverbs(await getProverbs(env), env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+      if (pathname === "/glossary") { const xs = await getGlossary(env); return new Response(renderGlossary(xs, await getWordExtras(env, xs, deps.now()), Number(new URL(req.url).searchParams.get("w")) || 0), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } }); }
+      if (pathname === "/proverbs") return new Response(renderProverbs(await getProverbs(env), env.TURNSTILE_SITE_KEY, Number(new URL(req.url).searchParams.get("s")) || 0), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/proverbs.json") return new Response(proverbsJson(await getProverbs(env)), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300" } });
       if (pathname === "/listen") return new Response(renderListen(await getClips(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=600" } });
       if (pathname === "/same-opposite") return new Response(renderSameOpposite(await getSameOpposite(env), env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
@@ -53,9 +53,21 @@ export function createApp(deps: Deps) {
       if (pathname.startsWith("/admin/api/")) return await handleAdmin(req, env, deps, ctx);
       if (pathname === "/" || pathname === "/index.html") {
         const page = await env.ASSETS.fetch(req);
-        return new HTMLRewriter()
-          .on("html", { element: (el) => { el.setAttribute("data-sitekey", env.TURNSTILE_SITE_KEY); } })
-          .transform(page);
+        const sid = new URL(req.url).searchParams.get("s");
+        let ask: { title: string; desc: string; url: string } | null = null;
+        if (sid && /^[0-9]{1,9}$/.test(sid)) {
+          // Ask-a-relative link: the preview names the sentence. Any failure leaves the page as it is.
+          const r = await env.DB.prepare("SELECT CASE WHEN direction = 'pai2en' THEN paite_prompt ELSE english END AS t FROM sentences WHERE id = ?1 AND status <> 'retired'").bind(Number(sid)).first<{ t: string | null }>().catch(() => null);
+          if (r?.t) ask = { title: "Hiai Paite in bang chih ding? · How do you say this in Paite?", desc: `“${r.t}” · Answer it on Paite Daily.`, url: `https://paite.lamkalabs.com/?s=${Number(sid)}` };
+        }
+        const rw = new HTMLRewriter().on("html", { element: (el) => { el.setAttribute("data-sitekey", env.TURNSTILE_SITE_KEY); } });
+        if (ask) {
+          const a = ask, set = (sel: string, v: string) => rw.on(sel, { element: (el) => { el.setAttribute("content", esc(v)); } });
+          set('meta[property="og:title"]', a.title); set('meta[name="twitter:title"]', a.title);
+          set('meta[property="og:description"]', a.desc); set('meta[name="twitter:description"]', a.desc);
+          set('meta[property="og:url"]', a.url);
+        }
+        return rw.transform(page);
       }
       return await env.ASSETS.fetch(req);
     } catch (err) {

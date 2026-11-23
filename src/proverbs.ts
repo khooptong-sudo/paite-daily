@@ -138,8 +138,8 @@ function setDir(d){dir=d;document.querySelectorAll(".filters button").forEach(fu
 document.querySelectorAll("button[data-dir]").forEach(function(b){b.addEventListener("click",function(){setDir(b.dataset.dir)})});
 q.addEventListener("input",apply);
 apply();
-function openHash(){var l=document.getElementById(location.hash.slice(1));if(!l)return;var d=l.querySelector("details");if(d)d.open=true;
-var g=l.closest("details.rows");if(g)g.open=true;l.scrollIntoView()}
+function openHash(){var h=location.hash.slice(1),Q=/^[?&]s=([0-9]+)/.exec(location.search);if(!h&&Q)h="p-"+Q[1];var l=document.getElementById(h);if(!l)return;var d=l.querySelector("details");if(d)d.open=true;
+var g=l.closest("details.rows");if(g)g.open=true;l.scrollIntoView();if(/^p-[0-9]+$/.test(h)){try{history.replaceState(null,"","/proverbs?s="+h.slice(2)+"#"+h)}catch(e){}}}
 openHash();addEventListener("hashchange",openHash);
 
 var KEY="pd:phone",tsId=null,waiter=null;
@@ -235,7 +235,12 @@ function item(p: Proverb): string {
   }${p.explainer_en ? `<p class="n en">${esc(p.explainer_en)}</p>` : ""}${count}${creditLine}${collecting ? form(p) : ""}</details></li>`;
 }
 
-export function renderProverbs(xs: Proverb[], siteKey = ""): string {
+export function renderProverbs(xs: Proverb[], siteKey = "", sid = 0): string {
+  const hit = sid ? xs.find((p) => p.id === sid) : undefined;
+  const first = hit ? (hit.entered_from === "en2pai" ? hit.english : hit.paite) ?? lead(hit) : "";
+  const pTitle = hit ? `${first.slice(0, 90)} · Paite Sayings` : "Paite Proverbs & Idioms";
+  const pDesc = hit ? (hit.explainer_en ?? (hit.entered_from === "en2pai" ? hit.paite : hit.english) ?? hit.explainer ?? "").slice(0, 200) : "";
+  const pUrl = `https://paite.lamkalabs.com/proverbs${hit ? `?s=${hit.id}` : ""}`;
   const groups = new Map<string, Proverb[]>();
   for (const p of [...xs].sort((a, b) => lead(a).localeCompare(lead(b)))) {
     const l = lead(p).charAt(0).toUpperCase();
@@ -263,16 +268,16 @@ export function renderProverbs(xs: Proverb[], siteKey = ""): string {
 <meta property="og:site_name" content="Paite Daily">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="en_IN">
-<meta property="og:url" content="https://paite.lamkalabs.com/proverbs">
-<meta property="og:title" content="Paite Proverbs &amp; Idioms">
-<meta property="og:description" content="Paite proverbs and idioms with an explainer for each, and English proverbs and idioms waiting for their Paite version.">
+<meta property="og:url" content="${esc(pUrl)}">
+<meta property="og:title" content="${esc(pTitle)}">
+<meta property="og:description" content="${hit ? esc(pDesc) : "Paite proverbs and idioms with an explainer for each, and English proverbs and idioms waiting for their Paite version."}">
 <meta property="og:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Paite Proverbs &amp; Idioms">
-<meta name="twitter:description" content="Paite proverbs and idioms, each with an explainer.">
+<meta name="twitter:title" content="${esc(pTitle)}">
+<meta name="twitter:description" content="${hit ? esc(pDesc) : "Paite proverbs and idioms, each with an explainer."}">
 <meta name="twitter:image" content="https://paite.lamkalabs.com/og.png?v=2">
 <meta name="twitter:image:alt" content="Paite Daily: a Paite–English corpus, verified by native speakers.">
 <link rel="manifest" href="/manifest.webmanifest">
