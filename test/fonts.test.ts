@@ -30,7 +30,7 @@ it("every page that loads fonts links /fonts.css and preloads the three Latin fi
 it("every file fonts.css names exists, and the service worker precaches fonts.css and the Latin files", async () => {
   const css = await (await get("fonts.css")).text();
   const urls = [...css.matchAll(/url\((\/fonts\/[^)]+)\)/g)].map((m) => m[1]);
-  expect(urls.length).toBe(6);
+  expect(urls.length).toBe(8);
   for (const u of urls) {
     const r = await get(u.slice(1));
     expect(r.status, u).toBe(200);
