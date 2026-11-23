@@ -174,8 +174,10 @@ export async function handleAdmin(req: Request, env: Env, deps: Deps, ctx?: Exec
     if (!/^https:\/\/[a-z0-9.-]+(:\d+)?(\/[\w./%-]*)?$/i.test(baseUrl)) return json({ error: "bad_url", message: "The endpoint must be an https:// address." }, 400);
     if (!/^[\w./:@-]{1,120}$/.test(model)) return json({ error: "bad_model" }, 400);
     if (key && (key.length < 8 || key.length > 500 || /\s/.test(key))) return json({ error: "bad_key" }, 400);
-    const old = await env.DB.prepare("SELECT key_cipher, key_iv, key_hint FROM ai_settings WHERE id = 1").first<{ key_cipher: string; key_iv: string; key_hint: string }>();
+    const old = await env.DB.prepare("SELECT provider, base_url, key_cipher, key_iv, key_hint FROM ai_settings WHERE id = 1").first<{ provider: string; base_url: string; key_cipher: string; key_iv: string; key_hint: string }>();
     if (!key && !old) return json({ error: "need_key", message: "Paste the API key the first time." }, 400);
+    // A saved key belongs to the endpoint it was saved for; a new provider or address needs the key typed again.
+    if (!key && old && (old.provider !== provider || old.base_url !== baseUrl)) return json({ error: "key_required", message: "Paste the API key again when you change the provider or address." }, 400);
     const sealed = key ? await encryptSecret(env, key) : { cipher: old!.key_cipher, iv: old!.key_iv };
     await env.DB.prepare(
       "INSERT INTO ai_settings (id, provider, base_url, model, key_cipher, key_iv, key_hint, updated_by, updated_at) VALUES (1, ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) ON CONFLICT (id) DO UPDATE SET provider = excluded.provider, base_url = excluded.base_url, model = excluded.model, key_cipher = excluded.key_cipher, key_iv = excluded.key_iv, key_hint = excluded.key_hint, updated_by = excluded.updated_by, updated_at = excluded.updated_at",

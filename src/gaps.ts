@@ -24,7 +24,8 @@ red white black green yellow blue
 song word name story question answer news prayer gift game festival wedding funeral
 always never often sometimes again together alone here there now soon already still`.split(/\s+/).filter((w, i, all) => w && all.indexOf(w) === i);
 
-const forms = (w: string) => [w, w + "s", w + "es", w + "ed", w + "d", w + "ing", w + "er", w.replace(/y$/, "ies"), w.replace(/e$/, "ing")];
+// "d" only after a single final e (like -> liked); never ten -> tend, see -> seed, car -> card.
+const forms = (w: string) => [w, w + "s", w + "es", /[^e]e$/.test(w) ? w + "d" : w + "ed", w + "ing", w + "er", w.replace(/y$/, "ies"), w.replace(/e$/, "ing")];
 const words = (t: string) => new Set(t.toLowerCase().match(/[a-z']+/g) ?? []);
 
 /** The common words this English line uses, by their place in COMMON. */

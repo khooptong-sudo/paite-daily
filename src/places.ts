@@ -23,7 +23,7 @@ export function cleanPlace(v: unknown): string | null | undefined {
   if (!s) return undefined;
   const k = s.toLowerCase();
   const hit = KNOWN.find((p) => p.name.toLowerCase() === k || p.aka?.includes(k));
-  return hit ? hit.name : s.replace(/\p{L}+/gu, (w) => w[0].toUpperCase() + w.slice(1));
+  return hit ? hit.name : s.replace(/\p{L}+(?:['\u2019]\p{L}+)*/gu, (w) => w[0].toUpperCase() + w.slice(1).toLowerCase());
 }
 
 export type PlaceCount = { name: string; n: number; lat?: number; lng?: number };

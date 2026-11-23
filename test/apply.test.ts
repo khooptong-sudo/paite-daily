@@ -50,11 +50,11 @@ describe("reviewer lookup", () => {
     expect((await rev("/review/api/me", undefined, "dee@x.org")).status).toBe(403);
     expect((await rev("/review/api/next", undefined, "dee@x.org")).status).toBe(403);
   });
-  it("DB name wins over the secret; a removed DB reviewer who is also in the secret stays a reviewer", async () => {
+  it("DB name wins over the secret; a removed DB reviewer who is also in the secret is no longer a reviewer (P1-02)", async () => {
     await addDb("rev@example.org", "Db Name");
     expect(await reviewerName(env, "rev@example.org")).toBe("Db Name");
     await rev("/review/api/reviewers/remove", { email: "rev@example.org" }, OWNER);
-    expect(await reviewerName(env, "rev@example.org")).toBe("Rev One");
+    expect(await reviewerName(env, "rev@example.org")).toBeNull();
   });
   it("owner cannot be removed, secret-only entry cannot be removed", async () => {
     expect((await rev("/review/api/reviewers/remove", { email: "Owner@example.org" }, OWNER)).status).toBe(400);

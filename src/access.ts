@@ -25,8 +25,11 @@ export type ReviewerEntry = { email: string; name: string; source: "secret" | "d
 // A reviewer is: a REVIEWERS secret entry, or an active reviewers row, or an owner. DB name wins. Read fresh on every call.
 export async function activeReviewers(env: Env): Promise<ReviewerEntry[]> {
   const out = new Map<string, ReviewerEntry>();
-  for (const [email, name] of Object.entries(secretMap(env))) out.set(email, { email, name, source: "secret", listed: true });
-  const { results } = await env.DB.prepare("SELECT email, name FROM reviewers WHERE removed_at IS NULL").all<{ email: string; name: string }>();
+  // A removed reviewers row wins over the REVIEWERS secret.
+  const { results: rows } = await env.DB.prepare("SELECT email, name, removed_at FROM reviewers").all<{ email: string; name: string; removed_at: string | null }>();
+  const removed = new Set(rows.filter((r) => r.removed_at).map((r) => r.email.toLowerCase()));
+  for (const [email, name] of Object.entries(secretMap(env))) if (!removed.has(email)) out.set(email, { email, name, source: "secret", listed: true });
+  const results = rows.filter((r) => !r.removed_at);
   for (const r of results) out.set(r.email.toLowerCase(), { email: r.email.toLowerCase(), name: r.name, source: "db", listed: true });
   for (const o of (env.OWNER_EMAIL ?? "").split(",").map((x) => x.trim().toLowerCase()).filter(Boolean)) {
     out.set(o, { email: o, name: out.get(o)?.name ?? "Owner", source: "owner", listed: out.has(o) });
@@ -51,9 +54,9 @@ export async function publicReviewerNames(env: Env): Promise<(v: string | null) 
 
 export async function reviewerName(env: Env, email: string): Promise<string | null> {
   email = email.toLowerCase();
-  const row = await env.DB.prepare("SELECT name FROM reviewers WHERE email = ?1 AND removed_at IS NULL").bind(email).first<{ name: string }>();
-  if (row) return row.name;
-  const s = secretMap(env)[email];
+  const row = await env.DB.prepare("SELECT name, removed_at FROM reviewers WHERE email = ?1").bind(email).first<{ name: string; removed_at: string | null }>();
+  if (row && !row.removed_at) return row.name;
+  const s = row ? undefined : secretMap(env)[email];
   if (s !== undefined) return s;
   return isOwner(env, email) ? "Owner" : null;
 }

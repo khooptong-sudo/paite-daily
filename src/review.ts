@@ -57,7 +57,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
   if (!email) return json({ error: "sign_in" }, 401);
   if (!(await reviewerName(env, email))) return json({ error: "not_a_reviewer" }, 403);
   let b: Record<string, unknown> = {};
-  if (req.method === "POST") { try { b = (await req.json()) as Record<string, unknown>; } catch {} }
+  if (req.method === "POST") { try { const j = await req.json(); if (j && typeof j === "object" && !Array.isArray(j)) b = j as Record<string, unknown>; } catch {} }
   // Who is reviewing, so their own submissions go to the other reviewers (own.ts).
   const me = await whoReviews(env, email, deps.now());
   const OWN = () => json({ error: "own_submission", message: "This is your own submission. Another reviewer will check it." }, 409);
@@ -179,6 +179,7 @@ export async function handleReview(req: Request, env: Env, deps: Deps, ctx?: Exe
     if (await ownSaying(env, me, b.id as number)) return OWN();
     const r = await decideProverbPair(env, email, b.id as number, d.accept, d.opts);
     if (r === "not_found") return json({ error: "not_found" }, 404);
+    if (r === "duplicate") return json({ error: "duplicate", message: "That line already belongs to another saying." }, 409);
     return json({ ok: true, waiting: r === "waiting", required: REQUIRED_REVIEWERS });
   }
   if (pathname === "/review/api/decide" && req.method === "POST") {

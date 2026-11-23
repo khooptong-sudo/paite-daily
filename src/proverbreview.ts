@@ -145,14 +145,28 @@ export async function getProverbReviewList(
  * saying, the saying goes back to waiting with no Paite line.
  */
 export async function undoProverbReview(env: Env, email: string, proverbId: number): Promise<boolean> {
-  const r = await env.DB.prepare(
-    `SELECT id, answer_id, answer_ids, published FROM proverb_reviews
+  type Row = { id: number; answer_id: number | null; answer_ids: string | null; published: number; decision: string };
+  let r = await env.DB.prepare(
+    `SELECT id, answer_id, answer_ids, published, decision FROM proverb_reviews
       WHERE proverb_id = ?1 AND lower(reviewer_email) = lower(?2) AND undone_at IS NULL
       ORDER BY id DESC LIMIT 1`,
   )
     .bind(proverbId, email)
-    .first<{ id: number; answer_id: number | null; answer_ids: string | null; published: number }>();
+    .first<Row>();
   if (!r) return false;
+  // A Save writes the accept row first and its also-correct rows after it. When the newest row is
+  // one of those variants, the whole save is the accept row that lists that answer in answer_ids.
+  if (r.decision === "variant" && r.answer_id != null) {
+    const save = await env.DB.prepare(
+      `SELECT id, answer_id, answer_ids, published, decision FROM proverb_reviews
+        WHERE proverb_id = ?1 AND lower(reviewer_email) = lower(?2) AND undone_at IS NULL AND decision = 'accept'
+          AND answer_ids IS NOT NULL AND ?3 IN (SELECT value FROM json_each(answer_ids))
+        ORDER BY id DESC LIMIT 1`,
+    )
+      .bind(proverbId, email, r.answer_id)
+      .first<Row>();
+    if (save) r = save;
+  }
 
   let ids: number[] = [];
   if (r.answer_ids) {
@@ -169,13 +183,25 @@ export async function undoProverbReview(env: Env, email: string, proverbId: numb
   if (ids.length) {
     stmts.push(
       env.DB.prepare(
+        `UPDATE proverb_reviews SET undone_at = datetime('now')
+          WHERE proverb_id = ?1 AND lower(reviewer_email) = lower(?3) AND undone_at IS NULL AND decision = 'variant'
+            AND answer_id IN (SELECT value FROM json_each(?2))`,
+      ).bind(proverbId, JSON.stringify(ids), email),
+    );
+  }
+  if (ids.length) {
+    stmts.push(
+      env.DB.prepare(
         `UPDATE proverb_answers SET status = 'new'
           WHERE proverb_id = ?1 AND id IN (SELECT value FROM json_each(?2))
             AND status IN ('accepted', 'also_correct', 'rejected')`,
       ).bind(proverbId, JSON.stringify(ids)),
     );
   }
-  if (r.published) {
+  if (r.published && r.answer_id == null) {
+    // A whole saying accepted through the pair route: back to waiting, both lines kept.
+    stmts.push(env.DB.prepare("UPDATE proverbs SET status = 'pending', accepting_more = 0, reviewed_by = NULL, reviewed_at = NULL WHERE id = ?1").bind(proverbId));
+  } else if (r.published) {
     // Undo clears the side the review published: the Paite for an English idiom,
     // the English for a Paite proverb.
     let side = "paite";
@@ -323,6 +349,13 @@ export async function decideProverbAnswer(
           WHERE id = ?1`,
       ).bind(a.proverb_id, settledPaite?.final_paite || a.paite, settledEnglish?.final_english || a.english, a.explainer, a.explainer_en, email),
       env.DB.prepare("UPDATE proverb_answers SET status = 'accepted' WHERE id = ?1").bind(id),
+      // Record the publish the way Save does, so Undo can withdraw it.
+      env.DB.prepare(
+        `UPDATE proverb_reviews SET published = 1, answer_ids = ?3
+          WHERE id = (SELECT max(id) FROM proverb_reviews
+                       WHERE proverb_id = ?1 AND answer_id = ?2 AND decision = 'accept'
+                         AND undone_at IS NULL AND lower(reviewer_email) = lower(?4))`,
+      ).bind(a.proverb_id, id, JSON.stringify([id]), email),
     ]);
   } catch (e) {
     // The unique indexes on the Paite and English lines refuse a duplicate.
@@ -339,7 +372,7 @@ export async function decideProverbPair(
   id: number,
   accept: boolean,
   opts: { decision?: ProverbDecision; finalPaite?: string; note?: string } = {},
-): Promise<"ok" | "waiting" | "not_found"> {
+): Promise<"ok" | "waiting" | "not_found" | "duplicate"> {
   const decision: ProverbDecision = opts.decision ?? (accept ? "accept" : "reject");
   const note = opts.note ? cleanText(opts.note, 300) : null;
 
@@ -366,6 +399,9 @@ export async function decideProverbPair(
   }
 
   const finalPaite = opts.finalPaite !== undefined ? cleanText(opts.finalPaite, 300) : null;
+  // Check before writing any review row; the unique index stays as the backstop below.
+  const line = finalPaite || p.paite;
+  if (line && (await env.DB.prepare("SELECT 1 AS ok FROM proverbs WHERE id != ?1 AND lower(paite) = lower(?2)").bind(id, line).first())) return "duplicate";
   await env.DB.prepare(
     `INSERT OR IGNORE INTO proverb_reviews (proverb_id, answer_id, reviewer_email, decision, final_paite, note)
      VALUES (?1, NULL, ?2, 'accept', ?3, ?4)`,
@@ -389,12 +425,24 @@ export async function decideProverbPair(
     .bind(id)
     .first<{ final_paite: string | null }>();
 
-  await env.DB.prepare(
-    `UPDATE proverbs SET status = 'live', accepting_more = 1, paite = COALESCE(?2, paite),
-            reviewed_by = ?3, reviewed_at = datetime('now')
-      WHERE id = ?1 AND status = 'pending'`,
-  )
-    .bind(id, settled?.final_paite || p.paite, email)
-    .run();
+  try {
+    await env.DB.batch([
+      env.DB.prepare(
+        `UPDATE proverbs SET status = 'live', accepting_more = 1, paite = COALESCE(?2, paite),
+                reviewed_by = ?3, reviewed_at = datetime('now')
+          WHERE id = ?1 AND status = 'pending'`,
+      ).bind(id, settled?.final_paite || p.paite, email),
+      // Record the publish the way Save does, so Undo can withdraw it.
+      env.DB.prepare(
+        `UPDATE proverb_reviews SET published = 1
+          WHERE id = (SELECT max(id) FROM proverb_reviews
+                       WHERE proverb_id = ?1 AND answer_id IS NULL AND decision = 'accept'
+                         AND undone_at IS NULL AND lower(reviewer_email) = lower(?2))`,
+      ).bind(id, email),
+    ]);
+  } catch (e) {
+    if (/UNIQUE constraint failed/i.test(String(e))) return "duplicate";
+    throw e;
+  }
   return "ok";
 }

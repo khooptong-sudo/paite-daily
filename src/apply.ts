@@ -105,7 +105,7 @@ export async function handleOwnerReview(pathname: string, method: string, b: Rec
     if (!r) return json({ error: "not_found" }, 404);
     if (r.source !== "db") return json({ error: "secret_only", message: "This reviewer is set in the REVIEWERS secret. Remove them there." }, 400);
     await env.DB.prepare("UPDATE reviewers SET removed_at = datetime('now') WHERE email = ?1 AND removed_at IS NULL").bind(target).run();
-    return json({ ok: true });
+    return json({ ok: true, message: "Removed. This also overrides the REVIEWERS secret: they can no longer review." });
   }
   return json({ error: "not_found" }, 404);
 }
