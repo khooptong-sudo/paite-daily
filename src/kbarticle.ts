@@ -220,6 +220,13 @@ const STYLE = `<style>
 .wiki blockquote{margin:1rem 0;padding:.4rem 1rem;border-left:3px solid var(--line)}
 .wiki sup a{margin-left:.15rem;text-decoration:none}
 .wiki .note{margin-top:2.5rem;font-size:.9rem;color:var(--muted)}
+.wiki .wask{display:flex;gap:8px;margin:.5rem 0}
+.wiki .wask input{flex:1;min-width:0}
+.wiki .whint{font-size:.85rem;color:var(--muted)}
+.wiki .wtry{margin-top:1rem}
+.wiki .wtry h3{font-size:.75rem;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:400;margin:0 0 .4rem}
+.wiki .wtry .chips{flex-wrap:wrap;overflow:visible;margin:0;padding:0}
+.wiki #wans{margin-top:1rem}
 </style>`;
 
 function shell(title: string, desc: string, canon: string, body: string): string {
@@ -280,14 +287,55 @@ ${list}
   return shell(`${art.title} · Paite Wiki`, `${art.title}: an article from the Paite Wiki.`, `https://paite.lamkalabs.com/wiki/${art.slug}`, body);
 }
 
+const WIKI_SAMPLES = [
+  'How do you say "thank you" in Paite?',
+  "How do you greet someone in the morning in Paite?",
+  "What does the Paite saying about patience mean?",
+  "How do you say sorry in Paite?",
+  "What is the Paite word for mother?",
+];
+
+// Ask box on /wiki. Draws the answer with the shared card in /askcard.js; an older reply never overwrites a newer one.
+const WIKI_ASK_JS = `<script src="/askcard.js" defer></script>
+<script defer>
+addEventListener("DOMContentLoaded",function(){
+var S={askNone:"Our sources do not answer that yet. It has been noted for reviewers.",askLimited:"Too many questions for now. Please try again later.",askSources:"Sources",askSeeAlso:"See also",askRight:"Was this right?",askYes:"Yes",askNo:"No",askWhy:"What was wrong? (optional)",askSendNote:"Send",askThanks:"Thank you. A reviewer will look at it.",askLicence:"CC BY 4.0"};
+var t=function(k){return S[k]||""};
+var f=document.getElementById("wask"),q=document.getElementById("wq"),out=document.getElementById("wans"),seq=0;
+if(!f||!q||!out||!window.pdAnswerCard)return;
+async function ask(text){
+  text=text.trim();if(!text)return;
+  var mine=++seq;out.textContent="…";
+  try{
+    var r=await fetch("/api/ask",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({q:text}),credentials:"same-origin"});
+    if(!r.ok)throw new Error();
+    var a=await r.json();
+    if(mine!==seq)return;
+    out.replaceChildren(window.pdAnswerCard(a,{t:t,flagUrl:"/api/ask/flag"}));
+  }catch(e){if(mine!==seq)return;out.textContent="Could not reach the server."}
+}
+f.addEventListener("submit",function(e){e.preventDefault();ask(q.value)});
+document.querySelectorAll("[data-sample]").forEach(function(b){b.addEventListener("click",function(){q.value=b.getAttribute("data-sample");ask(q.value)})});
+});
+</script>`;
+
 export async function renderWikiIndex(env: Env): Promise<string> {
   const items = (await listArticles(env)).filter((a) => a.status === "published" && !a.stale).sort((x, y) => (y.publishedAt ?? 0) - (x.publishedAt ?? 0));
-  const list = items.length ? `<ul>\n${items.map((a) => `<li><a href="/wiki/${esc(a.slug)}">${esc(a.title)}</a></li>`).join("\n")}\n</ul>` : "<p>No articles yet.</p>";
+  const list = items.length ? `<ul>
+${items.map((a) => `<li><a href="/wiki/${esc(a.slug)}">${esc(a.title)}</a></li>`).join("\n")}
+</ul>` : "<p>Articles will appear here once reviewers publish them.</p>";
+  const samples = items.length ? "" : `<div class="wtry"><h3>Try One</h3><div class="chips">${WIKI_SAMPLES.map((x) => `<button type="button" class="chip" data-sample="${esc(x)}">${esc(x)}</button>`).join("")}</div></div>`;
   const desc = "Articles written from reviewed sources about the Paite language, sayings, culture and history.";
   const body = `<header class="hero"><div class="hero-nav"><a class="back" href="/"><span aria-hidden="true">&larr;</span> Back</a></div><h1>Paite Wiki</h1><p>${desc}</p><p><a href="/wiki/how">How the Paite Wiki works &rarr;</a></p></header>
 <main class="gl wiki">
+<h2>Ask About Paite</h2>
+<form class="wask" id="wask" novalidate><input id="wq" type="text" maxlength="300" aria-label="Ask About Paite" autocomplete="off" data-check="off"><button type="submit" class="primary">Ask</button></form>
+<p class="whint">Answers come only from checked sources, and show where they come from.</p>
+<div id="wans" aria-live="polite"></div>
+${samples}
 ${list}
-</main>`;
+</main>
+${WIKI_ASK_JS}`;
   return shell("Paite Wiki", desc, "https://paite.lamkalabs.com/wiki", body);
 }
 

@@ -1,5 +1,8 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
+import askcardJs from "../public/askcard.js?raw";
+import chatJs from "../public/chat.js?raw";
+import indexHtml from "../public/index.html?raw";
 import wikiJs from "../public/review/wiki.js?raw";
 import { createApp } from "../src/index";
 import { sha256Hex } from "../src/kb";
@@ -110,5 +113,42 @@ describe("review wiki page script", () => {
   });
   it("a stale source list response is ignored", () => {
     expect(wikiJs).toMatch(/mine !== sourcesCall\) return/);
+  });
+});
+
+describe("wiki ask box", () => {
+  const SAMPLES = [
+    "How do you say &quot;thank you&quot; in Paite?",
+    "How do you greet someone in the morning in Paite?",
+    "What does the Paite saying about patience mean?",
+    "How do you say sorry in Paite?",
+    "What is the Paite word for mother?",
+  ];
+  it("with no articles the index shows the ask box, the hint and the five samples", async () => {
+    const html = await renderWikiIndex(env);
+    for (const s of ["Ask About Paite", 'id="wq"', ">Ask</button>", "Answers come only from checked sources, and show where they come from.", "Try One", "Articles will appear here once reviewers publish them.", "/askcard.js", ...SAMPLES]) expect(html).toContain(s);
+    expect(html).not.toContain("No articles yet.");
+  });
+  it("with a published article the ask box stays and the samples are hidden", async () => {
+    await article(1);
+    const html = await renderWikiIndex(env);
+    expect(html).toContain("Ask About Paite");
+    expect(html).toContain('href="/wiki/art-1"');
+    expect(html).not.toContain("Try One");
+    expect(html).not.toContain("What is the Paite word for mother?");
+  });
+  it("chat.js uses the shared card, askcard.js defines it, index.html loads it first", () => {
+    expect(chatJs).toContain("pdAnswerCard");
+    expect(chatJs).not.toContain("ask-card");
+    expect(chatJs).not.toContain("ask-flag");
+    expect(askcardJs).toContain("window.pdAnswerCard =");
+    expect(indexHtml.indexOf("/askcard.js")).toBeGreaterThan(-1);
+    expect(indexHtml.indexOf("/askcard.js")).toBeLessThan(indexHtml.indexOf("/chat.js"));
+  });
+  it("the wiki ask script ignores stale responses (raw text check)", async () => {
+    const html = await renderWikiIndex(env);
+    expect(html).toContain("var mine=++seq");
+    expect(html).toContain("if(mine!==seq)return;");
+    expect(html).toContain('"/api/ask"');
   });
 });
