@@ -74,8 +74,17 @@
       const li = el("li");
       li.append(link(s.title, s.url));
       if (s.locator) li.append(document.createTextNode(" · " + s.locator));
+      if (s.audio) {
+        const b = el("button", "play");
+        b.type = "button";
+        b.dataset.audio = String(s.audio);
+        b.setAttribute("aria-label", "Listen");
+        li.append(b);
+        if (s.readBy) li.append(el("span", "by-line", "Read by " + s.readBy));
+      }
       ol.append(li);
     });
+    if (window.pdPlayInit) setTimeout(window.pdPlayInit);
     card.append(el("h4", "", t("askSources")), ol, ...seeList(a, t), el("small", "ask-licence", t("askLicence")));
     if (a.askId != null) card.append(flagBlock(a.askId, t, opts.flagUrl));
     return card;

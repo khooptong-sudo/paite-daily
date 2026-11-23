@@ -17,6 +17,7 @@ import { keyboardFile } from "./keyboard";
 import { getPlaces, renderPlaces } from "./places";
 import { errorPage, handleEvent, recordError } from "./observability";
 import { publicAudio } from "./recordings";
+import { getClips, renderListen } from "./listen";
 import { handleReview } from "./review";
 import { handleAdmin } from "./admin";
 import { handleIngest } from "./kbapi";
@@ -32,6 +33,7 @@ export function createApp(deps: Deps) {
       if (pathname === "/glossary") { const xs = await getGlossary(env); return new Response(renderGlossary(xs, await getWordExtras(env, xs, deps.now())), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } }); }
       if (pathname === "/proverbs") return new Response(renderProverbs(await getProverbs(env), env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/proverbs.json") return new Response(proverbsJson(await getProverbs(env)), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300" } });
+      if (pathname === "/listen") return new Response(renderListen(await getClips(env)), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=600" } });
       if (pathname === "/same-opposite") return new Response(renderSameOpposite(await getSameOpposite(env), env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/same-opposite.json") return new Response(sameOppositeJson((await getSameOpposite(env)).pairs), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300" } });
       if (pathname === "/contributors") return new Response(renderPage(await getContributors(env), undefined, env.TURNSTILE_SITE_KEY), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });

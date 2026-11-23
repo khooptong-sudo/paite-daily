@@ -978,3 +978,13 @@ body.blue::before { content: ""; display: block; position: fixed; inset: 0; z-in
 .blue .more-box .chat-chev { margin-top: 0; width: 24px; height: 24px; }
 .more-box.fold summary { font-size: .95rem; color: var(--muted); }
 @media (prefers-reduced-motion: reduce) { .more-box .chat-chev { transition: none; } }
+
+/* Play buttons for the recordings (plan 023): 32px circle, 44px tap area. */
+.play { position: relative; display: inline-grid; place-items: center; flex: none; width: 32px; height: 32px; min-height: 32px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; vertical-align: middle; }
+.play::after { content: ""; position: absolute; inset: -6px; }
+.play svg { width: 14px; height: 14px; fill: currentColor; }
+.play.on { border-color: var(--fg); }
+.by-line { display: block; color: var(--muted); font-size: .76rem; margin-top: 4px; }
+.play-row { display: flex; align-items: center; gap: 10px; margin-top: 6px; }
+.play-row .by-line { margin-top: 0; }
+.ask-sources .play { width: 28px; height: 28px; min-height: 28px; margin-left: 8px; }

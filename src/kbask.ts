@@ -9,7 +9,7 @@ import type { Env } from "./types";
 // the server found, character for character, in a passage the model was given.
 
 export type Part = { type: "text"; text: string } | { type: "quote"; chunk: number; text: string };
-export type Cited = { chunk: number; title: string; url: string | null; locator: string | null; kind: string };
+export type Cited = { chunk: number; title: string; url: string | null; locator: string | null; kind: string; audio?: number; readBy?: string | null };
 export type Answer = {
   status: "answer" | "none" | "limited" | "off";
   parts: Part[];
@@ -140,7 +140,22 @@ export async function bump(env: Env, name: string, limit: number): Promise<boole
   return r.meta.changes === 1;
 }
 
+// Added after the cache, so a clip recorded since the answer was stored shows on it too. One query for all site sentences.
 export async function ask(env: Env, fetcher: typeof fetch, raw: unknown, who: { via: "review" | "public"; key: string }, now: number): Promise<Answer> {
+  const a = await askCore(env, fetcher, raw, who, now);
+  const sent = a.sources.filter((s) => s.title.startsWith("Sentence: "));
+  if (!sent.length) return a;
+  const en = [...new Set(sent.map((s) => s.title.slice(10).trim().toLowerCase()))];
+  const { results } = await env.DB.prepare(
+    `SELECT r.id, lower(trim(s.english)) AS english, nullif(trim(r.contributor_name), '') AS readBy FROM recordings r JOIN sentences s ON s.id = r.sentence_id
+     WHERE r.status = 'accepted' AND lower(trim(s.english)) IN (${en.map((_, i) => `?${i + 1}`).join(",")}) ORDER BY r.id DESC`,
+  ).bind(...en).all<{ id: number; english: string; readBy: string | null }>();
+  const by = new Map<string, { id: number; readBy: string | null }>();
+  for (const r of results) if (!by.has(r.english)) by.set(r.english, { id: r.id, readBy: r.readBy });
+  return { ...a, sources: a.sources.map((s) => { const r = s.title.startsWith("Sentence: ") ? by.get(s.title.slice(10).trim().toLowerCase()) : undefined; return r ? { ...s, audio: r.id, readBy: r.readBy } : s; }) };
+}
+
+async function askCore(env: Env, fetcher: typeof fetch, raw: unknown, who: { via: "review" | "public"; key: string }, now: number): Promise<Answer> {
   const none = (askId: number | null, seeAlso: Answer["seeAlso"] = []): Answer => ({ status: "none", parts: [], sources: [], seeAlso, askId, cached: false });
   const q = typeof raw === "string" ? raw.trim().slice(0, 300) : "";
   if (q.length < 3 || !/\p{L}/u.test(q)) return none(null);

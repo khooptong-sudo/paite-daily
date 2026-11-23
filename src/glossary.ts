@@ -83,7 +83,8 @@ export async function getGlossaryForReview(env: Env, limit = 500): Promise<Revie
   }));
 }
 
-export type Extras = { same: Map<string, string[]>; opposite: Map<string, string[]>; seen: Map<string, { paite: string; english: string }[]> };
+export type Line = { paite: string; english: string; audio?: number | null; readBy?: string | null };
+export type Extras = { same: Map<string, string[]>; opposite: Map<string, string[]>; seen: Map<string, Line[]> };
 
 /** SQL for word_links l: true when a side is a headword whose glossary rows are all hidden (a word not in the glossary at all is fine). */
 export const LINK_HIDDEN = `EXISTS (SELECT 1 FROM glossary g WHERE g.hidden = 1 AND lower(g.paite) IN (lower(l.paite), lower(l.other))
@@ -101,14 +102,18 @@ export function headwordIds(xs: Entry[]): Map<string, number> {
 /** Same Meaning, Opposite and Seen in Use for the word list, all from the list, approved links and verified sentences. Keys are lower-cased headwords. */
 // The verified lines behind Seen in Use: the page is public and uncached, so the
 // read is kept for ten minutes per worker, like the spelling vocabulary.
-let lines: { at: number; rows: { paite: string; english: string }[] } | null = null;
+let lines: { at: number; rows: Line[] } | null = null;
 export const clearWordExtrasCache = () => { lines = null; };
-async function verifiedLines(env: Env, now: number): Promise<{ paite: string; english: string }[]> {
+async function verifiedLines(env: Env, now: number): Promise<Line[]> {
   if (lines && now - lines.at < 10 * 60_000) return lines.rows;
+  // The newest accepted clip per sentence comes from one grouped subquery (recordings has no index on sentence_id).
   const { results } = await env.DB.prepare(
-    `SELECT ${finalPaite("a")} AS paite, s.english FROM answers a JOIN sentences s ON s.id = a.sentence_id
-     WHERE a.status IN ('accepted', 'also_correct') AND s.direction = 'en2pai' ORDER BY a.id DESC LIMIT 5000`,
-  ).all<{ paite: string; english: string }>();
+    `SELECT ${finalPaite("a")} AS paite, s.english, rc.id AS audio, nullif(trim(rc.contributor_name), '') AS readBy
+     FROM answers a JOIN sentences s ON s.id = a.sentence_id
+     LEFT JOIN (SELECT max(id) AS id, sentence_id FROM recordings WHERE status = 'accepted' GROUP BY sentence_id) m ON m.sentence_id = s.id
+     LEFT JOIN recordings rc ON rc.id = m.id
+     WHERE a.status IN ('accepted', 'also_correct') AND s.direction = 'en2pai' ORDER BY rc.id IS NULL, a.id DESC LIMIT 5000`,
+  ).all<Line>();
   lines = { at: now, rows: results };
   return results;
 }
@@ -141,7 +146,7 @@ export async function getWordExtras(env: Env, xs: Entry[], now = Date.now()): Pr
     first.set(t[0], [...(first.get(t[0]) ?? []), { k, t }]);
     used.set(k, new Set(es.flatMap((e) => (e.example ? [e.example.paite.trim().toLowerCase()] : []))));
   }
-  const seen = new Map<string, { paite: string; english: string }[]>();
+  const seen = new Map<string, Line[]>();
   if (first.size) {
     for (const r of await verifiedLines(env, now)) {
       const line = r.paite.trim().toLowerCase(), tok = paiteWords(r.paite);
@@ -149,7 +154,7 @@ export async function getWordExtras(env: Env, xs: Entry[], now = Date.now()): Pr
         const got = seen.get(k) ?? [], u = used.get(k)!;
         if (got.length >= 2 || u.has(line) || !t.every((x, j) => tok[i + j] === x)) continue;
         u.add(line);
-        seen.set(k, [...got, { paite: r.paite.trim(), english: r.english }]);
+        seen.set(k, [...got, { ...r, paite: r.paite.trim() }]);
       }
     }
   }
@@ -210,7 +215,7 @@ export function renderGlossary(xs: Entry[], extras?: Extras): string {
     const k = hkey(w), same = extras.same.get(k) ?? [], opp = extras.opposite.get(k) ?? [], seen = extras.seen.get(k) ?? [];
     return (same.length ? `<p class="rel"><span class="lbl" data-s="relSame">Same Meaning</span> ${same.map(ref).join(", ")}</p>` : "")
       + (opp.length ? `<p class="rel"><span class="lbl" data-s="relOpposite">Opposite</span> ${opp.map(ref).join(", ")}</p>` : "")
-      + (seen.length ? `<div class="seen"><span class="lbl" data-s="seenInUse">Seen in Use</span>${seen.map((x) => `<span class="ex">${esc(x.paite)}<br>${esc(x.english)}</span>`).join("")}</div>` : "");
+      + (seen.length ? `<div class="seen"><span class="lbl" data-s="seenInUse">Seen in Use</span>${seen.map((x) => `<span class="ex">${esc(x.paite)}<br>${esc(x.english)}</span>${x.audio ? `<span class="play-row"><button type="button" class="play" data-audio="${x.audio}" aria-label="Listen"></button>${x.readBy ? `<span class="by-line">Read by ${esc(x.readBy)}</span>` : ""}</span>` : ""}`).join("")}</div>` : "");
   };
   const groups = new Map<string, [string, Entry[]][]>();
   for (const [w, es] of words) {
@@ -277,6 +282,7 @@ ${rail}${body}
 ${FOOTER}
 </main>
 <script src="/strings.js"></script>
+<script src="/play.js"></script>
 <script src="/back.js"></script>
 <script src="/pwa.js"></script>
 <script src="/track.js"></script>

@@ -300,6 +300,7 @@ const WIKI_SAMPLES = [
 
 // Ask box on /wiki. Draws the answer with the shared card in /askcard.js; an older reply never overwrites a newer one.
 const WIKI_ASK_JS = `<script src="/askcard.js" defer></script>
+<script src="/play.js" defer></script>
 <script defer>
 addEventListener("DOMContentLoaded",function(){
 var S={askNone:"Our sources do not answer that yet. It has been noted for reviewers.",askLimited:"Too many questions for now. Please try again later.",askSources:"Sources",askSeeAlso:"See also",askRight:"Was this right?",askYes:"Yes",askNo:"No",askWhy:"What was wrong? (optional)",askSendNote:"Send",askThanks:"Thank you. A reviewer will look at it.",askLicence:"CC BY 4.0"};
