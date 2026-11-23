@@ -92,16 +92,37 @@
     return wrap;
   }
 
+  // The check button shows only while its field is in use or holds text, so empty forms stay quiet.
+  // Only the button hides: a suggestion already shown stays readable. Blur waits a moment so a tap on
+  // the button still lands. Fields cleared by code (after Send) settle on the next focus change anywhere.
+  const quiet = new Set();
+  const settle = (el, wrap) => {
+    const btn = wrap.firstElementChild, out = wrap.lastElementChild;
+    const on = document.activeElement === el || wrap.contains(document.activeElement) || el.value.trim() !== "" || !out.hidden;
+    btn.hidden = !on;
+  };
+  const quietPill = (el, wrap) => {
+    if (wrap._quiet) return settle(el, wrap);
+    wrap._quiet = true;
+    quiet.add([el, wrap]);
+    el.addEventListener("focus", () => settle(el, wrap));
+    el.addEventListener("input", () => settle(el, wrap));
+    el.addEventListener("blur", () => setTimeout(() => settle(el, wrap), 200));
+    wrap.addEventListener("focusout", () => setTimeout(() => settle(el, wrap), 200));
+    settle(el, wrap);
+  };
+  document.addEventListener("focusin", () => quiet.forEach(([el, wrap]) => settle(el, wrap)));
+
   window.pdLang = (el, lang) => {
     if (!el) return;
     el.dataset.lang = lang;
     el.lang = lang === "en" ? "en" : "pck";
     el.spellcheck = lang === "en";
     const canCheck = lang === "en" && el.dataset.check !== "off" && (window.paiteApi || location.pathname.startsWith("/review"));
-    if (canCheck) pill(el).hidden = false;
+    if (canCheck) { const w = pill(el); w.hidden = false; quietPill(el, w); }
     else if (el._gram) el._gram.hidden = true;
     const canSpell = lang === "pai" && el.dataset.check !== "off" && (window.paiteApi || location.pathname.startsWith("/review"));
-    if (canSpell) spellPill(el).hidden = false;
+    if (canSpell) { const w = spellPill(el); w.hidden = false; quietPill(el, w); }
     else if (el._spell) el._spell.hidden = true;
   };
   const init = () => document.querySelectorAll("[data-lang]").forEach((el) => window.pdLang(el, el.dataset.lang));
