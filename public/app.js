@@ -5,8 +5,9 @@
     get(k, d) { try { const v = localStorage.getItem("pd:" + k); return v === null ? d : JSON.parse(v); } catch { return d; } },
     set(k, v) { try { localStorage.setItem("pd:" + k, JSON.stringify(v)); } catch {} },
   };
-  const t = (key) => (S[key].pai ? `${S[key].pai}` : S[key].en);
-  const tBoth = (key) => (S[key].pai ? `${S[key].pai}<small>${S[key].en}</small>` : S[key].en);
+  // A missing key must never stop the page: fall back to empty text.
+  const t = (key) => (!S[key] ? "" : S[key].pai ? `${S[key].pai}` : S[key].en);
+  const tBoth = (key) => (!S[key] ? "" : S[key].pai ? `${S[key].pai}<small>${S[key].en}</small>` : S[key].en);
 
   document.querySelectorAll("[data-s]").forEach((el) => { el.innerHTML = tBoth(el.dataset.s); });
   $("explanation").placeholder = t("explanationHint");

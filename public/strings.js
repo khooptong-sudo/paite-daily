@@ -88,6 +88,8 @@ window.STRINGS = {
   relSame: { pai: "", en: "Same Meaning" },
   relOpposite: { pai: "", en: "Opposite" },
   seenInUse: { pai: "", en: "Seen in Use" },
+  listenTitle: { pai: "", en: "Listen" },
+  listenNote: { pai: "", en: "Hear Paite read aloud" },
   noWord: { pai: "", en: "No words left to try. Come back later." },
   srcNote: { pai: "", en: "From a contributor's note" },
   srcContributed: { pai: "", en: "Added by a contributor" },
