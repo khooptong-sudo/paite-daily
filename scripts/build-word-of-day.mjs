@@ -3,9 +3,10 @@
 //
 //   node scripts/build-word-of-day.mjs [path-to-paite_corpus]   (default ../paite_corpus)
 //
-// A good daily word is one people meet often and whose Paite is short. Commonness comes from how often the English
-// headword appears in the dataset's everyday sentences (weighted x10) and in the World English Bible text. Rare words,
-// long Paite descriptions, function words and a short list of words unsuited to a family front page are left out.
+// A good daily word is one people meet often and whose Paite is short. Only English headwords that occur in the
+// dataset's everyday sentences (community/) are kept, so the list grows as contributors add sentences: rerun this now
+// and then. Ranking: everyday use weighted x10, plus the World English Bible text. Rare words, long Paite
+// descriptions, function words and a short list of words unsuited to a family front page are left out.
 // The order is shuffled once with a fixed seed so neighbouring days do not fall on neighbouring letters.
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -13,8 +14,8 @@ import { join } from "node:path";
 const root = process.argv[2] || join(process.cwd(), "..", "paite_corpus");
 const dict = JSON.parse(readFileSync(join(root, "dictionary", "paite-english-dictionary.json"), "utf8")).dictionary;
 
-const freq = new Map();
-const count = (text, w) => { for (const m of text.toLowerCase().matchAll(/[a-z]+/g)) freq.set(m[0], (freq.get(m[0]) || 0) + w); };
+const freq = new Map(), everyday = new Set();
+const count = (text, w) => { for (const m of text.toLowerCase().matchAll(/[a-z]+/g)) { freq.set(m[0], (freq.get(m[0]) || 0) + w); if (w > 1) everyday.add(m[0]); } };
 count(readFileSync(join(root, "bible", "world-english-bible", "eng-web_vpl.txt"), "utf8"), 1);
 for (const f of readdirSync(join(root, "community")).filter((f) => f.endsWith(".jsonl")))
   for (const line of readFileSync(join(root, "community", f), "utf8").split("\n"))
@@ -43,7 +44,7 @@ for (const e of dict) {
   const parts = pai.split(",").map((s) => s.trim()).filter(Boolean);
   if (parts.length > 2 || parts.some((p) => p.split(/\s+/).length > 3)) continue;
   const f = freq.get(key) || 0;
-  if (f < 12) continue;
+  if (f < 12 || !everyday.has(key)) continue;
   seen.add(key);
   picks.push({ paite: parts.join(", "), english: en.charAt(0).toUpperCase() + en.slice(1).toLowerCase(), type, f });
 }
