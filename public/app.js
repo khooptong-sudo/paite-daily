@@ -11,6 +11,10 @@
 
   document.querySelectorAll("[data-s]").forEach((el) => { el.innerHTML = tBoth(el.dataset.s); });
   $("explanation").placeholder = t("explanationHint");
+  // First visit only: one quiet line saying what the site is. Closing it, or sending a first answer, puts it away for good.
+  const welcomed = () => { $("welcome").hidden = true; store.set("welcomed", 1); };
+  if (!store.get("welcomed", 0)) $("welcome").hidden = false;
+  $("welcome-x").addEventListener("click", welcomed);
   document.querySelectorAll("[data-hint]").forEach((el) => { const h = S[el.dataset.hint]; el.placeholder = h.pai ? `${h.pai} · ${h.en}` : h.en; });
   // Where you learned it: optional, kept on this phone so it is typed once.
   $("place").value = store.get("place", "");
@@ -226,6 +230,7 @@
       if (!r.ok && r.status !== 409) { status(tBoth("offline")); $("send").disabled = false; $("skip").disabled = false; return; }
       if (r.ok) {
         if (window.pdTrack) window.pdTrack("answer");
+        welcomed();
         const n = store.get(todayKey(), 0) + 1;
         store.set(todayKey(), n); showToday(); refreshMe();
         document.dispatchEvent(new CustomEvent("paite:thread"));

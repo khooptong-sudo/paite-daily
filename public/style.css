@@ -993,3 +993,8 @@ body.blue::before { content: ""; display: block; position: fixed; inset: 0; z-in
 .blue .play-row .play { margin-left: 0; }
 .blue .play-row .play.on, .blue .ask-sources .play.on { box-shadow: 0 0 0 3px var(--ring); }
 .blue .rows .w[lang="pck"] { font-family: var(--display); font-weight: 400; font-size: 1.25rem; }
+/* First-visit welcome line (UX item 5): quiet, under the header, closed for good once dismissed. */
+.welcome { position: relative; margin: 4px 0 18px; padding-right: 44px; color: var(--muted); font-size: .92rem; line-height: 1.5; }
+.welcome .welcome-x { position: absolute; top: -6px; right: 0; width: 34px; height: 34px; min-height: 34px; padding: 0; border-radius: 50%; display: grid; place-items: center; font: 400 1.3rem/1 var(--body); color: var(--muted); background: transparent; border: 1px solid var(--line); box-shadow: none; cursor: pointer; }
+.welcome .welcome-x::after { content: ""; position: absolute; inset: -6px; }
+.welcome .welcome-x:hover { color: var(--fg); }
