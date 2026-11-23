@@ -107,6 +107,11 @@ button.pan { font: inherit; text-align: left; cursor: pointer; color: var(--fg);
 .cotd-name { margin: 0; font: 400 1.2rem/1.25 var(--display); }
 .cotd-line { margin: 0; font-size: .9rem; color: var(--muted); }
 .cotd-more { font-size: .85rem; color: var(--fg); }
+.wotd { display: grid; gap: 4px; padding-block: 14px; }
+.wotd h2, .blue .card.wotd h2 { font: 700 .7rem/1.3 var(--body); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.wotd-word { margin: 0; font: 400 1.5rem/1.25 var(--display); }
+.wotd-en { margin: 0; font-style: italic; font-size: .95rem; color: var(--muted); }
+.wotd-src { margin: 0; font-size: .75rem; color: var(--muted); }
 /* Community goal: shared by the front page and Panlate. */
 .goal { display: grid; gap: 6px; font-size: .9rem; color: var(--muted); font-variant-numeric: tabular-nums; }
 .goal b { color: var(--fg); }
@@ -558,9 +563,9 @@ body.blue:not(.cp) main > header h1 { font: 500 .8rem/1.2 var(--body); letter-sp
   -webkit-backdrop-filter: none; backdrop-filter: none; padding: 36px 0; gap: 18px; color: var(--fg);
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .blue .card { background: transparent; } }
-body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback):not(.cotd) { counter-increment: sec; }
+body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback):not(.cotd):not(.wotd) { counter-increment: sec; }
 /* The number sits above its section, on the same left edge as everything else. */
-body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback):not(.cotd)::before {
+body.blue:not(.cp) main:has(> #chat) > .card:not(.chat):not(.whatsnew):not(.week):not(#feedback):not(.cotd):not(.wotd)::before {
   content: counter(sec, decimal-leading-zero); display: block; margin-bottom: -4px;
   font: 400 clamp(2.4rem, 5vw, 3.4rem)/.9 var(--display); color: var(--fg); opacity: .2; letter-spacing: -.03em;
 }

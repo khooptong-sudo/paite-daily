@@ -22,6 +22,7 @@ const SHELL = [
   "/strings.js",
   "/app.js",
   "/askcard.js",
+  "/wotd.js",
   "/play.js",
   "/chat.js",
   "/back.js",

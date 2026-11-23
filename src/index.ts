@@ -14,6 +14,7 @@ import { getSameOpposite, renderSameOpposite, sameOppositeJson } from "./sameopp
 import { getProverbs, proverbsJson, renderProverbs } from "./proverbs";
 import { getRules, renderRules, rulesJson } from "./rules";
 import { keyboardFile } from "./keyboard";
+import { wordOfDay } from "./wordofday";
 import { getPlaces, renderPlaces } from "./places";
 import { errorPage, handleEvent, recordError } from "./observability";
 import { publicAudio } from "./recordings";
@@ -30,6 +31,7 @@ export function createApp(deps: Deps) {
     const { pathname } = new URL(req.url);
     try {
       if (pathname === "/api/event" && req.method === "POST") return await handleEvent(req, env, deps.now());
+      if (pathname === "/api/word-of-day" && req.method === "GET") return wordOfDay(deps.now());
       if (pathname === "/glossary") { const xs = await getGlossary(env); return new Response(renderGlossary(xs, await getWordExtras(env, xs, deps.now()), Number(new URL(req.url).searchParams.get("w")) || 0), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } }); }
       if (pathname === "/proverbs") return new Response(renderProverbs(await getProverbs(env), env.TURNSTILE_SITE_KEY, Number(new URL(req.url).searchParams.get("s")) || 0), { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
       if (pathname === "/proverbs.json") return new Response(proverbsJson(await getProverbs(env)), { headers: { "content-type": "application/json; charset=utf-8", "cache-control": "public, max-age=300" } });
