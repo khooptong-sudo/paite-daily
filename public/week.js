@@ -5,7 +5,13 @@
   const card = document.getElementById("yourwork");
   if (!card) return;
   let w = null, streak = 0;
-  const ywShow = () => { card.hidden = !["week-line", "mypuan", "yw-fixed"].some((i) => !document.getElementById(i).hidden); };
+  // Share draws the shawl or, without one, the week card: hide it when there is neither.
+  const ywShow = () => {
+    const y = document.getElementById("yourwork"), on = (i) => !document.getElementById(i).hidden;
+    if (!y) return;
+    y.hidden = !["week-line", "mypuan", "yw-fixed"].some(on);
+    document.getElementById("yw-share").hidden = !(on("mypuan") || window.ywWeek);
+  };
   const line = () => `${w.sent} sent · ${w.verified} verified · ${w.words} words` + (w.rank ? ` · #${w.rank} this week` : "");
   const show = () => {
     const parts = [];

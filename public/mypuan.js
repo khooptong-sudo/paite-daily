@@ -28,7 +28,13 @@
   const setFor = (name, n) => loom(name, n).set;
   let me = null;
   // The Your Work card shows when any of its parts does; week.js keeps the same check.
-  const ywShow = () => { const y = document.getElementById("yourwork"); if (y) y.hidden = !["week-line", "mypuan", "yw-fixed"].some((i) => !document.getElementById(i).hidden); };
+  // Share draws the shawl or, without one, the week card: hide it when there is neither.
+  const ywShow = () => {
+    const y = document.getElementById("yourwork"), on = (i) => !document.getElementById(i).hidden;
+    if (!y) return;
+    y.hidden = !["week-line", "mypuan", "yw-fixed"].some(on);
+    document.getElementById("yw-share").hidden = !(on("mypuan") || window.ywWeek);
+  };
   // Every section counts as thread: sentences, words, sayings, meanings and recordings.
   const threads = (m) => (m.total || 0) + (m.words || 0) + (m.meanings || 0) + (m.sayings || 0) + (m.recordings || 0);
   // Pau Upa is Paite and takes no English plural.
