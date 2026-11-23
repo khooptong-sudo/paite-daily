@@ -125,11 +125,14 @@ export async function matchChat(env: Env, q: string, fetcher: typeof fetch = fet
 /** The pair the model chose, null for "none means the same", undefined when it was not asked. */
 async function aiPick(env: Env, q: string, asked: string, all: Pair[], fetcher: typeof fetch, now: number, cfg: AIConfig): Promise<Pair | null | undefined> {
   const byKey = new Map(all.map((p) => [key(p.english), p]));
-  const cached = await env.DB.prepare("SELECT pair_key FROM chat_ai WHERE q_key = ?1").bind(asked).first<{ pair_key: string | null }>();
+  const cached = await env.DB.prepare("SELECT pair_key, at FROM chat_ai WHERE q_key = ?1").bind(asked).first<{ pair_key: string | null; at: number }>();
   if (cached) {
-    if (cached.pair_key === null) return null;
-    const p = byKey.get(cached.pair_key);
-    if (p) return p; // else that pair is no longer verified: ask again
+    if (cached.pair_key === null) {
+      if (now - cached.at < 86_400_000) return null; // "none" is remembered for a day only
+    } else {
+      const p = byKey.get(cached.pair_key);
+      if (p) return p; // else that pair is no longer verified: ask again
+    }
   }
   const mine = stems(q);
   const shortlist = all

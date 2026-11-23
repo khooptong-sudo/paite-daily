@@ -72,6 +72,17 @@ export async function aiConfig(env: Env): Promise<AIConfig | null> {
   return cfg;
 }
 
+const FRIENDLY: Record<string, string> = { deepseek: "DeepSeek", glm: "GLM", zai: "GLM", anthropic: "Anthropic", openai: "OpenAI", qwen: "Qwen", openrouter: "OpenRouter" };
+
+/** A public-safe name for the provider in use (for the About page), or null when unknown or none. Never reads or returns the key or address. */
+export async function aiProviderName(env: Env): Promise<string | null> {
+  try {
+    const r = await env.DB.prepare("SELECT provider FROM ai_settings WHERE id = 1 AND key_cipher <> ''").first<{ provider: string }>();
+    if (r) return FRIENDLY[r.provider] ?? null;
+  } catch {}
+  return env.DEEPSEEK_API_KEY ? "DeepSeek" : null;
+}
+
 /** The first JSON object in a reply, even when a model wraps it in prose or a code fence. */
 export function parseJSON(text: string): any {
   try { return JSON.parse(text); } catch {}

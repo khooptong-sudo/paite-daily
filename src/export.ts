@@ -136,7 +136,7 @@ export async function putGlossary(env: Env, fetcher: typeof fetch): Promise<bool
 
 // Voice clips to audio/ in the dataset repo, then audio/recordings.jsonl. One commit per file (contents API), so at most
 // `limit` clips go up per night. A clip that was undone or rejected after it went up is taken down again.
-export async function exportRecordings(env: Env, fetcher: typeof fetch, limit = 10): Promise<{ uploaded: number; removed: number; manifest: boolean } | null> {
+export async function exportRecordings(env: Env, fetcher: typeof fetch, limit = 10): Promise<{ uploaded: number; removed: number; manifest: boolean; skipped?: number[] } | null> {
   const base = `https://api.github.com/repos/${env.CORPUS_REPO}/contents/`;
   const ref = `?ref=${encodeURIComponent(env.CORPUS_BRANCH)}`;
   const put = (path: string, content: string, message: string, sha?: string) => fetcher(base + path, {
@@ -166,9 +166,10 @@ export async function exportRecordings(env: Env, fetcher: typeof fetch, limit = 
   }
 
   const { results: todo } = await env.DB.prepare(`SELECT * FROM (${PUBLISHED_CLIPS}) WHERE exported_at IS NULL ORDER BY id LIMIT ?1`).bind(limit).all<Clip>();
+  const skipped: number[] = [];
   for (const c of todo) {
     const obj = await env.AUDIO.get(c.r2_key);
-    if (!obj) throw new Error(`R2 ${c.r2_key} missing`);
+    if (!obj) { console.error(`audio clip ${c.id}: R2 ${c.r2_key} missing, skipped`); skipped.push(c.id); continue; }
     const path = audioPath(c.id, c.mime);
     const res = await put(path, bytesToBase64(new Uint8Array(await obj.arrayBuffer())), `audio: clip ${c.id} (${c.duration_ms} ms, ${c.consent})`);
     if (!res.ok) {
@@ -194,7 +195,7 @@ export async function exportRecordings(env: Env, fetcher: typeof fetch, limit = 
     if (!res.ok) throw new Error(`GitHub PUT ${mpath} ${res.status}`);
     manifest = true;
   }
-  return todo.length || gone.length || manifest ? { uploaded: todo.length, removed: gone.length, manifest } : null;
+  return todo.length || gone.length || manifest ? { uploaded: todo.length - skipped.length, removed: gone.length, manifest, ...(skipped.length ? { skipped } : {}) } : null;
 }
 
 export async function exportVerified(env: Env, fetcher: typeof fetch): Promise<{ exported: number; path: string | null }> {
@@ -316,4 +317,9 @@ export async function runNightly(env: Env, fetcher: typeof fetch): Promise<void>
   await logged(env, "backup", () => runBackup(env, Date.now()));
   await logged(env, "wiki_backup", () => runWikiBackup(env, Date.now()));
   await logged(env, "visitors", () => runVisitorRollup(env, Date.now()));
+  await logged(env, "prune", async () => {
+    const j = await env.DB.prepare("DELETE FROM job_runs WHERE created_at < datetime('now', '-90 days')").run();
+    const e = await env.DB.prepare("DELETE FROM errors WHERE at < datetime('now', '-30 days')").run();
+    return j.meta.changes || e.meta.changes ? { job_runs: j.meta.changes, errors: e.meta.changes } : null;
+  });
 }

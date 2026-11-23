@@ -98,7 +98,7 @@ const JSONLD = JSON.stringify({
   spatialCoverage: { "@type": "Place", name: "Churachandpur, Manipur, India" },
 });
 
-export function renderAbout(publicWiki = false): string {
+export function renderAbout(publicWiki = false, aiName: string | null = null): string {
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>${TITLE}</title>
@@ -200,7 +200,7 @@ ${STYLE}
 <p>Sayings and idioms (<em>pau upa</em>) are checked the same way, in both directions. A reviewer approves each one before anyone sees it. No computer writes our Paite, and no computer decides what good Paite is.</p>
 
 <h3 style="margin-top:2rem">Where AI helps</h3>
-<p>We do use an AI program (DeepSeek) behind the scenes. Part of what the coffee button pays for is this AI. It never writes, corrects or approves Paite. This is what it does:</p>
+<p>We do use ${aiName ? `an AI program (${aiName})` : "an AI model"} behind the scenes. Part of what the coffee button pays for is this AI. It never writes, corrects or approves Paite. This is what it does:</p>
 <ul class="plain">
 <li>It suggests new everyday English sentences for people to translate.</li>
 <li>It leaves reviewers a short note on each answer. Reviewers can ignore it.</li>

@@ -51,7 +51,7 @@ const FALLBACK = `<!doctype html><html lang="en"><head><meta charset="utf-8"><me
 /** The page a visitor sees when a request throws: HTML for a page, JSON for an API path. */
 export async function errorPage(req: Request, env: Env): Promise<Response> {
   const { pathname } = new URL(req.url);
-  if (pathname.startsWith("/api/") || pathname.startsWith("/review/api/")) {
+  if (pathname.startsWith("/api/") || pathname.startsWith("/review/api/") || pathname.startsWith("/admin/api/")) {
     return json({ error: "server_error" }, 500);
   }
   try {

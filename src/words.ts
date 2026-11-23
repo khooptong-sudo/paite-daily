@@ -4,14 +4,24 @@ import { ownBinds, ownSql, type Me } from "./own";
 
 const opt = (v: unknown, max: number) => (v === undefined || v === null || v === "" ? null : cleanText(v, max));
 
+// Case-insensitive for every letter, not just ASCII: SQLite's lower() leaves Ṭ, É and the like alone.
+const fold = (s: string) => s.trim().normalize("NFC").toLowerCase();
+const len = (s: string) => [...s].length;
+
+/** True when this word and meaning are already in the list or waiting/rejected as a submission. */
+async function wordExists(env: Env, paite: string, english: string): Promise<boolean> {
+  const { results } = await env.DB.prepare(
+    `SELECT paite, english FROM glossary WHERE length(paite) BETWEEN ?1 AND ?2
+     UNION ALL SELECT paite, english FROM word_submissions WHERE status IN ('pending', 'rejected') AND length(paite) BETWEEN ?1 AND ?2`,
+  ).bind(len(paite) - 1, len(paite) + 1).all<{ paite: string; english: string }>();
+  return results.some((r) => fold(r.paite) === fold(paite) && fold(r.english) === fold(english));
+}
+
 // POST /api/word, after the contributor session check. Duplicates answer 200 without inserting.
 export async function submitWord(env: Env, phoneId: string, b: Record<string, unknown>): Promise<Response> {
   const paite = cleanText(b.paite, 60), english = cleanText(b.english, 120), note = opt(b.note, 200), name = opt(b.name, 60);
   if (!paite || !english || (b.note && !note) || (b.name && !name)) return json({ error: "bad_request" }, 400);
-  const dup = await env.DB.prepare(
-    `SELECT 1 FROM glossary WHERE lower(paite) = lower(?1) AND lower(english) = lower(?2)
-     UNION ALL SELECT 1 FROM word_submissions WHERE status IN ('pending', 'rejected') AND lower(paite) = lower(?1) AND lower(english) = lower(?2)`,
-  ).bind(paite, english).first();
+  const dup = await wordExists(env, paite, english);
   if (!dup) await env.DB.prepare("INSERT INTO word_submissions (paite, english, note, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5)").bind(cap(paite), cap(english), note, phoneId, name).run();
   return json({ ok: true });
 }
@@ -34,10 +44,7 @@ export async function submitMeaning(env: Env, phoneId: string, b: Record<string,
   const word = await env.DB.prepare("SELECT paite FROM glossary WHERE id = ?1 AND hidden = 0").bind(b.id).first<{ paite: string }>();
   if (!word) return json({ error: "not_found" }, 404);
   const paite = cap(word.paite);
-  const dup = await env.DB.prepare(
-    `SELECT 1 FROM glossary WHERE lower(paite) = lower(?1) AND lower(english) = lower(?2)
-     UNION ALL SELECT 1 FROM word_submissions WHERE status IN ('pending', 'rejected') AND lower(paite) = lower(?1) AND lower(english) = lower(?2)`,
-  ).bind(paite, english).first();
+  const dup = await wordExists(env, paite, english);
   if (!dup) await env.DB.prepare("INSERT INTO word_submissions (paite, english, note, phone_id, contributor_name, source) VALUES (?1, ?2, ?3, ?4, ?5, 'meaning')")
     .bind(paite, cap(english), note, phoneId, name).run();
   return json({ ok: true });
@@ -56,11 +63,14 @@ export async function nextLinkWord(env: Env, phoneId: string): Promise<{ id: num
 
 /** One pending link, unless the words are equal or the pair is already there in either direction. */
 async function insertLink(env: Env, phoneId: string, paite: string, other: string | null, kind: "same" | "opposite", name: string | null): Promise<void> {
-  if (!other || other.trim().toLowerCase() === paite.trim().toLowerCase()) return;
-  const dup = await env.DB.prepare(
-    `SELECT 1 FROM word_links WHERE kind = ?3 AND ((lower(paite) = lower(?1) AND lower(other) = lower(?2)) OR (lower(paite) = lower(?2) AND lower(other) = lower(?1)))`,
-  ).bind(paite, other, kind).first();
-  if (!dup) await env.DB.prepare("INSERT INTO word_links (paite, other, kind, phone_id, contributor_name) VALUES (?1, ?2, ?3, ?4, ?5)").bind(paite, cap(other), kind, phoneId, name).run();
+  if (!other || fold(other) === fold(paite)) return;
+  // Links from before pair_key existed have no key: look at those the slow way.
+  const { results } = await env.DB.prepare("SELECT paite, other FROM word_links WHERE kind = ?1 AND pair_key IS NULL").bind(kind).all<{ paite: string; other: string }>();
+  const a = fold(paite), b = fold(other);
+  if (results.some((r) => (fold(r.paite) === a && fold(r.other) === b) || (fold(r.paite) === b && fold(r.other) === a))) return;
+  // The unique key makes a second request at the same moment insert nothing.
+  await env.DB.prepare("INSERT OR IGNORE INTO word_links (paite, other, kind, phone_id, contributor_name, pair_key) VALUES (?1, ?2, ?3, ?4, ?5, ?6)")
+    .bind(paite, cap(other), kind, phoneId, name, [a, b].sort().join("\u0001")).run();
 }
 
 /** POST /api/link: a word with the same or the opposite meaning. Waits for a reviewer. Duplicates answer 200 without inserting. */
