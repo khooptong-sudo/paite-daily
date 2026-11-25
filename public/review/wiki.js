@@ -45,6 +45,8 @@
   };
 
   // ---- 1. Sources
+  // A source's kind as a reviewer reads it. "Published article" keeps a reference article apart from the wiki's own Articles card.
+  const KIND_TEXT = { book: "Book", article: "Published article", web: "Web page", other: "Other" };
   const secSources = $("sec-sources");
   const picker = el("select", { "aria-label": "Status" });
   for (const [s, label] of [["pending", "Pending"], ["approved", "Approved"], ["rejected", "Rejected"], ["withdrawn", "Withdrawn"]]) picker.append(el("option", { value: s, text: label }));
@@ -66,7 +68,7 @@
 
   function sourceRow(s, status) {
     const detail = el("div");
-    const meta = [s.kind, s.rights, s.author, s.year, s.chunks + " passages", "added by " + s.added_by, date(s.created_at)].filter((x) => x !== null && x !== undefined && x !== "");
+    const meta = [KIND_TEXT[s.kind] || s.kind, s.rights, s.author, s.year, s.chunks + " passages", "added by " + s.added_by, date(s.created_at)].filter((x) => x !== null && x !== undefined && x !== "");
     const title = el("button", { class: "title", type: "button", text: s.title, "aria-expanded": "false" });
     const row = el("div", { class: "item" }, title, el("p", { class: "meta", text: meta.join(" · ") }), detail);
     title.addEventListener("click", async () => {
@@ -119,7 +121,7 @@
   const field = (label, input) => { const id = "f-" + label.replace(/\W+/g, "-").toLowerCase(); input.id = id; return [el("label", { for: id, text: label }), input]; };
   // Each option is [value sent to the server, label shown]. Labels start with a capital, site-wide.
   const pick = (opts) => { const s = el("select"); for (const [value, label] of opts) s.append(el("option", { value, text: label })); return s; };
-  const kind = pick([["book", "Book"], ["article", "Article"], ["web", "Web page"], ["other", "Other"]]);
+  const kind = pick(Object.entries(KIND_TEXT));
   const rights = pick([["open", "Open"], ["permission", "Permission"], ["quote-only", "Quote only"], ["index-only", "Index only"]]);
   const RIGHTS_HELP = {
     open: "Open: free to use, quote and share in full.",
@@ -251,7 +253,7 @@
     clear(artList);
     const r = await call("/articles");
     if (!r.ok) { note(artList, problem(r)); return; }
-    if (!r.data.articles.length) { artList.append(el("p", { class: "empty", text: "No articles yet." })); return; }
+    if (!r.data.articles.length) { artList.append(el("p", { class: "empty", text: "No articles yet. Sources you add, published articles included, are under Sources above." })); return; }
     for (const a of r.data.articles) {
       const open = el("button", { class: "title", type: "button", text: a.title, on: { click: () => openArticle(a.id) } });
       const tags = el("p", { class: "meta" }, el("span", { class: "tag", text: STATUS_TEXT[a.status] || a.status }), a.stale ? el("span", { class: "tag", text: "sources changed" }) : null, el("span", { text: date(a.updatedAt) }));
