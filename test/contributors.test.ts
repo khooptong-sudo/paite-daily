@@ -45,14 +45,14 @@ describe("contributors", () => {
     expect(JSON.parse(text)).toEqual({
       goal: { verified: 3, goal: 1000 },
       contributors: [{ name: "Mang & Co", sentences: 3, words: 0, sentencesWeek: 0, wordsWeek: 0, verified: 3, weekly: 0, badge: null, reviewer: true }],
-      reviewers: [{ name: "Rev One", decisions: 1, weekly: 1 }, { name: "Owner", decisions: 0, weekly: 0 }],
+      reviewers: [{ name: "Rev One", decisions: 1, weekly: 1 }, { name: "Min Khooptong", decisions: 0, weekly: 0 }],
       thisWeek: { contributors: [], reviewers: [{ name: "Rev One", n: 1, badge: null }] },
-      allTime: { contributors: [{ name: "Mang & Co", n: 3, sentences: 3, words: 0, badge: null, reviewer: true }], reviewers: [{ name: "Rev One", n: 1, badge: null }, { name: "Owner", n: 0, badge: null }] },
+      allTime: { contributors: [{ name: "Mang & Co", n: 3, sentences: 3, words: 0, badge: null, reviewer: true }], reviewers: [{ name: "Rev One", n: 1, badge: null }, { name: "Min Khooptong", n: 0, badge: null }] },
     });
     expect(text).not.toMatch(/aaaaaaaa|example\.org/);
     const page = await (await call("/contributors")).text();
     expect(page).toContain("Mang &amp; Co");
-    expect(page).toContain("Owner");
+    expect(page).toContain("Min Khooptong");
     expect(page).not.toMatch(/aaaaaaaa|example\.org/);
     expect(page).toContain('<footer class="foot">');
     expect(page).toContain("Buy us Coffee");

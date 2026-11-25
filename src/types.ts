@@ -8,6 +8,7 @@ export interface Env {
   TURNSTILE_SITE_KEY: string;
   REVIEWERS: string;
   OWNER_EMAIL: string;
+  OWNER_NAME?: string; // the owner's name on review pages and credits when no reviewer entry names them
   CORPUS_REPO: string;
   CORPUS_BRANCH: string;
   COMMUNITY_GOAL: string;

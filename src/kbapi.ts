@@ -1,3 +1,4 @@
+import { publicReviewerNames } from "./access";
 import { addChunks, addSource, chunkText, decideSource, getSource, listSources, readChunks, readNewSource, sha256Hex, STATUSES, withdrawSource, type SourceStatus } from "./kb";
 import { draftArticle, getArticle, listArticles, saveArticle, setStatus } from "./kbarticle";
 import { dismissQuestion, listFlagged, listOpen } from "./kbask";
@@ -35,15 +36,19 @@ export async function handleWikiApi(
   env: Env, method: string, sub: string, q: URLSearchParams, b: Record<string, unknown>, who: { email: string; owner: boolean }, now: number, fetcher: typeof fetch = fetch,
 ): Promise<Response | null> {
   if (!b || typeof b !== "object") b = {};
+  // Who added, decided, wrote or published something goes out as the person's name, never their email.
   if (sub === "/sources" && method === "GET") {
     const status = q.get("status") ?? "pending";
     if (!STATUSES.includes(status as SourceStatus)) return json({ error: "bad_request" }, 400);
-    return json({ sources: await listSources(env, status as SourceStatus) });
+    const name = await publicReviewerNames(env);
+    return json({ sources: (await listSources(env, status as SourceStatus)).map((s) => ({ ...s, added_by: name(s.added_by), decided_by: name(s.decided_by) })) });
   }
   if (sub === "/source" && method === "GET") {
     const id = Number(q.get("id"));
     const source = isId(id) ? await getSource(env, id) : null;
-    return source ? json({ source }) : json({ error: "not_found" }, 404);
+    if (!source) return json({ error: "not_found" }, 404);
+    const name = await publicReviewerNames(env);
+    return json({ source: { ...source, added_by: name(source.added_by), decided_by: name(source.decided_by) } });
   }
   if (sub === "/source" && method === "POST") {
     const s = readNewSource(b);
@@ -75,11 +80,16 @@ export async function handleWikiApi(
     const r = await withdrawSource(env, b.id, who, reason, now);
     return "ok" in r ? json({ ok: true }) : fail(r.error);
   }
-  if (sub === "/articles" && method === "GET") return json({ articles: await listArticles(env) });
+  if (sub === "/articles" && method === "GET") {
+    const name = await publicReviewerNames(env);
+    return json({ articles: (await listArticles(env)).map((a) => ({ ...a, createdBy: name(a.createdBy), publishedBy: name(a.publishedBy) })) });
+  }
   if (sub === "/article" && method === "GET") {
     const id = Number(q.get("id"));
     const article = isId(id) ? await getArticle(env, id) : null;
-    return article ? json({ article }) : json({ error: "not_found" }, 404);
+    if (!article) return json({ error: "not_found" }, 404);
+    const name = await publicReviewerNames(env);
+    return json({ article: { ...article, createdBy: name(article.createdBy), publishedBy: name(article.publishedBy), revs: article.revs.map((v) => ({ ...v, author: name(v.author) })) } });
   }
   if (sub === "/articles/draft" && method === "POST") {
     const r = await draftArticle(env, fetcher, { title: b.title, topic: b.topic }, who, now);

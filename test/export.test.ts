@@ -1,6 +1,7 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
 import { exportVerified, retireOwnerTranslations, runNightly, toBase64Utf8 } from "../src/export";
+import { activeReviewers } from "../src/access";
 import { addSentences } from "./helpers";
 
 type Put = { url: string; body: { message: string; content: string; branch: string } };
@@ -148,11 +149,12 @@ it("runNightly logs both jobs, even when one fails", async () => {
 });
 
 describe("export verified_by", () => {
-  it("resolves names for more than 50 rows with the names map, owners without a name show as Owner", async () => {
+  it("resolves names for more than 50 rows with the names map, owners show as OWNER_NAME, or Owner when it is unset", async () => {
     for (let i = 0; i < 55; i++) await verified(`Sentence ${i}.`, `Paite ${i}.`);
     await env.DB.prepare("UPDATE reviews SET reviewer_email = 'Owner@Example.org' WHERE id % 5 = 0").run();
     await env.DB.prepare("UPDATE reviews SET reviewer_email = 'gone@example.org' WHERE id % 7 = 0").run();
     const saved = env.REVIEWERS;
+    const savedName = env.OWNER_NAME;
     env.REVIEWERS = JSON.stringify({ "rev@example.org": "Rev One" });
     try {
       const gh = github();
@@ -160,7 +162,9 @@ describe("export verified_by", () => {
       const lines = gh.puts.flatMap((p) => decode(p.body.content).trim().split("\n")).map((l) => JSON.parse(l));
       expect(lines).toHaveLength(55);
       const by = new Set(lines.map((l) => l.verified_by));
-      expect([...by].sort()).toEqual(["Owner", "Rev One", "Reviewer"]);
-    } finally { env.REVIEWERS = saved; }
+      expect([...by].sort()).toEqual(["Min Khooptong", "Rev One", "Reviewer"]);
+      env.OWNER_NAME = undefined;
+      expect((await activeReviewers(env)).find((r) => r.source === "owner" && !r.listed)?.name).toBe("Owner");
+    } finally { env.REVIEWERS = saved; env.OWNER_NAME = savedName; }
   }, 30_000); // 55 rows seeded one by one: slow when the whole suite runs at once
 });

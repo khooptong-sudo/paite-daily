@@ -64,6 +64,18 @@ describe("wiki search query", () => {
   });
 });
 describe("wiki sources for reviewers", () => {
+  it("source and article lists carry names, never emails; the owner shows as OWNER_NAME", async () => {
+    await sourceWithText(OWNER, "Owner text.", { ...BOOK, title: "Owner book" });
+    await sourceWithText("stranger@example.org", "Stranger text.", { ...BOOK, title: "Stranger book" });
+    const r = await rev("/review/api/wiki/sources?status=pending");
+    const body = await r.text();
+    expect(body).not.toContain("@");
+    const by = new Map(JSON.parse(body).sources.map((s: { title: string; added_by: string }) => [s.title, s.added_by]));
+    expect(by.get("Owner book")).toBe("Min Khooptong");
+    expect(by.get("Stranger book")).toBe("a reviewer");
+    const one = await (await rev("/review/api/wiki/source?id=" + JSON.parse(body).sources[0].id)).text();
+    expect(one).not.toContain("@");
+  });
   it("a reviewer's new source with text is pending and not searchable", async () => {
     const r = await rev("/review/api/wiki/source", { ...BOOK, title: "Pending book", text: "Elephants walk slowly through the forest.\n\nThey drink at dusk." });
     expect(r.status).toBe(200);
